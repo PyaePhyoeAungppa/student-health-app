@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { readDb, writeDb } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
 export async function GET() {
@@ -9,18 +9,16 @@ export async function GET() {
     if (!session || (session.user as any).role !== "SYSTEM_ADMIN")
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const users = await prisma.user.findMany({
-        include: { school: true },
-        orderBy: { createdAt: "desc" },
-    });
-
-    // Remove passwords before sending to client
-    const safeUsers = users.map(u => {
+    const db = readDb();
+    const result = db.users.map(u => {
         const { passwordHash, ...safeUser } = u;
-        return safeUser;
+        return {
+            ...safeUser,
+            school: db.schools.find(s => s.id === u.schoolId)
+        };
     });
 
-    return NextResponse.json(safeUsers);
+    return NextResponse.json(result);
 }
 
 export async function POST(req: Request) {
@@ -30,29 +28,27 @@ export async function POST(req: Request) {
 
     const { username, password, role, fullName, email, schoolId } = await req.json();
 
-    if (!username || !password || !role) {
-        return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const db = readDb();
+    if (db.users.some(u => u.username === username)) {
+        return NextResponse.json({ error: "Username already exists" }, { status: 400 });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const newUser = {
+        id: `user-${Date.now()}`,
+        username,
+        passwordHash,
+        role,
+        fullName,
+        email,
+        schoolId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
 
-    try {
-        const user = await prisma.user.create({
-            data: {
-                username,
-                passwordHash,
-                role,
-                fullName,
-                email,
-                ...(schoolId ? { schoolId } : {}),
-            },
-        });
-        const { passwordHash: _, ...safeUser } = user;
-        return NextResponse.json(safeUser, { status: 201 });
-    } catch (e: any) {
-        if (e.code === "P2002") {
-            return NextResponse.json({ error: "Username already exists" }, { status: 400 });
-        }
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-    }
+    db.users.push(newUser);
+    writeDb(db);
+
+    const { passwordHash: _, ...safeUser } = newUser;
+    return NextResponse.json(safeUser, { status: 201 });
 }

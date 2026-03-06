@@ -1,52 +1,49 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { readDb, writeDb } from "@/lib/db";
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const search = searchParams.get("search") || "";
-    const schoolId = searchParams.get("schoolId");
-    const classFilter = searchParams.get("class");
+    const search = searchParams.get("search")?.toLowerCase() || "";
+    const schoolIdParam = searchParams.get("schoolId");
 
     const role = (session.user as any).role;
     const userSchoolId = (session.user as any).schoolId;
 
-    let whereClause: any = {};
+    const db = readDb();
+    let students = db.students;
+
+    // Filter by school if applicable
     if (role === "SCHOOL_STAFF") {
-        whereClause.schoolId = userSchoolId;
-    } else if (schoolId) {
-        whereClause.schoolId = schoolId;
+        students = students.filter(s => s.schoolId === userSchoolId);
+    } else if (schoolIdParam) {
+        students = students.filter(s => s.schoolId === schoolIdParam);
     }
-    if (classFilter) whereClause.class = classFilter;
+
+    // Search filter
     if (search) {
-        whereClause.OR = [
-            { firstName: { contains: search } },
-            { surName: { contains: search } },
-            { studentId: { contains: search } },
-        ];
+        students = students.filter(s =>
+            s.firstName.toLowerCase().includes(search) ||
+            s.surName.toLowerCase().includes(search) ||
+            s.studentId.toLowerCase().includes(search)
+        );
     }
 
-    const [students, total] = await Promise.all([
-        prisma.student.findMany({
-            where: whereClause,
-            include: {
-                school: true,
-                healthRecords: { orderBy: { recordedAt: "desc" }, take: 1 },
-            },
-            skip: (page - 1) * limit,
-            take: limit,
-            orderBy: { class: "asc" },
-        }),
-        prisma.student.count({ where: whereClause }),
-    ]);
+    // Map schools for UI
+    const result = students.map(s => ({
+        ...s,
+        school: db.schools.find(sch => sch.id === s.schoolId),
+        healthRecords: db.healthRecords.filter(hr => hr.studentId === s.id).sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())
+    }));
 
-    return NextResponse.json({ students, total, page, totalPages: Math.ceil(total / limit) });
+    return NextResponse.json({
+        students: result,
+        total: result.length,
+    });
 }
 
 export async function POST(req: Request) {
@@ -54,9 +51,21 @@ export async function POST(req: Request) {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const role = (session.user as any).role;
-    if (role === "SCHOOL_STAFF") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const userSchoolId = (session.user as any).schoolId;
 
     const data = await req.json();
-    const student = await prisma.student.create({ data });
-    return NextResponse.json(student, { status: 201 });
+    const db = readDb();
+
+    const newStudent = {
+        ...data,
+        id: `stu-${Date.now()}`,
+        schoolId: role === "SCHOOL_STAFF" ? userSchoolId : data.schoolId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
+
+    db.students.push(newStudent);
+    writeDb(db);
+
+    return NextResponse.json(newStudent, { status: 201 });
 }

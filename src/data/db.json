@@ -1,0 +1,94 @@
+{
+    "schools": [
+        {
+            "id": "school-1",
+            "name": "โรงเรียนบางกอกพิทยา",
+            "province": "Bangkok",
+            "address": "123 สุขุมวิท กรุงเทพฯ 10110",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        },
+        {
+            "id": "school-2",
+            "name": "โรงเรียนเชียงใหม่วิทยา",
+            "province": "Chiang Mai",
+            "address": "456 นิมมานเหมินทร์ เชียงใหม่ 50200",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        }
+    ],
+    "users": [
+        {
+            "id": "user-admin",
+            "username": "admin",
+            "passwordHash": "$2b$10$wTf7Jz/3NqYp7j/z2P/uOe7G1G8G5G5G5G5G5G5G5G5G5G5G5G5G",
+            "role": "SYSTEM_ADMIN",
+            "fullName": "System Administrator",
+            "email": "admin@healthsystem.th",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        },
+        {
+            "id": "user-company",
+            "username": "company1",
+            "passwordHash": "$2b$10$wTf7Jz/3NqYp7j/z2P/uOe7G1G8G5G5G5G5G5G5G5G5G5G5G5G5G",
+            "role": "COMPANY_STAFF",
+            "fullName": "บริษัท เจ้าหน้าที่ ข้อมูล",
+            "email": "staff@healthsystem.th",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        },
+        {
+            "id": "user-school",
+            "username": "school1",
+            "passwordHash": "$2b$10$wTf7Jz/3NqYp7j/z2P/uOe7G1G8G5G5G5G5G5G5G5G5G5G5G5G5G",
+            "role": "SCHOOL_STAFF",
+            "fullName": "ครู สมจิตร",
+            "email": "teacher@bangkokschool.th",
+            "schoolId": "school-1",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        }
+    ],
+    "students": [
+        {
+            "id": "stu-1",
+            "studentId": "STU001",
+            "firstName": "สมชาย",
+            "surName": "ใจดี",
+            "gender": "Male",
+            "class": "ม.1/1",
+            "orderNumber": 1,
+            "dob": "2012-03-15T00:00:00.000Z",
+            "schoolId": "school-1",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        },
+        {
+            "id": "stu-2",
+            "studentId": "STU002",
+            "firstName": "สมหญิง",
+            "surName": "รักเรียน",
+            "gender": "Female",
+            "class": "ม.1/1",
+            "orderNumber": 2,
+            "dob": "2012-07-22T00:00:00.000Z",
+            "schoolId": "school-1",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        }
+    ],
+    "healthRecords": [
+        {
+            "id": "hr-1",
+            "studentId": "stu-1",
+            "academicYear": "2024",
+            "underlyingDisease": null,
+            "drugAllergy": null,
+            "bloodType": "A",
+            "weight": 55.4,
+            "height": 165.2,
+            "bmi": 20.3,
+            "hearingTest": "NORMAL",
+            "bodyExamination": "ปกติ",
+            "visionPrescription": "20/20",
+            "colorBlindness": "NORMAL",
+            "xRayResult": "ปกติ",
+            "recordedAt": "2024-03-07T04:28:44.000Z",
+            "createdAt": "2024-03-07T04:28:44.000Z"
+        }
+    ]
+}
