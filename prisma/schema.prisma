@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SYSTEM_ADMIN
+  COMPANY_STAFF
+  SCHOOL_STAFF
+}
+
+enum BloodType {
+  A
+  B
+  AB
+  O
+  UNKNOWN
+}
+
+enum TestResult {
+  NORMAL
+  ABNORMAL
+}
+
+model School {
+  id        String   @id @default(cuid())
+  name      String
+  province  String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  students  Student[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         Role
+  fullName     String?
+  email        String?
+  schoolId     String?
+  school       School?  @relation(fields: [schoolId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Student {
+  id                String       @id @default(cuid())
+  studentId         String       @unique
+  orderNumber       Int
+  class             String
+  gender            String
+  firstName         String
+  surName           String
+  dob               DateTime
+  schoolId          String
+  school            School       @relation(fields: [schoolId], references: [id])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  healthRecords     HealthRecord[]
+}
+
+model HealthRecord {
+  id                  String     @id @default(cuid())
+  studentId           String
+  student             Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  recordedAt          DateTime   @default(now())
+  academicYear        String?
+  underlyingDisease   String?
+  drugAllergy         String?
+  bloodType           BloodType  @default(UNKNOWN)
+  weight              Float?
+  height              Float?
+  bmi                 Float?
+  hearingTest         TestResult @default(NORMAL)
+  bodyExamination     String?
+  visionPrescription  String?
+  colorBlindness      TestResult @default(NORMAL)
+  xRayResult          String?
+  additionalNotes     String?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
