@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { readDb, writeDb } from "@/lib/db";
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const student = await prisma.student.findUnique({
-        where: { id: params.id },
-        include: {
-            school: true,
-            healthRecords: { orderBy: { recordedAt: "desc" } },
-        },
-    });
+    const db = readDb();
+    const student = db.students.find(s => s.id === params.id);
 
     if (!student) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -23,7 +18,16 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    return NextResponse.json(student);
+    // Populate school and health records
+    const result = {
+        ...student,
+        school: db.schools.find(s => s.id === student.schoolId),
+        healthRecords: db.healthRecords
+            .filter(hr => hr.studentId === student.id)
+            .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())
+    };
+
+    return NextResponse.json(result);
 }
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
@@ -34,9 +38,19 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     if (role === "SCHOOL_STAFF") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const data = await req.json();
-    const { schoolId, ...updateData } = data;
-    const student = await prisma.student.update({ where: { id: params.id }, data: updateData });
-    return NextResponse.json(student);
+    const db = readDb();
+    const index = db.students.findIndex(s => s.id === params.id);
+
+    if (index === -1) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    db.students[index] = {
+        ...db.students[index],
+        ...data,
+        updatedAt: new Date().toISOString()
+    };
+
+    writeDb(db);
+    return NextResponse.json(db.students[index]);
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
@@ -46,6 +60,15 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     const role = (session.user as any).role;
     if (role !== "SYSTEM_ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    await prisma.student.delete({ where: { id: params.id } });
+    const db = readDb();
+    const studentIndex = db.students.findIndex(s => s.id === params.id);
+
+    if (studentIndex !== -1) {
+        // Also delete related health records
+        db.healthRecords = db.healthRecords.filter(hr => hr.studentId !== params.id);
+        db.students.splice(studentIndex, 1);
+        writeDb(db);
+    }
+
     return NextResponse.json({ success: true });
 }
