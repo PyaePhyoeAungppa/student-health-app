@@ -45,7 +45,7 @@ async function main() {
 
     await prisma.user.create({
         data: {
-            username: "company_staff",
+            username: "company1",
             passwordHash: staffHash,
             role: "COMPANY_STAFF",
             fullName: "บริษัท เจ้าหน้าที่ ข้อมูล",
@@ -55,7 +55,7 @@ async function main() {
 
     await prisma.user.create({
         data: {
-            username: "school_staff",
+            username: "school1",
             passwordHash: schoolHash,
             role: "SCHOOL_STAFF",
             fullName: "ครู สมจิตร",

@@ -105,8 +105,8 @@ export default function LoginPage() {
                         <p className="text-xs font-medium text-muted-foreground mb-2">Demo accounts:</p>
                         <div className="space-y-1 text-xs text-muted-foreground font-mono">
                             <div>admin / admin123 <span className="text-primary ml-2">System Admin</span></div>
-                            <div>company_staff / staff123 <span className="text-accent ml-2">Company Staff</span></div>
-                            <div>school_staff / school123 <span className="text-green-400 ml-2">School Staff</span></div>
+                            <div>company1 / staff123 <span className="text-accent ml-2">Company Staff</span></div>
+                            <div>school1 / school123 <span className="text-green-400 ml-2">School Staff</span></div>
                         </div>
                     </div>
                 </div>
