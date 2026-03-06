@@ -25,7 +25,7 @@ export default function StudentPortalPage() {
         if (!res.ok) {
             setError(data.error || "An error occurred.");
         } else {
-            setResult(data.student);
+            setResult(data);
         }
     };
 
