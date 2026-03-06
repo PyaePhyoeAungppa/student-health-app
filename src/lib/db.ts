@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-const DB_PATH = path.join(process.cwd(), "src/data/db.json");
+const DB_PATH = path.join(process.cwd(), "db.json");
+console.log(`[DB-DEBUG] Database path: ${DB_PATH}`);
 
 export interface Database {
     schools: any[];

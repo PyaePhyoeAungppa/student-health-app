@@ -15,19 +15,30 @@ export const authOptions: NextAuthOptions = {
             async authorize(credentials) {
                 if (!credentials?.username || !credentials?.password) return null;
                 try {
-                    const { users, schools } = readDb();
-                    const user = users.find(u => u.username === credentials.username);
+                    console.log(`[AUTH-DEBUG] Login attempt: username="${credentials.username}"`);
+                    const db = readDb();
 
+                    if (!db || !db.users) {
+                        console.error("[AUTH-DEBUG] Database or users array is missing!");
+                        return null;
+                    }
+
+                    const user = db.users.find(u => u.username === credentials.username);
                     if (!user) {
+                        console.log(`[AUTH-DEBUG] User NOT found in JSON for: ${credentials.username}`);
                         return null;
                     }
 
+                    console.log(`[AUTH-DEBUG] User found: ${user.username}. Comparing password...`);
                     const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
+
                     if (!isValid) {
+                        console.log(`[AUTH-DEBUG] Password MISMATCH for: ${credentials.username}`);
                         return null;
                     }
 
-                    const school = schools.find(s => s.id === user.schoolId);
+                    const school = db.schools.find(s => s.id === user.schoolId);
+                    console.log(`[AUTH-DEBUG] Login SUCCESS: ${user.username}`);
 
                     return {
                         id: user.id,
@@ -38,7 +49,7 @@ export const authOptions: NextAuthOptions = {
                         schoolName: school?.name,
                     };
                 } catch (error) {
-                    console.error("[AUTH] JSON DB error during login:", error);
+                    console.error("[AUTH-DEBUG] ERROR during authorize:", error);
                     return null;
                 }
             },
