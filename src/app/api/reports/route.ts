@@ -17,35 +17,20 @@ export async function GET(req: Request) {
     const where: any = {};
     if (effectiveSchoolId) where.schoolId = effectiveSchoolId;
 
+    const hrWhere: any = {};
+    if (effectiveSchoolId) hrWhere.student = { schoolId: effectiveSchoolId };
+
     const [
         totalStudents,
         totalRecords,
-        bmiStats,
-        hearingStats,
-        colorBlindStats,
-        bloodTypeStats,
-        genderStats,
+        allRecords,
+        genderStatsRaw,
     ] = await Promise.all([
         prisma.student.count({ where }),
-        prisma.healthRecord.count({ where: { student: { schoolId: effectiveSchoolId } } }),
+        prisma.healthRecord.count({ where: hrWhere }),
         prisma.healthRecord.findMany({
-            where: { student: { schoolId: effectiveSchoolId }, bmi: { not: null } },
-            select: { bmi: true },
-        }),
-        prisma.healthRecord.groupBy({
-            by: ["hearingTest"],
-            where: { student: { schoolId: effectiveSchoolId } },
-            _count: true,
-        }),
-        prisma.healthRecord.groupBy({
-            by: ["colorBlindness"],
-            where: { student: { schoolId: effectiveSchoolId } },
-            _count: true,
-        }),
-        prisma.healthRecord.groupBy({
-            by: ["bloodType"],
-            where: { student: { schoolId: effectiveSchoolId } },
-            _count: true,
+            where: hrWhere,
+            select: { bmi: true, hearingTest: true, colorBlindness: true, bloodType: true },
         }),
         prisma.student.groupBy({
             by: ["gender"],
@@ -54,12 +39,28 @@ export async function GET(req: Request) {
         }),
     ]);
 
-    const bmis = bmiStats.map((r) => r.bmi!).filter(Boolean);
-    const avgBmi = bmis.length ? parseFloat((bmis.reduce((a, b) => a + b, 0) / bmis.length).toFixed(1)) : 0;
-    const underweight = bmis.filter((b) => b < 18.5).length;
-    const normalWeight = bmis.filter((b) => b >= 18.5 && b < 25).length;
-    const overweight = bmis.filter((b) => b >= 25 && b < 30).length;
-    const obese = bmis.filter((b) => b >= 30).length;
+    const hearingMap: Record<string, number> = {};
+    const colorBlindMap: Record<string, number> = {};
+    const bloodTypeMap: Record<string, number> = {};
+
+    allRecords.forEach((r: any) => {
+        if (r.hearingTest) hearingMap[r.hearingTest] = (hearingMap[r.hearingTest] || 0) + 1;
+        if (r.colorBlindness) colorBlindMap[r.colorBlindness] = (colorBlindMap[r.colorBlindness] || 0) + 1;
+        if (r.bloodType) bloodTypeMap[r.bloodType] = (bloodTypeMap[r.bloodType] || 0) + 1;
+    });
+
+    const hearingStats = Object.keys(hearingMap).map(k => ({ hearingTest: k, _count: hearingMap[k] }));
+    const colorBlindStats = Object.keys(colorBlindMap).map(k => ({ colorBlindness: k, _count: colorBlindMap[k] }));
+    const bloodTypeStats = Object.keys(bloodTypeMap).map(k => ({ bloodType: k, _count: bloodTypeMap[k] }));
+
+    const genderStats = genderStatsRaw;
+
+    const bmis = allRecords.map((r: any) => r.bmi!).filter(Boolean);
+    const avgBmi = bmis.length ? parseFloat((bmis.reduce((a: number, b: number) => a + b, 0) / bmis.length).toFixed(1)) : 0;
+    const underweight = bmis.filter((b: number) => b < 18.5).length;
+    const normalWeight = bmis.filter((b: number) => b >= 18.5 && b < 25).length;
+    const overweight = bmis.filter((b: number) => b >= 25 && b < 30).length;
+    const obese = bmis.filter((b: number) => b >= 30).length;
 
     return NextResponse.json({
         totalStudents,

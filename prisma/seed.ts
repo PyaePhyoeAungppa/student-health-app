@@ -1,4 +1,4 @@
-import { PrismaClient, Role, BloodType, TestResult } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -37,7 +37,7 @@ async function main() {
         data: {
             username: "admin",
             passwordHash: adminHash,
-            role: Role.SYSTEM_ADMIN,
+            role: "SYSTEM_ADMIN",
             fullName: "System Administrator",
             email: "admin@healthsystem.th",
         },
@@ -47,7 +47,7 @@ async function main() {
         data: {
             username: "company_staff",
             passwordHash: staffHash,
-            role: Role.COMPANY_STAFF,
+            role: "COMPANY_STAFF",
             fullName: "บริษัท เจ้าหน้าที่ ข้อมูล",
             email: "staff@healthsystem.th",
         },
@@ -57,7 +57,7 @@ async function main() {
         data: {
             username: "school_staff",
             passwordHash: schoolHash,
-            role: Role.SCHOOL_STAFF,
+            role: "SCHOOL_STAFF",
             fullName: "ครู สมจิตร",
             email: "teacher@bangkokschool.th",
             schoolId: school1.id,
@@ -88,14 +88,14 @@ async function main() {
                 academicYear: "2024",
                 underlyingDisease: Math.random() > 0.7 ? "โรคหอบหืด" : null,
                 drugAllergy: Math.random() > 0.8 ? "Penicillin" : null,
-                bloodType: [BloodType.A, BloodType.B, BloodType.AB, BloodType.O][Math.floor(Math.random() * 4)],
+                bloodType: ["A", "B", "AB", "O"][Math.floor(Math.random() * 4)],
                 weight: parseFloat(w.toFixed(1)),
                 height: parseFloat(h.toFixed(1)),
                 bmi,
-                hearingTest: Math.random() > 0.9 ? TestResult.ABNORMAL : TestResult.NORMAL,
+                hearingTest: Math.random() > 0.9 ? "ABNORMAL" : "NORMAL",
                 bodyExamination: "ปกติ",
                 visionPrescription: Math.random() > 0.7 ? "-1.50" : "20/20",
-                colorBlindness: Math.random() > 0.95 ? TestResult.ABNORMAL : TestResult.NORMAL,
+                colorBlindness: Math.random() > 0.95 ? "ABNORMAL" : "NORMAL",
                 xRayResult: "ปกติ",
             },
         });
@@ -119,14 +119,14 @@ async function main() {
         data: {
             studentId: stu6.id,
             academicYear: "2024",
-            bloodType: BloodType.O,
+            bloodType: "O",
             weight: 38.5,
             height: 145.0,
             bmi: 18.3,
-            hearingTest: TestResult.NORMAL,
+            hearingTest: "NORMAL",
             bodyExamination: "ปกติ",
             visionPrescription: "20/20",
-            colorBlindness: TestResult.NORMAL,
+            colorBlindness: "NORMAL",
         },
     });
 

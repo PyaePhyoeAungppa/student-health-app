@@ -10,25 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  SYSTEM_ADMIN
-  COMPANY_STAFF
-  SCHOOL_STAFF
-}
-
-enum BloodType {
-  A
-  B
-  AB
-  O
-  UNKNOWN
-}
-
-enum TestResult {
-  NORMAL
-  ABNORMAL
-}
-
 model School {
   id        String   @id @default(cuid())
   name      String
@@ -44,7 +25,7 @@ model User {
   id           String   @id @default(cuid())
   username     String   @unique
   passwordHash String
-  role         Role
+  role         String   @default("SCHOOL_STAFF") // "SYSTEM_ADMIN" | "COMPANY_STAFF" | "SCHOOL_STAFF"
   fullName     String?
   email        String?
   schoolId     String?
@@ -77,14 +58,14 @@ model HealthRecord {
   academicYear        String?
   underlyingDisease   String?
   drugAllergy         String?
-  bloodType           BloodType  @default(UNKNOWN)
+  bloodType           String     @default("UNKNOWN") // "A" | "B" | "AB" | "O" | "UNKNOWN"
   weight              Float?
   height              Float?
   bmi                 Float?
-  hearingTest         TestResult @default(NORMAL)
+  hearingTest         String     @default("NORMAL") // "NORMAL" | "ABNORMAL"
   bodyExamination     String?
   visionPrescription  String?
-  colorBlindness      TestResult @default(NORMAL)
+  colorBlindness      String     @default("NORMAL") // "NORMAL" | "ABNORMAL"
   xRayResult          String?
   additionalNotes     String?
   createdAt           DateTime   @default(now())

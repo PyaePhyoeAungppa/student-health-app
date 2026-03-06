@@ -50,7 +50,7 @@ export default function Sidebar() {
                 <div className="px-4 py-3 border-b border-border">
                     <div className="flex items-center gap-2 text-xs">
                         <div className={`w-2 h-2 rounded-full ${role === "SYSTEM_ADMIN" ? "bg-primary" :
-                                role === "COMPANY_STAFF" ? "bg-accent" : "bg-green-400"
+                            role === "COMPANY_STAFF" ? "bg-accent" : "bg-green-400"
                             }`} />
                         <span className="text-muted-foreground">{
                             role === "SYSTEM_ADMIN" ? "System Admin" :
