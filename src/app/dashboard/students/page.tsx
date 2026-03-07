@@ -71,12 +71,12 @@ export default function StudentsPage() {
                     <h1 className="page-title">Students</h1>
                     <p className="text-muted-foreground text-sm mt-1">{total} students found</p>
                 </div>
-                <div className="flex gap-3">
-                    <button onClick={exportExcel} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-secondary border border-border hover:bg-secondary/80 transition-colors">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <button onClick={exportExcel} className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-secondary border border-border hover:bg-secondary/80 transition-colors">
                         <Download className="w-4 h-4" /> Export Excel
                     </button>
                     {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
-                        <Link href="/dashboard/students/new" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90"
+                        <Link href="/dashboard/students/new" className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90"
                             style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
                             <Plus className="w-4 h-4" /> Add Student
                         </Link>
@@ -85,8 +85,8 @@ export default function StudentsPage() {
             </div>
 
             {/* Filters */}
-            <div className="glass-card p-4 mb-6 flex flex-wrap gap-3 items-center">
-                <div className="relative flex-1 min-w-[200px]">
+            <div className="glass-card p-4 mb-6 flex flex-col sm:flex-row gap-3 items-center">
+                <div className="relative w-full sm:flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                         type="text"
@@ -96,14 +96,14 @@ export default function StudentsPage() {
                         className="w-full pl-9 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
                     />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                         type="text"
                         placeholder="Filter by class..."
                         value={classFilter}
                         onChange={e => { setClassFilter(e.target.value); setPage(1); }}
-                        className="pl-3 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm w-36 focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
+                        className="flex-1 sm:w-36 pl-3 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
                     />
                 </div>
             </div>

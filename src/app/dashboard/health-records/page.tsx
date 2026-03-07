@@ -19,14 +19,14 @@ export default function HealthRecordsPage() {
 
     return (
         <div>
-            <div className="page-header">
-                <div>
+            <div className="page-header flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-auto">
                     <h1 className="page-title">Health Records</h1>
                     <p className="text-muted-foreground text-sm mt-1">{records.length} total records</p>
                 </div>
                 {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
                     <Link href="/dashboard/health-records/new"
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all"
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all w-full sm:w-auto"
                         style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
                         <Plus className="w-4 h-4" /> Add Record
                     </Link>

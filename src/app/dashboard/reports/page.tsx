@@ -64,14 +64,14 @@ export default function ReportsPage() {
 
     return (
         <div>
-            <div className="page-header">
-                <div>
+            <div className="page-header flex flex-col sm:flex-row gap-4">
+                <div className="w-full sm:w-auto">
                     <h1 className="page-title">Reports & Analytics</h1>
                     <p className="text-muted-foreground text-sm mt-1">Comprehensive health data analysis</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 w-full sm:w-auto">
                     <button onClick={exportPDF} disabled={loading}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-secondary border border-border hover:bg-secondary/80 transition-colors">
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-secondary border border-border hover:bg-secondary/80 transition-colors w-full sm:w-auto">
                         <FileText className="w-4 h-4" /> Export PDF
                     </button>
                 </div>

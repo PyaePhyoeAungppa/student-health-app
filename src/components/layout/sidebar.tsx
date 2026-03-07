@@ -26,7 +26,7 @@ export default function Sidebar() {
     const filteredNav = navItems.filter(item => item.roles.includes(role));
 
     return (
-        <aside className={`flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
+        <aside className={`hidden md:flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
             {/* Logo */}
             <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"

@@ -39,7 +39,12 @@
     font-family: 'Inter', system-ui, sans-serif;
     background: linear-gradient(135deg, hsl(222, 47%, 9%) 0%, hsl(240, 30%, 12%) 100%);
     min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+.pb-safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 @layer components {
@@ -146,4 +151,10 @@
 
 .animate-pulse-slow {
   animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer utilities {
+  .text-shadow-glow {
+    text-shadow: 0 0 10px hsla(var(--primary), 0.5);
+  }
 }

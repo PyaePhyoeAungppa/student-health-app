@@ -47,8 +47,8 @@ export default function DashboardPage() {
                         Welcome back, <span className="text-foreground font-medium">{session?.user?.name}</span>
                     </p>
                 </div>
-                <div className="flex gap-3">
-                    <Link href="/dashboard/students" className="px-4 py-2 rounded-lg text-sm font-medium bg-primary/15 text-primary hover:bg-primary/25 transition-colors border border-primary/20">
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <Link href="/dashboard/students" className="px-4 py-2 rounded-lg text-sm font-medium bg-primary/15 text-primary hover:bg-primary/25 transition-colors border border-primary/20 text-center">
                         View Students →
                     </Link>
                 </div>
@@ -135,7 +135,7 @@ export default function DashboardPage() {
             {stats?.bloodTypeStats && stats.bloodTypeStats.length > 0 && (
                 <div className="glass-card p-6">
                     <h2 className="font-semibold mb-4 text-sm text-muted-foreground uppercase tracking-wider">Blood Type Distribution</h2>
-                    <div className="flex flex-wrap gap-4">
+                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:flex sm:flex-wrap gap-4">
                         {stats.bloodTypeStats.map(({ bloodType, _count }) => (
                             <div key={bloodType} className="flex flex-col items-center gap-2 p-4 rounded-lg bg-secondary/50 border border-border min-w-[80px]">
                                 <div className="w-10 h-10 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
