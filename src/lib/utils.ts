@@ -10,25 +10,18 @@ export function calculateBMI(weight: number, height: number): number {
     return parseFloat((weight / (heightM * heightM)).toFixed(1));
 }
 
-export function getBMICategory(bmi: number): { label: string; color: string } {
-    if (bmi < 18.5) return { label: "Underweight", color: "text-blue-500" };
-    if (bmi < 25) return { label: "Normal", color: "text-green-500" };
-    if (bmi < 30) return { label: "Overweight", color: "text-yellow-500" };
-    return { label: "Obese", color: "text-red-500" };
+export function getBMICategory(bmi: number): { label: string; color: string; key: string } {
+    if (bmi < 18.5) return { label: "Underweight", color: "text-blue-500", key: "underweight" };
+    if (bmi < 25) return { label: "Normal", color: "text-green-500", key: "normalWeight" };
+    if (bmi < 30) return { label: "Overweight", color: "text-yellow-500", key: "overweight" };
+    return { label: "Obese", color: "text-red-500", key: "obese" };
 }
 
-export function formatDate(date: Date | string): string {
-    return new Date(date).toLocaleDateString("th-TH", {
+export function formatDate(date: Date | string, lang: string = "th"): string {
+    const locale = lang === "th" ? "th-TH" : "en-US";
+    return new Date(date).toLocaleDateString(locale, {
         year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
-}
-
-export function formatDateEn(date: Date | string): string {
-    return new Date(date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
+        month: lang === "th" ? "long" : "short",
         day: "numeric",
     });
 }

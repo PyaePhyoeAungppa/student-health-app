@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Plus, Loader2, Search, Eye } from "lucide-react";
 import Link from "next/link";
-import { formatDateEn } from "@/lib/utils";
+import { formatDate, getBMICategory } from "@/lib/utils";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export default function HealthRecordsPage() {
     const { data: session } = useSession();
+    const { t, language } = useLanguage();
     const role = (session?.user as any)?.role;
     const [records, setRecords] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -21,14 +23,14 @@ export default function HealthRecordsPage() {
         <div>
             <div className="page-header flex flex-col sm:flex-row gap-4">
                 <div className="w-full sm:w-auto">
-                    <h1 className="page-title">Health Records</h1>
-                    <p className="text-muted-foreground text-sm mt-1">{records.length} total records</p>
+                    <h1 className="page-title">{t("healthRecords")}</h1>
+                    <p className="text-muted-foreground text-sm mt-1">{records.length} {t("totalRecords")}</p>
                 </div>
                 {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
                     <Link href="/dashboard/health-records/new"
                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all w-full sm:w-auto"
                         style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
-                        <Plus className="w-4 h-4" /> Add Record
+                        <Plus className="w-4 h-4" /> {t("addRecord")}
                     </Link>
                 )}
             </div>
@@ -38,15 +40,15 @@ export default function HealthRecordsPage() {
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>School</th>
-                                <th>Year</th>
-                                <th>BMI</th>
-                                <th>Blood Type</th>
-                                <th>Hearing</th>
-                                <th>Color Vision</th>
-                                <th>Date</th>
-                                <th>Actions</th>
+                                <th>{t("students")}</th>
+                                <th>{t("school")}</th>
+                                <th>{t("year")}</th>
+                                <th>{t("bmi")}</th>
+                                <th>{t("bloodTypeDist")?.replace(" Distribution", "") || "Blood"}</th>
+                                <th>{t("hearingRecords")}</th>
+                                <th>{t("colorVision")}</th>
+                                <th>{t("date")}</th>
+                                <th>{t("actions")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -55,7 +57,7 @@ export default function HealthRecordsPage() {
                                     <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
                                 </td></tr>
                             ) : records.length === 0 ? (
-                                <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No records found.</td></tr>
+                                <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">{t("noData")}</td></tr>
                             ) : records.map(r => (
                                 <tr key={r.id}>
                                     <td>
@@ -76,10 +78,10 @@ export default function HealthRecordsPage() {
                                     <td>
                                         <span className={r.colorBlindness === "NORMAL" ? "badge-normal" : "badge-abnormal"}>{r.colorBlindness}</span>
                                     </td>
-                                    <td className="text-xs text-muted-foreground">{formatDateEn(r.recordedAt)}</td>
+                                    <td className="text-xs text-muted-foreground">{formatDate(r.recordedAt, language)}</td>
                                     <td>
                                         <Link href={`/dashboard/students/${r.student?.id}`} className="flex items-center gap-1 text-primary hover:text-primary/80 text-sm">
-                                            <Eye className="w-4 h-4" /> View
+                                            <Eye className="w-4 h-4" /> {t("view")}
                                         </Link>
                                     </td>
                                 </tr>

@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export default function NewStudentPage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const { data: session } = useSession();
     const role = (session?.user as any)?.role;
     const userSchoolId = (session?.user as any)?.schoolId;
@@ -56,10 +58,10 @@ export default function NewStudentPage() {
         setLoading(false);
         if (res.ok) {
             setSaved(true);
-            setTimeout(() => router.push("/dashboard/students"), 1000);
+            setTimeout(() => router.push("/dashboard/students"), 1500);
         } else {
             const data = await res.json();
-            setError(data.error || "Failed to add student.");
+            setError(data.error || t("error"));
         }
     };
 
@@ -69,12 +71,12 @@ export default function NewStudentPage() {
                 <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft className="w-5 h-5" />
                 </button>
-                <h1 className="page-title">Register New Student</h1>
+                <h1 className="page-title">{t("registerNewStudent")}</h1>
             </div>
 
             {saved && (
                 <div className="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
-                    ✅ Student registered successfully! Redirecting...
+                    ✅ {t("studentRegisteredSuccess")}
                 </div>
             )}
 
@@ -86,49 +88,49 @@ export default function NewStudentPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
                 <div className="form-section">
-                    <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">Personal Information</h2>
+                    <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">{t("personalInfo")}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Student ID *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("studentId")} *</label>
                             <input type="text" required value={form.studentId} onChange={e => set("studentId", e.target.value)}
-                                placeholder="e.g. STU12345"
+                                placeholder="STU12345"
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Date of Birth *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("dob")} *</label>
                             <input type="date" required value={form.dob} onChange={e => set("dob", e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">First Name *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("firstName")} *</label>
                             <input type="text" required value={form.firstName} onChange={e => set("firstName", e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Last Name (Surname) *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("lastName")} *</label>
                             <input type="text" required value={form.surName} onChange={e => set("surName", e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Gender *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("gender")} *</label>
                             <select required value={form.gender} onChange={e => set("gender", e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                                <option value="Male">{t("male")}</option>
+                                <option value="Female">{t("female")}</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <div className="form-section">
-                    <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">Academic Details</h2>
+                    <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">{t("academicDetails")}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
                             <div className="sm:col-span-2">
-                                <label className="block text-sm font-medium mb-1.5">Assign to School *</label>
+                                <label className="block text-sm font-medium mb-1.5">{t("assignToSchool")} *</label>
                                 <select required value={form.schoolId} onChange={e => set("schoolId", e.target.value)}
                                     className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                    <option value="">— Choose a school —</option>
+                                    <option value="">— {t("filter").replace(":", "")} —</option>
                                     {schools.map(s => (
                                         <option key={s.id} value={s.id}>{s.name} ({s.province})</option>
                                     ))}
@@ -136,13 +138,13 @@ export default function NewStudentPage() {
                             </div>
                         )}
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Class / Room *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("classRoom")} *</label>
                             <input type="text" required value={form.class} onChange={e => set("class", e.target.value)}
                                 placeholder="e.g. 1/1, 2A"
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">Order / Roster Number *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("rosterNumber")} *</label>
                             <input type="number" required min="1" value={form.orderNumber} onChange={e => set("orderNumber", e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
@@ -152,7 +154,7 @@ export default function NewStudentPage() {
                 <button type="submit" disabled={loading || saved}
                     className="flex items-center gap-2 px-6 py-3 rounded-lg text-white font-semibold disabled:opacity-70 hover:opacity-90 transition-all"
                     style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
-                    {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Registering...</> : <><Save className="w-5 h-5" /> Save Student</>}
+                    {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("loading")}</> : <><Save className="w-5 h-5" /> {t("saveStudent")}</>}
                 </button>
             </form>
         </div>

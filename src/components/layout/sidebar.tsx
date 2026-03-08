@@ -3,23 +3,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
-    LayoutDashboard, Users, FileText, BarChart3, Building2, Settings,
-    LogOut, HeartPulse, UserCheck, ChevronRight, ChevronDown, GraduationCap
+    LayoutDashboard, FileText, BarChart3, Building2, Settings,
+    LogOut, HeartPulse, UserCheck, ChevronRight, GraduationCap
 } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/students", label: "Students", icon: GraduationCap, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/health-records", label: "Health Records", icon: FileText, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/reports", label: "Reports & Analytics", icon: BarChart3, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF"] },
-    { href: "/dashboard/schools", label: "Schools", icon: Building2, roles: ["SYSTEM_ADMIN"] },
-    { href: "/dashboard/users", label: "User Management", icon: UserCheck, roles: ["SYSTEM_ADMIN"] },
+    { href: "/dashboard", label: "dashboard", icon: LayoutDashboard, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
+    { href: "/dashboard/students", label: "students", icon: GraduationCap, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
+    { href: "/dashboard/health-records", label: "healthRecords", icon: FileText, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
+    { href: "/dashboard/reports", label: "reports", icon: BarChart3, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF"] },
+    { href: "/dashboard/schools", label: "schools", icon: Building2, roles: ["SYSTEM_ADMIN"] },
+    { href: "/dashboard/users", label: "users", icon: UserCheck, roles: ["SYSTEM_ADMIN"] },
+    { href: "/dashboard/profile", label: "profile", icon: Settings, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
 ];
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { data: session } = useSession();
+    const { t } = useLanguage();
     const role = (session?.user as any)?.role;
     const [collapsed, setCollapsed] = useState(false);
 
@@ -35,8 +38,8 @@ export default function Sidebar() {
                 </div>
                 {!collapsed && (
                     <div>
-                        <p className="font-bold text-sm gradient-text">HealthTrack TH</p>
-                        <p className="text-[10px] text-muted-foreground">Health Management</p>
+                        <p className="font-bold text-sm gradient-text">{t("healthTrack")}</p>
+                        <p className="text-[10px] text-muted-foreground">{t("management")}</p>
                     </div>
                 )}
                 <button onClick={() => setCollapsed(!collapsed)}
@@ -73,7 +76,7 @@ export default function Sidebar() {
                         <Link key={href} href={href}
                             className={`sidebar-link ${isActive ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}>
                             <Icon className="w-5 h-5 shrink-0" />
-                            {!collapsed && <span>{label}</span>}
+                            {!collapsed && <span>{t(label as any)}</span>}
                         </Link>
                     );
                 })}
@@ -90,7 +93,7 @@ export default function Sidebar() {
                 <button onClick={() => signOut({ callbackUrl: "/login" })}
                     className={`sidebar-link w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 ${collapsed ? "justify-center px-0" : ""}`}>
                     <LogOut className="w-5 h-5 shrink-0" />
-                    {!collapsed && <span>Sign Out</span>}
+                    {!collapsed && <span>{t("signOut")}</span>}
                 </button>
             </div>
         </aside>

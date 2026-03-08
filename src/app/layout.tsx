@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { LanguageProvider } from "@/components/providers/language-provider";
 
 export const metadata: Metadata = {
   title: "ระบบข้อมูลสุขภาพนักเรียน | Student Health Data System",
@@ -16,7 +17,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       </head>
       <body>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <LanguageProvider>
+            {children}
+          </LanguageProvider>
+        </SessionProvider>
       </body>
     </html>
   );

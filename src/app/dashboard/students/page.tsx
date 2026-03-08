@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Search, Plus, Download, Eye, FileText, Filter, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/components/providers/language-provider";
 
 interface Student {
     id: string;
@@ -18,6 +19,7 @@ interface Student {
 
 export default function StudentsPage() {
     const { data: session } = useSession();
+    const { t } = useLanguage();
     const role = (session?.user as any)?.role;
     const [students, setStudents] = useState<Student[]>([]);
     const [total, setTotal] = useState(0);
@@ -45,18 +47,18 @@ export default function StudentsPage() {
     const exportExcel = async () => {
         const XLSX = (await import("xlsx")).default;
         const rows = students.map(s => ({
-            "Student ID": s.studentId,
+            [t("studentId")]: s.studentId,
             "Order No.": s.orderNumber,
-            "Class": s.class,
-            "First Name": s.firstName,
-            "Sur Name": s.surName,
-            "Gender": s.gender,
-            "School": s.school?.name,
-            "BMI": s.healthRecords[0]?.bmi ?? "—",
-            "Weight (kg)": s.healthRecords[0]?.weight ?? "—",
-            "Height (cm)": s.healthRecords[0]?.height ?? "—",
-            "Hearing": s.healthRecords[0]?.hearingTest ?? "—",
-            "Color Blindness": s.healthRecords[0]?.colorBlindness ?? "—",
+            [t("class")]: s.class,
+            [t("firstName")]: s.firstName,
+            [t("lastName")]: s.surName,
+            [t("gender")]: s.gender,
+            [t("school")]: s.school?.name,
+            [t("bmi")]: s.healthRecords[0]?.bmi ?? "—",
+            [t("weight")]: s.healthRecords[0]?.weight ?? "—",
+            [t("height")]: s.healthRecords[0]?.height ?? "—",
+            [t("hearingRecords")]: s.healthRecords[0]?.hearingTest ?? "—",
+            [t("colorVision")]: s.healthRecords[0]?.colorBlindness ?? "—",
         }));
         const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
@@ -68,17 +70,17 @@ export default function StudentsPage() {
         <div>
             <div className="page-header">
                 <div>
-                    <h1 className="page-title">Students</h1>
-                    <p className="text-muted-foreground text-sm mt-1">{total} students found</p>
+                    <h1 className="page-title">{t("students")}</h1>
+                    <p className="text-muted-foreground text-sm mt-1">{total} {t("studentsFound")}</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <button onClick={exportExcel} className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-secondary border border-border hover:bg-secondary/80 transition-colors">
-                        <Download className="w-4 h-4" /> Export Excel
+                        <Download className="w-4 h-4" /> {t("export")}
                     </button>
                     {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
                         <Link href="/dashboard/students/new" className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90"
                             style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
-                            <Plus className="w-4 h-4" /> Add Student
+                            <Plus className="w-4 h-4" /> {t("addStudent")}
                         </Link>
                     )}
                 </div>
@@ -90,7 +92,7 @@ export default function StudentsPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <input
                         type="text"
-                        placeholder="Search by name or ID..."
+                        placeholder={t("searchPlaceholder")}
                         value={search}
                         onChange={e => { setSearch(e.target.value); setPage(1); }}
                         className="w-full pl-9 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
@@ -100,7 +102,7 @@ export default function StudentsPage() {
                     <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
                     <input
                         type="text"
-                        placeholder="Filter by class..."
+                        placeholder={t("filterClass")}
                         value={classFilter}
                         onChange={e => { setClassFilter(e.target.value); setPage(1); }}
                         className="flex-1 sm:w-36 pl-3 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
@@ -114,15 +116,15 @@ export default function StudentsPage() {
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th>Student ID</th>
-                                <th>Name</th>
-                                <th>Class</th>
-                                <th>Gender</th>
-                                <th>BMI</th>
-                                <th>Hearing</th>
-                                <th>Color Vision</th>
-                                <th>School</th>
-                                <th>Actions</th>
+                                <th>{t("studentId")}</th>
+                                <th>{t("fullName")}</th>
+                                <th>{t("class")}</th>
+                                <th>{t("gender")}</th>
+                                <th>{t("bmi")}</th>
+                                <th>{t("hearingRecords")}</th>
+                                <th>{t("colorVision")}</th>
+                                <th>{t("school")}</th>
+                                <th>{t("actions")}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -131,7 +133,7 @@ export default function StudentsPage() {
                                     <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                                 </td></tr>
                             ) : students.length === 0 ? (
-                                <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">No students found.</td></tr>
+                                <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">{t("noData")}</td></tr>
                             ) : students.map(s => {
                                 const hr = s.healthRecords[0];
                                 const bmi = hr?.bmi;
@@ -151,7 +153,7 @@ export default function StudentsPage() {
                                         <td><span className="text-xs text-muted-foreground truncate max-w-[150px] block">{s.school?.name}</span></td>
                                         <td>
                                             <Link href={`/dashboard/students/${s.id}`} className="flex items-center gap-1 text-primary hover:text-primary/80 text-sm">
-                                                <Eye className="w-4 h-4" /> View
+                                                <Eye className="w-4 h-4" /> {t("view")}
                                             </Link>
                                         </td>
                                     </tr>
@@ -164,15 +166,15 @@ export default function StudentsPage() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-                        <p className="text-sm text-muted-foreground">Page {page} of {totalPages}</p>
+                        <p className="text-sm text-muted-foreground">{t("page")} {page} {t("of")} {totalPages}</p>
                         <div className="flex gap-2">
                             <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                                 className="px-3 py-1 rounded-md bg-secondary border border-border text-sm disabled:opacity-40 hover:bg-secondary/80 transition-colors">
-                                Previous
+                                {t("previous")}
                             </button>
                             <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
                                 className="px-3 py-1 rounded-md bg-secondary border border-border text-sm disabled:opacity-40 hover:bg-secondary/80 transition-colors">
-                                Next
+                                {t("next")}
                             </button>
                         </div>
                     </div>

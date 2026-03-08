@@ -44,6 +44,7 @@
       "role": "SYSTEM_ADMIN",
       "fullName": "System Administrator",
       "email": "admin@healthsystem.th",
+      "language": "th",
       "createdAt": "2026-03-06T21:33:38.463Z"
     },
     {
@@ -53,6 +54,7 @@
       "role": "COMPANY_STAFF",
       "fullName": "บริษัท เจ้าหน้าที่ ข้อมูล",
       "email": "staff@healthsystem.th",
+      "language": "en",
       "createdAt": "2026-03-06T21:33:38.463Z"
     },
     {
@@ -63,6 +65,7 @@
       "fullName": "ครู สมจิตร",
       "email": "teacher@bangkokschool.th",
       "schoolId": "school-1",
+      "language": "en",
       "createdAt": "2026-03-06T21:33:38.463Z"
     }
   ],

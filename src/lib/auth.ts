@@ -47,6 +47,7 @@ export const authOptions: NextAuthOptions = {
                         role: user.role,
                         schoolId: user.schoolId,
                         schoolName: school?.name,
+                        language: user.language || "en",
                     };
                 } catch (error) {
                     console.error("[AUTH-DEBUG] ERROR during authorize:", error);
@@ -56,11 +57,15 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.role = (user as any).role;
                 token.schoolId = (user as any).schoolId;
                 token.schoolName = (user as any).schoolName;
+                token.language = (user as any).language;
+            }
+            if (trigger === "update" && session?.language) {
+                token.language = session.language;
             }
             return token;
         },
@@ -70,6 +75,7 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).schoolId = token.schoolId;
                 (session.user as any).schoolName = token.schoolName;
                 (session.user as any).id = token.sub;
+                (session.user as any).language = token.language || "en";
             }
             return session;
         },

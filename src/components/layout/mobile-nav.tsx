@@ -3,17 +3,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, FileText, UserCircle, GraduationCap, BarChart3 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 const mobileNavItems = [
-    { href: "/dashboard", label: "Home", icon: LayoutDashboard, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/students", label: "Students", icon: GraduationCap, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/health-records", label: "Records", icon: FileText, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/reports", label: "Analytics", icon: BarChart3, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF"] },
+    { href: "/dashboard", label: "dashboard", icon: LayoutDashboard, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
+    { href: "/dashboard/students", label: "students", icon: GraduationCap, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
+    { href: "/dashboard/health-records", label: "healthRecords", icon: FileText, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
+    { href: "/dashboard/profile", label: "profile", icon: UserCircle, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
 ];
 
 export default function MobileNav() {
     const pathname = usePathname();
     const { data: session } = useSession();
+    const { t } = useLanguage();
     const role = (session?.user as any)?.role;
 
     const filteredItems = mobileNavItems.filter(item => item.roles.includes(role)).slice(0, 4);
@@ -38,7 +40,7 @@ export default function MobileNav() {
                                     style={{ boxShadow: "0 0 12px hsl(var(--primary))" }} />
                             )}
                             <Icon className={`w-5 h-5 ${isActive ? "drop-shadow-[0_0_8px_hsl(var(--primary))]" : ""}`} />
-                            <span className="text-[10px] font-semibold tracking-tight">{label}</span>
+                            <span className="text-[10px] font-semibold tracking-tight">{t(label as any)}</span>
                         </Link>
                     );
                 })}
