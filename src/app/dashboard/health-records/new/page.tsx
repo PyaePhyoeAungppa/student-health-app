@@ -25,8 +25,11 @@ export default function NewHealthRecordPage() {
         hearingTest: "NORMAL",
         bodyExamination: "",
         visionPrescription: "",
+        visionDistance: "20/20",
+        visionResult: "ปกติ",
         colorBlindness: "NORMAL",
         xRayResult: "",
+        doctorNote: "",
         additionalNotes: "",
     });
 
@@ -41,10 +44,16 @@ export default function NewHealthRecordPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        const w = form.weight ? parseFloat(form.weight) : null;
+        const h = form.height ? parseFloat(form.height) : null;
+        let bmi: number | null = null;
+        if (w && h) bmi = parseFloat((w / ((h / 100) ** 2)).toFixed(2));
+
         const payload = {
             ...form,
-            weight: form.weight ? parseFloat(form.weight) : null,
-            height: form.height ? parseFloat(form.height) : null,
+            weight: w,
+            height: h,
+            bmi,
         };
         const res = await fetch("/api/health-records", {
             method: "POST",
@@ -145,10 +154,18 @@ export default function NewHealthRecordPage() {
                             </div>
                         ))}
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("visionPrescription")}</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("visionPrescription") || "Vision Details"}</label>
                             <input type="text" value={form.visionPrescription} placeholder="e.g. 20/20 or -1.50"
                                 onChange={e => set("visionPrescription", e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 mb-3" />
+                            <div className="grid grid-cols-2 gap-2">
+                                <input type="text" value={form.visionDistance} placeholder="Distance (e.g. 20/50)"
+                                    onChange={e => set("visionDistance", e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                <input type="text" value={form.visionResult} placeholder="Result (e.g. ปกติ)"
+                                    onChange={e => set("visionResult", e.target.value)}
+                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                            </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium mb-1.5">{t("xRayResult")}</label>
@@ -166,7 +183,8 @@ export default function NewHealthRecordPage() {
                         {[
                             { label: t("underlyingDisease"), key: "underlyingDisease", placeholder: t("underlyingDisease") },
                             { label: t("drugAllergy"), key: "drugAllergy", placeholder: t("drugAllergy") },
-                            { label: t("bodyExaminationNotes"), key: "bodyExamination", placeholder: t("normal") },
+                            { label: t("bodyExaminationNotes") || "Body Examination", key: "bodyExamination", placeholder: t("normal") },
+                            { label: "Doctor Note (พบแพทย์)", key: "doctorNote", placeholder: "Recommendations from doctor" },
                             { label: t("additionalNotes"), key: "additionalNotes", placeholder: t("notes") },
                         ].map(({ label, key, placeholder }) => (
                             <div key={key}>
@@ -185,7 +203,7 @@ export default function NewHealthRecordPage() {
                     </button>
                     <button type="submit" disabled={loading || saved}
                         className="flex items-center gap-2 px-6 py-3 rounded-lg text-white font-semibold disabled:opacity-70 hover:opacity-90 transition-all"
-                        style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                        style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                         {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("loading")}</> : <><Save className="w-5 h-5" /> {t("saveHealthRecord")}</>}
                     </button>
                 </div>

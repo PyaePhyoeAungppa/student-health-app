@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Search, Plus, Download, Eye, FileText, Filter, Loader2 } from "lucide-react";
+import { Search, Plus, Download, Eye, FileText, Filter, Loader2, Upload } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/language-provider";
 
@@ -77,9 +77,14 @@ export default function StudentsPage() {
                     <button onClick={exportExcel} className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-secondary border border-border hover:bg-secondary/80 transition-colors">
                         <Download className="w-4 h-4" /> {t("export")}
                     </button>
+                    {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF" || role === "SCHOOL_STAFF") && (
+                        <Link href="/dashboard/students/import" className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-primary/20 bg-primary/10 text-primary transition-colors hover:bg-primary/20">
+                            <Upload className="w-4 h-4" /> Import
+                        </Link>
+                    )}
                     {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
-                        <Link href="/dashboard/students/new" className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90"
-                            style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                        <Link href="/dashboard/students/new" className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90 shadow-sm"
+                            style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25,85%,55%) 100%)" }}>
                             <Plus className="w-4 h-4" /> {t("addStudent")}
                         </Link>
                     )}

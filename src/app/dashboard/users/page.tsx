@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Plus, Loader2, UserCog, Trash2 } from "lucide-react";
+import { Plus, Loader2, UserCog, Trash2, Edit, X } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
 
@@ -16,6 +16,7 @@ export default function UsersPage() {
     const [loading, setLoading] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
     const [adding, setAdding] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     const [form, setForm] = useState({
         username: "",
@@ -25,6 +26,25 @@ export default function UsersPage() {
         role: "SCHOOL_STAFF",
         schoolId: "",
     });
+
+    const openAddForm = () => {
+        setForm({ username: "", password: "", fullName: "", email: "", role: "SCHOOL_STAFF", schoolId: "" });
+        setEditingId(null);
+        setShowAddForm(true);
+    };
+
+    const handleEdit = (user: any) => {
+        setForm({
+            username: user.username,
+            password: "", // Left blank intentionally, placeholder will guide user
+            fullName: user.fullName || "",
+            email: user.email || "",
+            role: user.role || "SCHOOL_STAFF",
+            schoolId: user.schoolId || "",
+        });
+        setEditingId(user.id);
+        setShowAddForm(true);
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -56,8 +76,11 @@ export default function UsersPage() {
             payload.schoolId = "";
         }
 
-        const res = await fetch("/api/users", {
-            method: "POST",
+        const url = editingId ? `/api/users/${editingId}` : "/api/users";
+        const method = editingId ? "PUT" : "POST";
+
+        const res = await fetch(url, {
+            method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
         });
@@ -66,6 +89,7 @@ export default function UsersPage() {
         if (res.ok) {
             setForm({ username: "", password: "", fullName: "", email: "", role: "SCHOOL_STAFF", schoolId: "" });
             setShowAddForm(false);
+            setEditingId(null);
             fetchData();
         } else {
             const data = await res.json();
@@ -101,67 +125,75 @@ export default function UsersPage() {
                     <h1 className="page-title">{t("userManagement")}</h1>
                     <p className="text-muted-foreground text-sm mt-1">{users.length} {t("staffMembersRegistered")}</p>
                 </div>
-                <button onClick={() => setShowAddForm(!showAddForm)}
+                <button onClick={showAddForm && !editingId ? () => setShowAddForm(false) : openAddForm}
                     className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all w-full sm:w-auto"
-                    style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                    style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                     <Plus className="w-4 h-4" /> {t("addUser")}
                 </button>
             </div>
 
             {showAddForm && (
-                <div className="glass-card mb-6 animate-fade-in p-6">
-                    <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">{t("addUser")}</h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("username")} *</label>
-                            <input type="text" required value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("tempPassword")} *</label>
-                            <input type="text" required value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
-                                placeholder="Alphanumeric"
-                                className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("fullName")}</label>
-                            <input type="text" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("email")}</label>
-                            <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                                className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("accessRole")} *</label>
-                            <select required value={form.role} onChange={e => setForm({ ...form, role: e.target.value, schoolId: e.target.value !== "SCHOOL_STAFF" ? "" : form.schoolId })}
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                <option value="SCHOOL_STAFF">{t("schoolStaff")}</option>
-                                <option value="COMPANY_STAFF">{t("companyStaff")}</option>
-                                <option value="SYSTEM_ADMIN">{t("systemAdmin")}</option>
-                            </select>
-                        </div>
-                        {form.role === "SCHOOL_STAFF" && (
-                            <div className="animate-fade-in">
-                                <label className="block text-sm font-medium mb-1.5">{t("assignSchool")} *</label>
-                                <select required value={form.schoolId} onChange={e => setForm({ ...form, schoolId: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                    <option value="">— {t("filter").replace(":", "")} —</option>
-                                    {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-background w-full max-w-2xl rounded-2xl shadow-2xl border border-border/50 overflow-hidden relative">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="font-semibold text-lg">
+                                    {editingId ? t("edit") || "Edit User" : t("addUser")}
+                                </h2>
+                                <button onClick={() => setShowAddForm(false)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
                             </div>
-                        )}
-
-                        <div className="md:col-span-1 flex items-end gap-3 mt-2">
-                            <button type="button" onClick={() => setShowAddForm(false)} className="px-4 py-3 w-full rounded-lg text-sm font-medium border border-border hover:bg-secondary transition-colors">{t("cancel")}</button>
+                            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("username")} *</label>
+                                    <input type="text" required value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("tempPassword")} {editingId ? "" : "*"}</label>
+                                    <input type="text" required={!editingId} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
+                                        placeholder={editingId ? "Leave blank to keep current" : "Alphanumeric"}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("fullName")}</label>
+                                    <input type="text" value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("email")}</label>
+                                    <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("accessRole")} *</label>
+                                    <select required value={form.role} onChange={e => setForm({ ...form, role: e.target.value, schoolId: e.target.value !== "SCHOOL_STAFF" ? "" : form.schoolId })}
+                                        className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                        <option value="SCHOOL_STAFF">{t("schoolStaff")}</option>
+                                        <option value="COMPANY_STAFF">{t("companyStaff")}</option>
+                                        <option value="SYSTEM_ADMIN">{t("systemAdmin")}</option>
+                                    </select>
+                                </div>
+                                {form.role === "SCHOOL_STAFF" && (
+                                    <div className="animate-fade-in">
+                                        <label className="block text-sm font-medium mb-1.5">{t("assignSchool")} *</label>
+                                        <select required value={form.schoolId} onChange={e => setForm({ ...form, schoolId: e.target.value })}
+                                            className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                            <option value="">— {t("filter").replace(":", "")} —</option>
+                                            {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+                                <div className="md:col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t border-border/30">
+                                    <button type="button" onClick={() => setShowAddForm(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium border border-border hover:bg-secondary transition-colors">{t("cancel")}</button>
+                                    <button type="submit" disabled={adding} className="px-6 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+                                        {adding ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("loading")}</> : t("save")}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <div className="md:col-span-1 flex items-end gap-3 mt-2">
-                            <button type="submit" disabled={adding} className="px-4 py-3 w-full rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
-                                {adding ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("loading")}</> : t("save")}
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             )}
 
@@ -215,9 +247,14 @@ export default function UsersPage() {
                                     <td className="text-sm text-muted-foreground">{formatDate(user.createdAt, language)}</td>
                                     <td className="text-right">
                                         {user.id !== currentUserId && (
-                                            <button onClick={() => handleDelete(user.id)} className="p-2 text-muted-foreground hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title={t("delete")}>
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-1">
+                                                <button onClick={() => handleEdit(user)} className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title={t("edit") || "Edit"}>
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleDelete(user.id)} className="p-2 text-muted-foreground hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title={t("delete")}>
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         )}
                                     </td>
                                 </tr>

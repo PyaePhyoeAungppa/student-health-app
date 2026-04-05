@@ -35,16 +35,16 @@ export default function LoginPage() {
             {/* Background orbs */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20 blur-[120px]"
-                    style={{ background: "radial-gradient(circle, hsl(199,89%,48%) 0%, transparent 70%)" }} />
+                    style={{ background: "radial-gradient(circle, hsl(150,60%,45%) 0%, transparent 70%)" }} />
                 <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-15 blur-[120px]"
-                    style={{ background: "radial-gradient(circle, hsl(262,83%,58%) 0%, transparent 70%)" }} />
+                    style={{ background: "radial-gradient(circle, hsl(25, 85%, 55%) 0%, transparent 70%)" }} />
             </div>
 
             <div className="w-full max-w-md animate-fade-in">
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 ring-2 ring-primary/30"
-                        style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                        style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                         <HeartPulse className="w-10 h-10 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold gradient-text">HealthTrack TH</h1>
@@ -96,19 +96,12 @@ export default function LoginPage() {
                             type="submit"
                             disabled={loading}
                             className="w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-70 hover:opacity-90 active:scale-[0.98]"
-                            style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                            style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                             {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Signing in...</> : "Sign In"}
                         </button>
                     </form>
 
-                    <div className="mt-6 p-4 rounded-lg bg-secondary/50 border border-border/50">
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Demo accounts:</p>
-                        <div className="space-y-1 text-xs text-muted-foreground font-mono">
-                            <div>admin / admin123 <span className="text-primary ml-2">System Admin</span></div>
-                            <div>company1 / staff123 <span className="text-accent ml-2">Company Staff</span></div>
-                            <div>school1 / school123 <span className="text-green-400 ml-2">School Staff</span></div>
-                        </div>
-                    </div>
+
                 </div>
 
                 <p className="text-center text-xs text-muted-foreground mt-6">

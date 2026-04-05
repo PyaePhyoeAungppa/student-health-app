@@ -6,25 +6,25 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
-    --foreground: 213 31% 91%;
-    --card: 222 47% 14%;
-    --card-foreground: 213 31% 91%;
-    --popover: 222 47% 14%;
-    --popover-foreground: 213 31% 91%;
-    --primary: 199 89% 48%;
+    --background: 0 0% 99%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 150 60% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 222 47% 18%;
-    --secondary-foreground: 213 31% 91%;
-    --muted: 222 47% 18%;
-    --muted-foreground: 215 16% 57%;
-    --accent: 262 83% 58%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 25 85% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 222 40% 22%;
-    --input: 222 47% 18%;
-    --ring: 199 89% 48%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 150 60% 45%;
     --radius: 0.75rem;
   }
 }
@@ -37,7 +37,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
-    background: linear-gradient(135deg, hsl(222, 47%, 9%) 0%, hsl(240, 30%, 12%) 100%);
+    background: linear-gradient(135deg, hsl(140, 20%, 97%) 0%, hsl(160, 25%, 98%) 100%);
     min-height: 100vh;
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -49,14 +49,14 @@
 
 @layer components {
   .glass-card {
-    @apply rounded-xl border border-white/10;
-    background: rgba(255, 255, 255, 0.05);
+    @apply rounded-xl border border-black/5 shadow-sm;
+    background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(199, 89%, 60%) 0%, hsl(262, 83%, 70%) 100%);
+    background: linear-gradient(135deg, hsl(150, 60%, 55%) 0%, hsl(25, 85%, 65%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -68,7 +68,7 @@
 
   .sidebar-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200;
-    @apply text-muted-foreground hover:text-foreground hover:bg-white/5;
+    @apply text-muted-foreground hover:text-foreground hover:bg-black/[0.03];
   }
 
   .sidebar-link.active {
@@ -89,7 +89,7 @@
   }
 
   .data-table tr:hover td {
-    @apply bg-white/[0.02];
+    @apply bg-black/[0.02];
   }
 
   .badge-normal {
@@ -120,11 +120,11 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--background));
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: hsl(0 0% 80%);
   border-radius: 3px;
 }
 
@@ -155,6 +155,6 @@
 
 @layer utilities {
   .text-shadow-glow {
-    text-shadow: 0 0 10px hsla(var(--primary), 0.5);
+    text-shadow: none;
   }
 }

@@ -65,7 +65,7 @@ export default function ProfilePage() {
                                 onClick={() => setLanguage("en")}
                                 className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${language === "en"
                                     ? "border-primary bg-primary/5 text-primary"
-                                    : "border-border hover:border-border/80 hover:bg-white/5"
+                                    : "border-border hover:border-border/80 hover:bg-black/5"
                                     }`}
                             >
                                 <div className="flex flex-col items-start gap-1">
@@ -79,7 +79,7 @@ export default function ProfilePage() {
                                 onClick={() => setLanguage("th")}
                                 className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${language === "th"
                                     ? "border-primary bg-primary/5 text-primary"
-                                    : "border-border hover:border-border/80 hover:bg-white/5"
+                                    : "border-border hover:border-border/80 hover:bg-black/5"
                                     }`}
                             >
                                 <div className="flex flex-col items-start gap-1">

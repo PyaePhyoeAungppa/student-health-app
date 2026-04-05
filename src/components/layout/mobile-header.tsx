@@ -11,7 +11,7 @@ export default function MobileHeader() {
         <header className="md:hidden sticky top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                    style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                     <HeartPulse className="w-4 h-4 text-white" />
                 </div>
                 <span className="font-bold text-sm gradient-text">HealthTrack</span>

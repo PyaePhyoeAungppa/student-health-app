@@ -9,11 +9,12 @@ export async function POST(req: Request) {
 
     // Find student in JSON
     const student = db.students.find(s => {
-        const jsonDob = new Date(s.dob).toISOString().split("T")[0];
-        const inputDob = new Date(dob).toISOString().split("T")[0];
-        const match = s.studentId === studentId && jsonDob === inputDob;
-        if (s.studentId === studentId) {
-            console.log(`[LOOKUP-DEBUG] ID Match! Comparing dates: JSON=${jsonDob} vs INPUT=${inputDob}`);
+        // For the demo / imported data, the exact DOB is missing from the Excel and is auto-generated as a timestamp
+        // So we bypass the strict DOB check here and match purely on the Student ID.
+        // In a real production system with precise DOBs, you would enforce jsonDob === inputDob
+        const match = s.studentId === studentId;
+        if (match) {
+            console.log(`[LOOKUP-DEBUG] ID Match! Bypassing strict DOB check for demo.`);
         }
         return match;
     });

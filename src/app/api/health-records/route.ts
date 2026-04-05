@@ -41,16 +41,39 @@ export async function POST(req: Request) {
     const data = await req.json();
     const db = readDb();
 
-    const newRecord = {
-        ...data,
-        id: `hr-${Date.now()}`,
-        recordedAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
+    // Check if a record for this student in this academic year already exists
+    // Handle imported records without academicYear by defaulting to current year
+    const currentYear = new Date().getFullYear().toString();
+    const targetYear = data.academicYear || currentYear;
+    
+    const existingIndex = db.healthRecords.findIndex(r => 
+        r.studentId === data.studentId && 
+        (r.academicYear || currentYear) === targetYear
+    );
 
-    db.healthRecords.push(newRecord);
-    writeDb(db);
+    if (existingIndex !== -1) {
+        // Update existing record
+        db.healthRecords[existingIndex] = {
+            ...db.healthRecords[existingIndex],
+            ...data,
+            updatedAt: new Date().toISOString(),
+        };
 
-    return NextResponse.json(newRecord, { status: 201 });
+        writeDb(db);
+        return NextResponse.json(db.healthRecords[existingIndex], { status: 200 });
+    } else {
+        // Create new record
+        const newRecord = {
+            ...data,
+            id: `hr-${Date.now()}`,
+            recordedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+
+        db.healthRecords.push(newRecord);
+        writeDb(db);
+
+        return NextResponse.json(newRecord, { status: 201 });
+    }
 }

@@ -29,11 +29,17 @@ export default function Sidebar() {
     const filteredNav = navItems.filter(item => item.roles.includes(role));
 
     return (
-        <aside className={`hidden md:flex flex-col h-screen bg-card border-r border-border transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
+        <aside className={`hidden md:flex flex-col h-screen bg-card border-r border-border transition-all duration-300 relative ${collapsed ? "w-20" : "w-64"}`}>
+            
+            <button onClick={() => setCollapsed(!collapsed)}
+                className="absolute -right-3 top-7 w-6 h-6 bg-background border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground z-10 shadow-sm transition-colors">
+                <ChevronRight className={`w-4 h-4 transition-transform ${collapsed ? "" : "rotate-180"}`} />
+            </button>
+
             {/* Logo */}
-            <div className="flex items-center gap-3 px-4 py-5 border-b border-border">
+            <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3 px-4"} py-5 border-b border-border min-h-[76px]`}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                    style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                     <HeartPulse className="w-5 h-5 text-white" />
                 </div>
                 {!collapsed && (
@@ -42,10 +48,6 @@ export default function Sidebar() {
                         <p className="text-[10px] text-muted-foreground">{t("management")}</p>
                     </div>
                 )}
-                <button onClick={() => setCollapsed(!collapsed)}
-                    className="ml-auto text-muted-foreground hover:text-foreground transition-colors">
-                    <ChevronRight className={`w-4 h-4 transition-transform ${collapsed ? "" : "rotate-180"}`} />
-                </button>
             </div>
 
             {/* Role Badge */}
@@ -87,7 +89,6 @@ export default function Sidebar() {
                 {!collapsed && (
                     <div className="px-4 py-2 mb-1">
                         <p className="text-sm font-medium truncate">{session?.user?.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{session?.user?.email}</p>
                     </div>
                 )}
                 <button onClick={() => signOut({ callbackUrl: "/login" })}

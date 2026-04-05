@@ -45,16 +45,16 @@ export default function StudentPortalPage() {
             {/* Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full opacity-10 blur-[100px]"
-                    style={{ background: "radial-gradient(circle, hsl(199,89%,48%) 0%, transparent 70%)" }} />
+                    style={{ background: "radial-gradient(circle, hsl(150,60%,45%) 0%, transparent 70%)" }} />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full opacity-10 blur-[100px]"
-                    style={{ background: "radial-gradient(circle, hsl(262,83%,58%) 0%, transparent 70%)" }} />
+                    style={{ background: "radial-gradient(circle, hsl(25, 85%, 55%) 0%, transparent 70%)" }} />
             </div>
 
             <div className="w-full max-w-xl animate-fade-in">
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 ring-2 ring-primary/30"
-                        style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                        style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                         <HeartPulse className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold gradient-text">{t("studentHealthPortal")}</h1>
@@ -85,7 +85,7 @@ export default function StudentPortalPage() {
                         )}
                         <button type="submit" disabled={loading}
                             className="w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-70 hover:opacity-90 transition-all"
-                            style={{ background: "linear-gradient(135deg, hsl(199,89%,48%) 0%, hsl(262,83%,58%) 100%)" }}>
+                            style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
                             {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("lookingUp")}</> : <><Search className="w-5 h-5" /> {t("viewMyHealthData")}</>}
                         </button>
                     </form>
