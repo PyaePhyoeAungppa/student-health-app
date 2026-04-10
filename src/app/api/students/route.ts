@@ -10,6 +10,12 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search")?.toLowerCase() || "";
     const schoolIdParam = searchParams.get("schoolId");
+    const classParam = searchParams.get("class") || "";
+    const genderParam = searchParams.get("gender") || "";
+    const hearingParam = searchParams.get("hearing") || "";
+    const colorParam = searchParams.get("colorBlindness") || "";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.max(1, parseInt(searchParams.get("limit") || "15"));
 
     const role = (session.user as any).role;
     const userSchoolId = (session.user as any).schoolId;
@@ -17,34 +23,64 @@ export async function GET(req: Request) {
     const db = readDb();
     let students = db.students;
 
-    // Filter by school if applicable
+    // Filter by school
     if (role === "SCHOOL_STAFF") {
         students = students.filter(s => s.schoolId === userSchoolId);
     } else if (schoolIdParam) {
         students = students.filter(s => s.schoolId === schoolIdParam);
     }
 
-    // Search filter
+    // Search filter (name, studentId, thaiId)
     if (search) {
         students = students.filter(s =>
-            s.firstName.toLowerCase().includes(search) ||
-            s.surName.toLowerCase().includes(search) ||
-            s.studentId.toLowerCase().includes(search)
+            s.firstName?.toLowerCase().includes(search) ||
+            s.surName?.toLowerCase().includes(search) ||
+            s.studentId?.toLowerCase().includes(search) ||
+            s.thaiId?.toLowerCase().includes(search)
         );
     }
 
-    // Map schools for UI
-    const result = students.map(s => ({
+    // Class filter
+    if (classParam) {
+        students = students.filter(s => s.class?.toLowerCase().includes(classParam.toLowerCase()));
+    }
+
+    // Gender filter
+    if (genderParam) {
+        students = students.filter(s => s.gender === genderParam);
+    }
+
+    // Map schools and health records first so we can filter on health data
+    const withHealth = students.map(s => ({
         ...s,
         school: db.schools.find(sch => sch.id === s.schoolId),
-        healthRecords: db.healthRecords.filter(hr => hr.studentId === s.id).sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())
+        healthRecords: db.healthRecords
+            .filter(hr => hr.studentId === s.id)
+            .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())
     }));
 
+    // Hearing filter
+    const afterHearing = hearingParam
+        ? withHealth.filter(s => s.healthRecords[0]?.hearingTest === hearingParam)
+        : withHealth;
+
+    // Color blindness filter
+    const afterColor = colorParam
+        ? afterHearing.filter(s => s.healthRecords[0]?.colorBlindness === colorParam)
+        : afterHearing;
+
+    const total = afterColor.length;
+    const totalPages = Math.ceil(total / limit) || 1;
+    const paginated = afterColor.slice((page - 1) * limit, page * limit);
+
     return NextResponse.json({
-        students: result,
-        total: result.length,
+        students: paginated,
+        total,
+        totalPages,
+        page,
     });
 }
+
 
 export async function POST(req: Request) {
     const session = await getServerSession(authOptions);

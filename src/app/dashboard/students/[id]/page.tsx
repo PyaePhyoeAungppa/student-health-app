@@ -30,7 +30,31 @@ export default function StudentDetailPage() {
     const fetchStudent = () => {
         fetch(`/api/students/${id}`)
             .then(r => r.json())
-            .then(d => { setStudent(d); setLoading(false); })
+            .then(d => {
+                setStudent(d);
+                setLoading(false);
+                // Pre-fill form with the latest health record if it exists
+                const latest = d.healthRecords?.[0];
+                if (latest) {
+                    setForm({
+                        academicYear: latest.academicYear || new Date().getFullYear().toString(),
+                        underlyingDisease: latest.underlyingDisease || "",
+                        drugAllergy: latest.drugAllergy || "",
+                        bloodType: latest.bloodType || "UNKNOWN",
+                        weight: latest.weight != null ? String(latest.weight) : "",
+                        height: latest.height != null ? String(latest.height) : "",
+                        hearingTest: latest.hearingTest || "NORMAL",
+                        bodyExamination: latest.bodyExamination || "",
+                        visionPrescription: latest.visionPrescription || "",
+                        visionDistance: latest.visionDistance || "20/20",
+                        visionResult: latest.visionResult || "ปกติ",
+                        colorBlindness: latest.colorBlindness || "NORMAL",
+                        xRayResult: latest.xRayResult || "",
+                        doctorNote: latest.doctorNote || "",
+                        additionalNotes: latest.additionalNotes || "",
+                    });
+                }
+            })
             .catch(() => setLoading(false));
     };
 
@@ -94,8 +118,8 @@ export default function StudentDetailPage() {
                 {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
                     <button onClick={() => setShowAddRecord(true)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white shadow-sm hover:opacity-90 transition-all"
-                        style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
-                        <Plus className="w-4 h-4" /> {t("addRecord")}
+                        style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
+                        <Edit className="w-4 h-4" /> {latestRecord ? "Update Health Record" : t("addRecord")}
                     </button>
                 )}
             </div>
@@ -107,6 +131,7 @@ export default function StudentDetailPage() {
                     <div className="space-y-3 text-sm">
                         {[
                             [t("studentId"), student.studentId],
+                            [t("thaiId" as any), student.thaiId || "—"],
                             [t("fullName"), `${student.firstName} ${student.surName}`],
                             [t("gender"), t(student.gender.toLowerCase() as any) || student.gender],
                             [t("dob"), formatDate(student.dob, language)],
@@ -129,9 +154,9 @@ export default function StudentDetailPage() {
                         <>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 {[
-                                    { icon: Weight, label: t("weight"), value: `${latestRecord.weight} kg`, color: "hsl(150,60%,45%)" },
-                                    { icon: Ruler, label: t("height"), value: `${latestRecord.height} cm`, color: "hsl(25, 85%, 55%)" },
-                                    { icon: HeartPulse, label: t("bmi"), value: latestRecord.bmi, color: bmiInfo?.color.includes("green") ? "hsl(142,76%,45%)" : bmiInfo?.color.includes("blue") ? "hsl(150,60%,45%)" : bmiInfo?.color.includes("yellow") ? "hsl(38,92%,50%)" : "hsl(0,84%,60%)" },
+                                    { icon: Weight, label: t("weight"), value: `${latestRecord.weight} kg`, color: "hsl(212, 100%, 52%)" },
+                                    { icon: Ruler, label: t("height"), value: `${latestRecord.height} cm`, color: "hsl(199, 89%, 48%)" },
+                                    { icon: HeartPulse, label: t("bmi"), value: latestRecord.bmi, color: bmiInfo?.color.includes("green") ? "hsl(142,76%,45%)" : bmiInfo?.color.includes("blue") ? "hsl(212, 100%, 52%)" : bmiInfo?.color.includes("yellow") ? "hsl(38,92%,50%)" : "hsl(0,84%,60%)" },
                                     { icon: Eye, label: t("vision"), value: latestRecord.visionPrescription || "20/20", color: "hsl(290,70%,60%)" },
                                 ].map(({ icon: Icon, label, value, color }) => (
                                     <div key={label} className="glass-card p-4 text-center">
@@ -229,7 +254,9 @@ export default function StudentDetailPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-background w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border border-border/50 relative">
                         <div className="sticky top-0 bg-background/95 backdrop-blur z-10 p-6 border-b border-border/30 flex items-center justify-between">
-                            <h2 className="font-semibold text-lg">{t("newHealthRecord")} - {student.firstName}</h2>
+                            <h2 className="font-semibold text-lg">
+                            {latestRecord ? "Update Health Record" : t("newHealthRecord")} — {student.firstName}
+                        </h2>
                             <button onClick={() => setShowAddRecord(false)} className="p-2 text-muted-foreground hover:bg-secondary rounded-xl transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
@@ -314,7 +341,7 @@ export default function StudentDetailPage() {
                                 <div className="flex justify-end gap-3 pt-4 border-t border-border/30">
                                     <button type="button" onClick={() => setShowAddRecord(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-secondary transition-colors">{t("cancel")}</button>
                                     <button type="submit" disabled={savingRecord} className="px-6 py-2.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all flex items-center gap-2 shadow-sm"
-                                        style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
+                                        style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                                         {savingRecord ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("loading")}</> : <><Save className="w-4 h-4" /> {t("saveHealthRecord")}</>}
                                     </button>
                                 </div>

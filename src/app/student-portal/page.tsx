@@ -6,7 +6,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 
 export default function StudentPortalPage() {
     const { t, language, setLanguage } = useLanguage();
-    const [studentId, setStudentId] = useState("");
+    const [thaiId, setThaiId] = useState("");
     const [dob, setDob] = useState("");
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState("");
@@ -20,7 +20,7 @@ export default function StudentPortalPage() {
         const res = await fetch("/api/student-lookup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ studentId, dob }),
+            body: JSON.stringify({ studentId: thaiId, dob }),
         });
         const data = await res.json();
         setLoading(false);
@@ -45,16 +45,16 @@ export default function StudentPortalPage() {
             {/* Background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full opacity-10 blur-[100px]"
-                    style={{ background: "radial-gradient(circle, hsl(150,60%,45%) 0%, transparent 70%)" }} />
+                    style={{ background: "radial-gradient(circle, hsl(212, 100%, 52%) 0%, transparent 70%)" }} />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full opacity-10 blur-[100px]"
-                    style={{ background: "radial-gradient(circle, hsl(25, 85%, 55%) 0%, transparent 70%)" }} />
+                    style={{ background: "radial-gradient(circle, hsl(199, 89%, 48%) 0%, transparent 70%)" }} />
             </div>
 
             <div className="w-full max-w-xl animate-fade-in">
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-3 ring-2 ring-primary/30"
-                        style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
+                        style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                         <HeartPulse className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold gradient-text">{t("studentHealthPortal")}</h1>
@@ -70,22 +70,23 @@ export default function StudentPortalPage() {
 
                     <form onSubmit={handleLookup} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("studentId")}</label>
-                            <input type="text" value={studentId} onChange={e => setStudentId(e.target.value)} required
-                                placeholder="e.g. STU001"
+                            <label className="block text-sm font-medium mb-1.5">{t("thaiId" as any)}</label>
+                            <input type="text" value={thaiId} onChange={e => setThaiId(e.target.value)} required
+                                placeholder="e.g. 1100100000001"
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("dob")}</label>
-                            <input type="date" value={dob} onChange={e => setDob(e.target.value)} required
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                            <label className="block text-sm font-medium mb-1.5">{t("passwordDOB" as any)}</label>
+                            <input type="text" value={dob} onChange={e => setDob(e.target.value)} required
+                                placeholder="YYYY/MM/DD (e.g. 2010/05/20)"
+                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                         </div>
                         {error && (
                             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
                         )}
                         <button type="submit" disabled={loading}
                             className="w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-70 hover:opacity-90 transition-all"
-                            style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
+                            style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                             {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("lookingUp")}</> : <><Search className="w-5 h-5" /> {t("viewMyHealthData")}</>}
                         </button>
                     </form>
@@ -155,7 +156,7 @@ export default function StudentPortalPage() {
                             </div>
                         )}
 
-                        <button onClick={() => { setResult(null); setStudentId(""); setDob(""); }}
+                        <button onClick={() => { setResult(null); setThaiId(""); setDob(""); }}
                             className="w-full py-2.5 rounded-lg text-sm text-muted-foreground border border-border hover:bg-secondary/50 transition-colors">
                             ← {t("backToLookup")}
                         </button>

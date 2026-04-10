@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Search, Plus, Download, Eye, FileText, Filter, Loader2, Upload } from "lucide-react";
+import { Search, Plus, Download, Eye, Filter, Loader2, Upload, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/language-provider";
 
@@ -27,20 +27,35 @@ export default function StudentsPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
+
+    // Filters
     const [classFilter, setClassFilter] = useState("");
+    const [genderFilter, setGenderFilter] = useState("");
+    const [hearingFilter, setHearingFilter] = useState("");
+    const [colorFilter, setColorFilter] = useState("");
+
+    const activeFilterCount = [classFilter, genderFilter, hearingFilter, colorFilter].filter(Boolean).length;
+
+    const clearFilters = () => {
+        setClassFilter(""); setGenderFilter(""); setHearingFilter(""); setColorFilter("");
+        setPage(1);
+    };
 
     const fetchStudents = useCallback(async () => {
         setLoading(true);
         const params = new URLSearchParams({ page: String(page), limit: "15" });
         if (search) params.set("search", search);
         if (classFilter) params.set("class", classFilter);
+        if (genderFilter) params.set("gender", genderFilter);
+        if (hearingFilter) params.set("hearing", hearingFilter);
+        if (colorFilter) params.set("colorBlindness", colorFilter);
         const res = await fetch(`/api/students?${params}`);
         const data = await res.json();
         setStudents(data.students || []);
         setTotal(data.total || 0);
         setTotalPages(data.totalPages || 1);
         setLoading(false);
-    }, [page, search, classFilter]);
+    }, [page, search, classFilter, genderFilter, hearingFilter, colorFilter]);
 
     useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
@@ -48,6 +63,7 @@ export default function StudentsPage() {
         const XLSX = (await import("xlsx")).default;
         const rows = students.map(s => ({
             [t("studentId")]: s.studentId,
+            "Thai ID": (s as any).thaiId || "",
             "Order No.": s.orderNumber,
             [t("class")]: s.class,
             [t("firstName")]: s.firstName,
@@ -65,6 +81,19 @@ export default function StudentsPage() {
         XLSX.utils.book_append_sheet(wb, ws, "Students");
         XLSX.writeFile(wb, "students_export.xlsx");
     };
+
+    // Pagination page numbers with ellipsis
+    const getPageNumbers = () => {
+        if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+        const pages: (number | "...")[] = [1];
+        if (page > 3) pages.push("...");
+        for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+        if (page < totalPages - 2) pages.push("...");
+        pages.push(totalPages);
+        return pages;
+    };
+
+    const selectClass = ["input", "w-full sm:w-32 px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"].join(" ");
 
     return (
         <div>
@@ -84,34 +113,91 @@ export default function StudentsPage() {
                     )}
                     {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
                         <Link href="/dashboard/students/new" className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors hover:opacity-90 shadow-sm"
-                            style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25,85%,55%) 100%)" }}>
+                            style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                             <Plus className="w-4 h-4" /> {t("addStudent")}
                         </Link>
                     )}
                 </div>
             </div>
 
-            {/* Filters */}
-            <div className="glass-card p-4 mb-6 flex flex-col sm:flex-row gap-3 items-center">
-                <div className="relative w-full sm:flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                        type="text"
-                        placeholder={t("searchPlaceholder")}
-                        value={search}
-                        onChange={e => { setSearch(e.target.value); setPage(1); }}
-                        className="w-full pl-9 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
-                    />
-                </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <input
-                        type="text"
-                        placeholder={t("filterClass")}
-                        value={classFilter}
-                        onChange={e => { setClassFilter(e.target.value); setPage(1); }}
-                        className="flex-1 sm:w-36 pl-3 pr-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
-                    />
+            {/* Compact Filter Panel */}
+            <div className="glass-card p-3 mb-5">
+                <div className="flex flex-wrap gap-2 items-center">
+                    {/* Search */}
+                    <div className="relative flex-1 min-w-[180px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder={t("searchPlaceholder")}
+                            value={search}
+                            onChange={e => { setSearch(e.target.value); setPage(1); }}
+                            className="w-full pl-8 pr-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
+                        />
+                    </div>
+
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px h-7 bg-border" />
+
+                    {/* Class */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder={t("filterClass")}
+                            value={classFilter}
+                            onChange={e => { setClassFilter(e.target.value); setPage(1); }}
+                            className="w-28 px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
+                        />
+                    </div>
+
+                    {/* Gender */}
+                    <select
+                        value={genderFilter}
+                        onChange={e => { setGenderFilter(e.target.value); setPage(1); }}
+                        className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                        <option value="">{t("gender")}: {t("all")}</option>
+                        <option value="Male">{t("male")}</option>
+                        <option value="Female">{t("female")}</option>
+                    </select>
+
+                    {/* Hearing */}
+                    <select
+                        value={hearingFilter}
+                        onChange={e => { setHearingFilter(e.target.value); setPage(1); }}
+                        className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                        <option value="">{t("hearing")}: {t("all")}</option>
+                        <option value="NORMAL">{t("normal")}</option>
+                        <option value="ABNORMAL">{t("abnormal")}</option>
+                    </select>
+
+                    {/* Color Vision */}
+                    <select
+                        value={colorFilter}
+                        onChange={e => { setColorFilter(e.target.value); setPage(1); }}
+                        className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    >
+                        <option value="">{t("colorVision")}: {t("all")}</option>
+                        <option value="NORMAL">{t("normal")}</option>
+                        <option value="ABNORMAL">{t("abnormal")}</option>
+                    </select>
+
+                    {/* Clear filters */}
+                    {activeFilterCount > 0 && (
+                        <button
+                            onClick={clearFilters}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                            Clear ({activeFilterCount})
+                        </button>
+                    )}
+
+                    {/* Filter count badge */}
+                    <div className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Filter className="w-3.5 h-3.5" />
+                        <span>{total} {t("studentsFound")}</span>
+                    </div>
                 </div>
             </div>
 
@@ -122,6 +208,7 @@ export default function StudentsPage() {
                         <thead>
                             <tr>
                                 <th>{t("studentId")}</th>
+                                <th>{t("thaiId" as any)}</th>
                                 <th>{t("fullName")}</th>
                                 <th>{t("class")}</th>
                                 <th>{t("gender")}</th>
@@ -134,11 +221,11 @@ export default function StudentsPage() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">
+                                <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">
                                     <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                                 </td></tr>
                             ) : students.length === 0 ? (
-                                <tr><td colSpan={9} className="text-center py-12 text-muted-foreground">{t("noData")}</td></tr>
+                                <tr><td colSpan={10} className="text-center py-12 text-muted-foreground">{t("noData")}</td></tr>
                             ) : students.map(s => {
                                 const hr = s.healthRecords[0];
                                 const bmi = hr?.bmi;
@@ -146,6 +233,7 @@ export default function StudentsPage() {
                                 return (
                                     <tr key={s.id}>
                                         <td><span className="font-mono text-xs text-muted-foreground">{s.studentId}</span></td>
+                                        <td><span className="font-mono text-xs text-muted-foreground">{(s as any).thaiId || "—"}</span></td>
                                         <td><div>
                                             <p className="font-medium">{s.firstName} {s.surName}</p>
                                             <p className="text-xs text-muted-foreground">No. {s.orderNumber}</p>
@@ -171,15 +259,39 @@ export default function StudentsPage() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-                        <p className="text-sm text-muted-foreground">{t("page")} {page} {t("of")} {totalPages}</p>
-                        <div className="flex gap-2">
-                            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                                className="px-3 py-1 rounded-md bg-secondary border border-border text-sm disabled:opacity-40 hover:bg-secondary/80 transition-colors">
-                                {t("previous")}
+                        <p className="text-xs text-muted-foreground hidden sm:block">
+                            {t("page")} <strong>{page}</strong> {t("of")} <strong>{totalPages}</strong> · {total} {t("studentsFound")}
+                        </p>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="p-1.5 rounded-md hover:bg-secondary disabled:opacity-30 transition-colors"
+                                aria-label="Previous page"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
                             </button>
-                            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                                className="px-3 py-1 rounded-md bg-secondary border border-border text-sm disabled:opacity-40 hover:bg-secondary/80 transition-colors">
-                                {t("next")}
+                            {getPageNumbers().map((p, i) =>
+                                p === "..." ? (
+                                    <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground text-sm select-none">…</span>
+                                ) : (
+                                    <button
+                                        key={p}
+                                        onClick={() => setPage(p as number)}
+                                        className={`w-8 h-8 rounded-md text-sm font-medium transition-colors ${page === p ? "text-white shadow-sm" : "hover:bg-secondary text-foreground"}`}
+                                        style={page === p ? { background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" } : {}}
+                                    >
+                                        {p}
+                                    </button>
+                                )
+                            )}
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={page === totalPages}
+                                className="p-1.5 rounded-md hover:bg-secondary disabled:opacity-30 transition-colors"
+                                aria-label="Next page"
+                            >
+                                <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -188,3 +300,4 @@ export default function StudentsPage() {
         </div>
     );
 }
+

@@ -37,6 +37,7 @@ model User {
 model Student {
   id                String       @id @default(cuid())
   studentId         String       @unique
+  thaiId            String?      @unique
   orderNumber       Int
   class             String
   gender            String

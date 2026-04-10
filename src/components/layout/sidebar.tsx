@@ -39,7 +39,7 @@ export default function Sidebar() {
             {/* Logo */}
             <div className={`flex items-center ${collapsed ? "justify-center" : "gap-3 px-4"} py-5 border-b border-border min-h-[76px]`}>
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
+                    style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                     <HeartPulse className="w-5 h-5 text-white" />
                 </div>
                 {!collapsed && (
@@ -55,7 +55,7 @@ export default function Sidebar() {
                 <div className="px-4 py-3 border-b border-border">
                     <div className="flex items-center gap-2 text-xs">
                         <div className={`w-2 h-2 rounded-full ${role === "SYSTEM_ADMIN" ? "bg-primary" :
-                            role === "COMPANY_STAFF" ? "bg-accent" : "bg-green-400"
+                            role === "COMPANY_STAFF" ? "bg-accent" : "bg-blue-400"
                             }`} />
                         <span className="text-muted-foreground">{
                             role === "SYSTEM_ADMIN" ? "System Admin" :

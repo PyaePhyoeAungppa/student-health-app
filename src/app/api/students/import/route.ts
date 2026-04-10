@@ -45,34 +45,54 @@ export async function POST(req: Request) {
 
         for (const row of rows) {
             // Thai Headers expected:
-            // "ID", "ชั้น", "ห้อง", "เลขที่", "เลขประจำตัว", "คำนำ", "ชื่อ", "นามสกุล", 
+            // "ID", "ชั้น", "ห้อง", "เลขที่", "เลขประจำตัว", "รหัสบัตรประชาชน", "วันเกิด", "คำนำ", "ชื่อ", "นามสกุล", 
             // "กรุ๊ปเลือด", "อายุ", "น้ำหนัก", "ส่วนสูง", "BMI", "น้ำหนักตามเกณฑ์ อายุ", 
             // "ส่วนสูงตามเกณฑ์ อายุ", "น้ำหนักตามเกณฑ์ ส่วนสูง", "การได้ยิน", "พบแพทย์", 
             // "ระยะการมอง", "ผลสายตา", "การแยกสี", "เอกซเรย์"
             
             const studentId = String(row["เลขประจำตัว"] || "").trim();
-            if (!studentId || studentId === "-") continue;
+            const thaiId = String(row["รหัสบัตรประชาชน"] || "").trim();
+            if ((!studentId || studentId === "-") && (!thaiId || thaiId === "-")) continue;
             
             // Check if student exists
-            let student = db.students.find(s => s.studentId === studentId && s.schoolId === targetSchoolId);
+            let student = db.students.find(s => 
+                ((studentId && s.studentId === studentId) || (thaiId && s.thaiId === thaiId)) 
+                && s.schoolId === targetSchoolId
+            );
             
+            let dobValue = new Date().toISOString();
+            if (row["วันเกิด"]) {
+                const parsed = new Date(row["วันเกิด"]);
+                if (!isNaN(parsed.getTime())) dobValue = parsed.toISOString();
+            }
+
             if (!student) {
                 student = {
                     id: `stu-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     studentId: studentId,
+                    thaiId: thaiId || null,
                     orderNumber: parseInt(row["เลขที่"] || "0", 10),
                     class: `${row["ชั้น"] || ""}/${row["ห้อง"] || ""}`.replace(/^\//,"").replace(/\/$/,""),
                     gender: row["คำนำ"]?.includes("หญิง") || row["คำนำ"]?.includes("ด.ญ.") || row["คำนำ"]?.includes("น.ส.") ? "Female" : "Male",
                     prefix: row["คำนำ"] || "",
                     firstName: row["ชื่อ"] || "",
                     surName: row["นามสกุล"] || "",
-                    dob: new Date().toISOString(), // Default as DB missing precise DOB in template
+                    dob: dobValue,
                     age: parseInt(row["อายุ"] || "0", 10) || null,
                     schoolId: targetSchoolId,
                     createdAt: new Date().toISOString()
                 };
                 db.students.push(student);
                 studentsAdded++;
+            } else {
+                // If student exists but missing thaiId/dob update them
+                let updated = false;
+                if (!student.thaiId && thaiId) { student.thaiId = thaiId; updated = true; }
+                if (row["วันเกิด"] && dobValue) { student.dob = dobValue; updated = true; }
+                if (updated) {
+                    const idx = db.students.findIndex(s => s.id === student.id);
+                    if (idx > -1) db.students[idx] = student;
+                }
             }
             
             // Add Health Record

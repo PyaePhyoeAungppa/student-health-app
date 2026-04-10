@@ -31,8 +31,8 @@ export default function DashboardPage() {
     }, []);
 
     const statCards = [
-        { label: "totalStudents", value: stats?.totalStudents ?? 0, icon: Users, color: "hsl(150,60%,45%)", bg: "hsl(150,60%,45%,0.1)" },
-        { label: "activeRecords", value: stats?.totalRecords ?? 0, icon: FileText, color: "hsl(25, 85%, 55%)", bg: "hsl(25, 85%, 55%,0.1)" },
+        { label: "totalStudents", value: stats?.totalStudents ?? 0, icon: Users, color: "hsl(212, 100%, 52%)", bg: "hsl(150,60%,45%,0.1)" },
+        { label: "activeRecords", value: stats?.totalRecords ?? 0, icon: FileText, color: "hsl(199, 89%, 48%)", bg: "hsl(25, 85%, 55%,0.1)" },
         { label: "bmi", value: stats?.avgBmi ?? 0, icon: HeartPulse, color: "hsl(142,76%,45%)", bg: "hsl(142,76%,45%,0.1)" },
         { label: "schools", value: role === "SCHOOL_STAFF" ? 1 : (stats?.totalRecords ? "—" : 0), icon: Building2, color: "hsl(38,92%,50%)", bg: "hsl(38,92%,50%,0.1)" },
     ];

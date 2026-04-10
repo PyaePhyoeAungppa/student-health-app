@@ -19,6 +19,7 @@ export default function NewStudentPage() {
 
     const [form, setForm] = useState({
         studentId: "",
+        thaiId: "",
         firstName: "",
         surName: "",
         gender: "Male",
@@ -97,6 +98,12 @@ export default function NewStudentPage() {
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
+                            <label className="block text-sm font-medium mb-1.5">{t("thaiId" as any)}</label>
+                            <input type="text" value={form.thaiId} onChange={e => set("thaiId", e.target.value)}
+                                placeholder="e.g. 1100000000000"
+                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                        </div>
+                        <div>
                             <label className="block text-sm font-medium mb-1.5">{t("dob")} *</label>
                             <input type="date" required value={form.dob} onChange={e => set("dob", e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
@@ -153,7 +160,7 @@ export default function NewStudentPage() {
 
                 <button type="submit" disabled={loading || saved}
                     className="flex items-center gap-2 px-6 py-3 rounded-lg text-white font-semibold disabled:opacity-70 hover:opacity-90 transition-all"
-                    style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
+                    style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                     {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("loading")}</> : <><Save className="w-5 h-5" /> {t("saveStudent")}</>}
                 </button>
             </form>

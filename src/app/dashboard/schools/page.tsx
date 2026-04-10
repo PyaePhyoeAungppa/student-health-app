@@ -105,7 +105,7 @@ export default function SchoolsPage() {
                 {role === "SYSTEM_ADMIN" && (
                     <button onClick={showAddForm && !editingId ? () => setShowAddForm(false) : openAddForm}
                         className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all w-full sm:w-auto"
-                        style={{ background: "linear-gradient(135deg, hsl(150,60%,45%) 0%, hsl(25, 85%, 55%) 100%)" }}>
+                        style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                         <Plus className="w-4 h-4" /> {t("addSchool")}
                     </button>
                 )}

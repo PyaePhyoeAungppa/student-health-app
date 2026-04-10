@@ -12,19 +12,19 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 150 60% 45%;
+    --primary: 212 100% 48%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
+    --muted: 214 32% 91%;
     --muted-foreground: 215 16% 47%;
-    --accent: 25 85% 55%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 150 60% 45%;
+    --ring: 212 100% 48%;
     --radius: 0.75rem;
   }
 }
@@ -37,7 +37,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
-    background: linear-gradient(135deg, hsl(140, 20%, 97%) 0%, hsl(160, 25%, 98%) 100%);
+    background: linear-gradient(135deg, hsl(210, 50%, 98%) 0%, hsl(215, 40%, 95%) 100%);
     min-height: 100vh;
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -56,7 +56,7 @@
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, hsl(150, 60%, 55%) 0%, hsl(25, 85%, 65%) 100%);
+    background: linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
