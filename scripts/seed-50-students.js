@@ -38,7 +38,7 @@ db.healthRecords = [];
 
 const now = new Date();
 
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < 20; i++) {
   const isMale = i % 3 !== 0; // roughly 2/3 male, 1/3 female for variety
   const gender = isMale ? 'Male' : 'Female';
   const firstName = isMale ? pick(maleFirstNames) : pick(femaleFirstNames);

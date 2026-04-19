@@ -12,7 +12,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 const navItems = [
     { href: "/dashboard", label: "dashboard", icon: LayoutDashboard, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
     { href: "/dashboard/students", label: "students", icon: GraduationCap, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/health-records", label: "healthRecords", icon: FileText, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
+    // { href: "/dashboard/health-records", label: "healthRecords", icon: FileText, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
     { href: "/dashboard/reports", label: "reports", icon: BarChart3, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF"] },
     { href: "/dashboard/schools", label: "schools", icon: Building2, roles: ["SYSTEM_ADMIN"] },
     { href: "/dashboard/users", label: "users", icon: UserCheck, roles: ["SYSTEM_ADMIN"] },

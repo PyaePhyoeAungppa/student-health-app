@@ -45,11 +45,7 @@ export async function POST(req: Request) {
 
         for (const row of rows) {
             // Thai Headers expected:
-            // "ID", "ชั้น", "ห้อง", "เลขที่", "เลขประจำตัว", "รหัสบัตรประชาชน", "วันเกิด", "คำนำ", "ชื่อ", "นามสกุล", 
-            // "กรุ๊ปเลือด", "อายุ", "น้ำหนัก", "ส่วนสูง", "BMI", "น้ำหนักตามเกณฑ์ อายุ", 
-            // "ส่วนสูงตามเกณฑ์ อายุ", "น้ำหนักตามเกณฑ์ ส่วนสูง", "การได้ยิน", "พบแพทย์", 
-            // "ระยะการมอง", "ผลสายตา", "การแยกสี", "เอกซเรย์"
-            
+            // "ID", "ชั้น", "ห้อง", "เลขที่", "เลขประจำตัว", "รหัสบัตรประชาชน", "วันเกิด", "คำนำ", "ชื่อ", "นามสกุล", "อายุ"
             const studentId = String(row["เลขประจำตัว"] || "").trim();
             const thaiId = String(row["รหัสบัตรประชาชน"] || "").trim();
             if ((!studentId || studentId === "-") && (!thaiId || thaiId === "-")) continue;
@@ -94,39 +90,12 @@ export async function POST(req: Request) {
                     if (idx > -1) db.students[idx] = student;
                 }
             }
-            
-            // Add Health Record
-            const healthRecord = {
-                id: `hr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                studentId: student.id,
-                academicYear: new Date().getFullYear().toString(),
-                recordedAt: new Date().toISOString(),
-                bloodType: row["กรุ๊ปเลือด"] && row["กรุ๊ปเลือด"] !== "-" ? row["กรุ๊ปเลือด"] : "UNKNOWN",
-                weight: parseFloat(row["น้ำหนัก"] || "0") || null,
-                height: parseFloat(row["ส่วนสูง"] || "0") || null,
-                bmi: parseFloat(row["BMI"] || "0") || null,
-                weightByAge: row["น้ำหนักตามเกณฑ์ อายุ"] !== "-" ? row["น้ำหนักตามเกณฑ์ อายุ"] : null,
-                heightByAge: row["ส่วนสูงตามเกณฑ์ อายุ"] !== "-" ? row["ส่วนสูงตามเกณฑ์ อายุ"] : null,
-                weightByHeight: row["น้ำหนักตามเกณฑ์ ส่วนสูง"] !== "-" ? row["น้ำหนักตามเกณฑ์ ส่วนสูง"] : null,
-                hearingTest: row["การได้ยิน"],
-                doctorNote: row["พบแพทย์"],
-                visionDistance: row["ระยะการมอง"],
-                visionResult: row["ผลสายตา"],
-                colorBlindness: row["การแยกสี"],
-                xRayResult: row["เอกซเรย์"],
-                createdAt: new Date().toISOString()
-            };
-            
-            db.healthRecords.push(healthRecord);
-            recordsAdded++;
         }
-        
         writeDb(db);
 
         return NextResponse.json({ 
             success: true, 
-            studentsAdded,
-            recordsAdded 
+            studentsAdded
         });
 
     } catch (e: any) {

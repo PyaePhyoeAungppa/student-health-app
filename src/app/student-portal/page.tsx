@@ -133,25 +133,86 @@ export default function StudentPortalPage() {
                                         {t("bmiCategory")}: <strong>{t(bmiInfo.key as any)}</strong>
                                     </div>
                                 )}
-                                <div className="space-y-2 text-sm">
-                                    {[
-                                        [t("bloodType"), latestRecord.bloodType],
-                                        [t("vision"), latestRecord.visionPrescription || "20/20"],
-                                        [t("underlyingDisease"), latestRecord.underlyingDisease || t("none")],
-                                        [t("drugAllergy"), latestRecord.drugAllergy || t("none")],
-                                        [t("hearingTest"), latestRecord.hearingTest],
-                                        [t("colorBlindness"), latestRecord.colorBlindness],
-                                        [t("xRayResult"), latestRecord.xRayResult || "—"],
-                                    ].map(([label, val]) => (
-                                        <div key={label.toString()} className="flex justify-between">
-                                            <span className="text-muted-foreground">{label}</span>
-                                            {label === t("hearingTest") || label === t("colorBlindness") ? (
-                                                <span className={val === "NORMAL" ? "badge-normal" : "badge-abnormal"}>{t(val.toLowerCase() as any) || val}</span>
-                                            ) : (
-                                                <span className="font-medium">{val}</span>
-                                            )}
+                                <div className="space-y-6">
+                                    {/* General Details */}
+                                    <div>
+                                        <h4 className="font-semibold text-primary mt-4 mb-2 border-b pb-1">General Details ข้อมูลทั่วไป</h4>
+                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                            {[
+                                                [t("bloodType"), latestRecord.bloodType],
+                                                [t("underlyingDisease"), latestRecord.underlyingDisease || t("none")],
+                                                [t("drugAllergy"), latestRecord.drugAllergy || t("none")],
+                                            ].map(([label, val]) => (
+                                                <div key={label.toString()} className="flex justify-between">
+                                                    <span className="text-muted-foreground">{label}</span>
+                                                    <span className="font-medium text-right max-w-[60%]">{val}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    {/* Examinations & Tests */}
+                                    <div>
+                                        <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">Examinations & Tests ผลตรวจ</h4>
+                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                            {[
+                                                ["Symptoms เบื้องต้น", latestRecord.symptoms || "—"],
+                                                ["Hearing Test การได้ยิน", latestRecord.hearingTest || "—"],
+                                                ["Color Blindness ตาบอดสี", latestRecord.colorBlindness || "—"],
+                                                ["Eye Test ทดสอบสายตา", latestRecord.eyeTest || "—"],
+                                                ["Vision Left ตาซ้าย", latestRecord.visionBothEyesLeft || "—"],
+                                                ["Vision Right ตาขวา", latestRecord.visionBothEyesRight || "—"],
+                                                ["Flexibility ความอ่อนตัว (cm)", latestRecord.flexibility ? `${latestRecord.flexibility} cm` : "—"],
+                                                ["Handgrip Strength แรงบีบมือ", latestRecord.handgripStrength ? `${latestRecord.handgripStrength}` : "—"],
+                                                ["X-Ray Result", latestRecord.xRayResult || "—"],
+                                            ].map(([label, val]) => (
+                                                <div key={label.toString()} className="flex justify-between">
+                                                    <span className="text-muted-foreground">{label}</span>
+                                                    <span className="font-medium text-right max-w-[60%]">{val}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* 10 Steps Physical Examination */}
+                                    <div>
+                                        <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">10 Steps Physical Examination</h4>
+                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                            {[
+                                                ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.join(", ")],
+                                                ["Auscultation (Heart/Lungs)", latestRecord.auscultation?.join(", ")],
+                                                ["Cleanliness", latestRecord.cleanliness?.join(", ")],
+                                                ["Mouth", latestRecord.mouth?.join(", ")],
+                                                ["Kidney", latestRecord.kidney ? "Yes/พบ" : "Normal/ปกติ"],
+                                                ["Thyroid", latestRecord.thyroid ? "Yes/พบ" : "Normal/ปกติ"],
+                                                ["Lymphnode", latestRecord.lymphnode ? "Yes/พบ" : "Normal/ปกติ"],
+                                                ["Skin", latestRecord.skin?.join(", ")],
+                                                ["Bone", latestRecord.bone?.join(", ")],
+                                            ].map(([label, val]) => (
+                                                <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
+                                                    <span className="text-muted-foreground w-1/3">{label}</span>
+                                                    <span className="font-medium text-right text-xs max-w-[60%]">{val || "Normal / ปกติ"}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Additional Health Info */}
+                                    <div>
+                                        <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">Additional Health Info</h4>
+                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                            {[
+                                                ["Body Examination", latestRecord.bodyExamination || "—"],
+                                                ["Doctor Note", latestRecord.doctorNote || "—"],
+                                                [t("additionalNotes"), latestRecord.additionalNotes || "—"],
+                                            ].map(([label, val]) => (
+                                                <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
+                                                    <span className="text-muted-foreground w-1/3">{label}</span>
+                                                    <span className="font-medium text-right text-xs max-w-[60%]">{val || "—"}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
