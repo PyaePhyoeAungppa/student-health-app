@@ -20,9 +20,9 @@ export default function StudentDetailPage() {
     const [form, setForm] = useState({
         academicYear: new Date().getFullYear().toString(),
         underlyingDisease: "", drugAllergy: "", bloodType: "UNKNOWN",
-        weight: "", height: "", hearingTest: "Normal ปกติ", bodyExamination: "",
-        visionPrescription: "", visionDistance: "20/20", visionResult: "ปกติ",
-        colorBlindness: "Pass ผ่าน", xRayResult: "Normal ปกติ", doctorNote: "", additionalNotes: "",
+        weight: "", height: "", hearingTest: "", bodyExamination: "",
+        visionPrescription: "", visionDistance: "", visionResult: "",
+        colorBlindness: "", xRayResult: "", doctorNote: "", additionalNotes: "",
         earEyeThroatNose: [] as string[],
         auscultation: [] as string[],
         cleanliness: [] as string[],
@@ -65,13 +65,13 @@ export default function StudentDetailPage() {
                         bloodType: latest.bloodType || "UNKNOWN",
                         weight: latest.weight != null ? String(latest.weight) : "",
                         height: latest.height != null ? String(latest.height) : "",
-                        hearingTest: latest.hearingTest || "Normal ปกติ",
+                        hearingTest: latest.hearingTest || "",
                         bodyExamination: latest.bodyExamination || "",
                         visionPrescription: latest.visionPrescription || "",
-                        visionDistance: latest.visionDistance || "20/20",
-                        visionResult: latest.visionResult || "ปกติ",
-                        colorBlindness: latest.colorBlindness || "Pass ผ่าน",
-                        xRayResult: latest.xRayResult || "Normal ปกติ",
+                        visionDistance: latest.visionDistance || "",
+                        visionResult: latest.visionResult || "",
+                        colorBlindness: latest.colorBlindness || "",
+                        xRayResult: latest.xRayResult || "",
                         doctorNote: latest.doctorNote || "",
                         additionalNotes: latest.additionalNotes || "",
                         earEyeThroatNose: latest.earEyeThroatNose || [],
@@ -123,9 +123,9 @@ export default function StudentDetailPage() {
             setForm({
                 academicYear: new Date().getFullYear().toString(),
                 underlyingDisease: "", drugAllergy: "", bloodType: "UNKNOWN",
-                weight: "", height: "", hearingTest: "Normal ปกติ", bodyExamination: "",
-                visionPrescription: "", visionDistance: "20/20", visionResult: "ปกติ",
-                colorBlindness: "Pass ผ่าน", xRayResult: "Normal ปกติ", doctorNote: "", additionalNotes: "",
+                weight: "", height: "", hearingTest: "", bodyExamination: "",
+                visionPrescription: "", visionDistance: "", visionResult: "",
+                colorBlindness: "", xRayResult: "", doctorNote: "", additionalNotes: "",
                 earEyeThroatNose: [], auscultation: [], cleanliness: [], mouth: [], kidney: false, thyroid: false, lymphnode: false, skin: [], bone: [], eyeTest: "", visionBothEyesLeft: "", visionBothEyesRight: "", symptoms: "", flexibility: "", handgripStrength: "",
             });
             fetchStudent();
@@ -235,15 +235,15 @@ export default function StudentDetailPage() {
                                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Tests & Examinations</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                                             {[
-                                                ["Symptoms", latestRecord.symptoms || "—"],
-                                                ["Hearing Test", latestRecord.hearingTest || "—"],
-                                                ["Color Blindness", latestRecord.colorBlindness || "—"],
-                                                ["Eye Test", latestRecord.eyeTest || "—"],
-                                                ["Vision (Left)", latestRecord.visionBothEyesLeft || "—"],
-                                                ["Vision (Right)", latestRecord.visionBothEyesRight || "—"],
-                                                ["Flexibility (cm)", latestRecord.flexibility ? `${latestRecord.flexibility} cm` : "—"],
-                                                ["Handgrip", latestRecord.handgripStrength ? `${latestRecord.handgripStrength}` : "—"],
-                                                ["X-Ray Result", latestRecord.xRayResult || "—"],
+                                                ["Symptoms", latestRecord.symptoms || "N/A"],
+                                                ["Hearing Test", latestRecord.hearingTest || "N/A"],
+                                                ["Color Blindness", latestRecord.colorBlindness || "N/A"],
+                                                ["Eye Test", latestRecord.eyeTest || "N/A"],
+                                                ["Vision (Left)", latestRecord.visionBothEyesLeft || "N/A"],
+                                                ["Vision (Right)", latestRecord.visionBothEyesRight || "N/A"],
+                                                ["Flexibility (cm)", latestRecord.flexibility ? `${latestRecord.flexibility} cm` : "N/A"],
+                                                ["Handgrip", latestRecord.handgripStrength ? `${latestRecord.handgripStrength}` : "N/A"],
+                                                ["X-Ray Result", latestRecord.xRayResult || "N/A"],
                                             ].map(([label, val]) => (
                                                 <div key={label.toString()} className="flex justify-between gap-2">
                                                     <span className="text-muted-foreground">{label}</span>
@@ -258,19 +258,19 @@ export default function StudentDetailPage() {
                                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">10 Steps Physical Examination</h3>
                                         <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.join(", ")],
-                                                ["Auscultation", latestRecord.auscultation?.join(", ")],
-                                                ["Cleanliness", latestRecord.cleanliness?.join(", ")],
-                                                ["Mouth", latestRecord.mouth?.join(", ")],
-                                                ["Kidney", latestRecord.kidney ? "Yes/พบ" : "Normal/ปกติ"],
-                                                ["Thyroid", latestRecord.thyroid ? "Yes/พบ" : "Normal/ปกติ"],
-                                                ["Lymphnode", latestRecord.lymphnode ? "Yes/พบ" : "Normal/ปกติ"],
-                                                ["Skin", latestRecord.skin?.join(", ")],
-                                                ["Bone", latestRecord.bone?.join(", ")],
+                                                ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.length ? latestRecord.earEyeThroatNose.join(", ") : "N/A"],
+                                                ["Auscultation", latestRecord.auscultation?.length ? latestRecord.auscultation.join(", ") : "N/A"],
+                                                ["Cleanliness", latestRecord.cleanliness?.length ? latestRecord.cleanliness.join(", ") : "N/A"],
+                                                ["Mouth", latestRecord.mouth?.length ? latestRecord.mouth.join(", ") : "N/A"],
+                                                ["Kidney", latestRecord.kidney ? "Yes / พบ" : "N/A"],
+                                                ["Thyroid", latestRecord.thyroid ? "Yes / พบ" : "N/A"],
+                                                ["Lymphnode", latestRecord.lymphnode ? "Yes / พบ" : "N/A"],
+                                                ["Skin", latestRecord.skin?.length ? latestRecord.skin.join(", ") : "N/A"],
+                                                ["Bone", latestRecord.bone?.length ? latestRecord.bone.join(", ") : "N/A"],
                                             ].map(([label, val]) => (
                                                 <div key={label.toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
                                                     <span className="text-muted-foreground whitespace-nowrap">{label}</span>
-                                                    <span className="font-medium text-right">{val || "Normal / ปกติ"}</span>
+                                                    <span className="font-medium text-right">{val}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -281,9 +281,9 @@ export default function StudentDetailPage() {
                                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Additional Health Info</h3>
                                         <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                ["Body Examination", latestRecord.bodyExamination || "—"],
-                                                ["Doctor Note", latestRecord.doctorNote || "—"],
-                                                [t("additionalNotes"), latestRecord.additionalNotes || "—"],
+                                                ["Body Examination", latestRecord.bodyExamination || "N/A"],
+                                                ["Doctor Note", latestRecord.doctorNote || "N/A"],
+                                                [t("additionalNotes"), latestRecord.additionalNotes || "N/A"],
                                             ].map(([label, val]) => (
                                                 <div key={label.toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
                                                     <span className="text-muted-foreground whitespace-nowrap">{label}</span>
@@ -485,6 +485,7 @@ export default function StudentDetailPage() {
                                         <div>
                                             <label className="block text-sm font-medium mb-1.5">Hearing Test การได้ยิน</label>
                                             <select value={form.hearingTest} onChange={e => set("hearingTest", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                <option value="">N/A — Not Examined</option>
                                                 <option value="Normal ปกติ">Normal ปกติ</option>
                                                 <option value="Abnormal ผิดปกติ (Right ear หูขวา)">Abnormal ผิดปกติ (Right หูขวา)</option>
                                                 <option value="Abnormal ผิดปกติ (Left ear หูซ้าย)">Abnormal ผิดปกติ (Left หูซ้าย)</option>
@@ -495,6 +496,7 @@ export default function StudentDetailPage() {
                                         <div>
                                             <label className="block text-sm font-medium mb-1.5">Color Blindness ตาบอดสี</label>
                                             <select value={form.colorBlindness} onChange={e => set("colorBlindness", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                <option value="">N/A — Not Examined</option>
                                                 <option value="Pass ผ่าน">Pass ผ่าน</option>
                                                 <option value="Not pass ไม่ผ่าน">Not pass ไม่ผ่าน</option>
                                             </select>
@@ -551,6 +553,7 @@ export default function StudentDetailPage() {
                                         <div>
                                             <label className="block text-sm font-medium mb-1.5">X-Ray Result</label>
                                             <select value={form.xRayResult} onChange={e => set("xRayResult", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                <option value="">N/A — Not Examined</option>
                                                 <option value="Normal ปกติ">Normal ปกติ</option>
                                                 <option value="Abnormal ไม่ปกติ">Abnormal ไม่ปกติ</option>
                                             </select>
