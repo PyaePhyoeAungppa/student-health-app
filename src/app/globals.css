@@ -158,3 +158,12 @@
     text-shadow: none;
   }
 }
+
+/* Premium Bouncy Icon Hover Animation */
+.bouncy-avatar-icon {
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.group:hover .bouncy-avatar-icon {
+  transform: scale(1.18);
+}

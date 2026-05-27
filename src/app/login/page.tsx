@@ -47,9 +47,9 @@ export default function LoginPage() {
                         style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                         <HeartPulse className="w-10 h-10 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold gradient-text">HealthTrack TH</h1>
+                    <h1 className="text-3xl font-bold gradient-text">Delta Healthcare Thailand</h1>
                     <p className="text-muted-foreground mt-2 text-sm">ระบบข้อมูลสุขภาพนักเรียน</p>
-                    <p className="text-muted-foreground text-xs">Thailand Student Health Management</p>
+                    <p className="text-muted-foreground text-xs">Delta Healthcare Thailand</p>
                 </div>
 
                 {/* Card */}

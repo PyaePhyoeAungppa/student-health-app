@@ -29,7 +29,7 @@
       "username": "admin",
       "passwordHash": "$2b$10$kCTZYYxJ.hAXu1XBoF1eZeo9jj/SpsP0N2ybVv5UU4wdN/hP7h3ei",
       "role": "SYSTEM_ADMIN",
-      "fullName": "System Administrator",
+      "fullName": "Admin User",
       "email": "admin@healthsystem.th",
       "language": "th",
       "createdAt": "2026-03-06T21:33:38.463Z"
@@ -58,9 +58,9 @@
   ],
   "students": [
     {
-      "id": "stu-1777988334658-290",
-      "studentId": "STU001",
-      "thaiId": "1100000000000",
+      "id": "stu-1778006684215-75",
+      "studentId": "STU002",
+      "thaiId": "1100000000001",
       "orderNumber": 1,
       "class": "ม.1/1",
       "gender": "Female",
@@ -69,56 +69,54 @@
       "surName": "ใจดี",
       "dob": "2010-05-19T17:00:00.000Z",
       "age": 13,
-      "schoolId": "school-1777988293660",
-      "createdAt": "2026-05-05T13:38:54.658Z"
+      "schoolId": "school-5",
+      "createdAt": "2026-05-05T18:44:44.215Z"
     }
   ],
   "healthRecords": [
     {
       "academicYear": "2026",
-      "underlyingDisease": "None",
-      "drugAllergy": "none",
-      "bloodType": "B",
-      "weight": 40,
-      "height": 169.8,
-      "hearingTest": "",
-      "bodyExamination": "-",
+      "underlyingDisease": "",
+      "drugAllergy": "",
+      "bloodType": "AB",
+      "weight": null,
+      "height": null,
+      "hearingTest": "Normal ปกติ",
+      "bodyExamination": "",
       "visionPrescription": "",
-      "visionDistance": "20/20",
-      "visionResult": "ปกติ",
+      "visionDistance": "",
+      "visionResult": "",
       "colorBlindness": "Pass ผ่าน",
-      "xRayResult": "Normal ปกติ",
-      "doctorNote": "PPA",
-      "additionalNotes": "-",
-      "earEyeThroatNose": [],
-      "auscultation": [],
-      "cleanliness": [
-        "hair ผม"
+      "xRayResult": "",
+      "doctorNote": "",
+      "additionalNotes": "",
+      "earEyeThroatNose": [
+        "Ear Earwaxใบหู ขี้หู"
       ],
-      "mouth": [
-        "Decay teeth ฟันผุ"
+      "auscultation": [
+        "Heart หัวใจ"
       ],
+      "cleanliness": [],
+      "mouth": [],
       "kidney": false,
       "thyroid": true,
       "lymphnode": false,
       "skin": [
         "Rash ผื่นคัน"
       ],
-      "bone": [
-        "Crooked arms แขนคดงอ"
-      ],
-      "eyeTest": "No Glasses ตาเปล่า",
-      "visionBothEyesLeft": "20/20 ปกติ",
-      "visionBothEyesRight": "20/20 ปกติ",
-      "symptoms": "Normal ปกติ",
-      "flexibility": 30,
-      "handgripStrength": 40,
-      "studentId": "stu-1777988334658-290",
-      "bmi": 13.87,
-      "id": "hr-1777988526815",
-      "recordedAt": "2026-05-05T13:42:06.815Z",
-      "createdAt": "2026-05-05T13:42:06.815Z",
-      "updatedAt": "2026-05-05T13:49:06.121Z"
+      "bone": [],
+      "eyeTest": "Didn't bring the glasssไม่ นำแว่นมา",
+      "visionBothEyesLeft": "20/50 ผิดปกติ",
+      "visionBothEyesRight": "20/30 ผิดปกติ",
+      "symptoms": "",
+      "flexibility": null,
+      "handgripStrength": null,
+      "studentId": "stu-1778006684215-75",
+      "bmi": null,
+      "id": "hr-1778006871149",
+      "recordedAt": "2026-05-05T18:47:51.149Z",
+      "createdAt": "2026-05-05T18:47:51.149Z",
+      "updatedAt": "2026-05-05T18:47:51.149Z"
     }
   ]
 }

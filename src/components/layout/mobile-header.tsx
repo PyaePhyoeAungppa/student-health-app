@@ -14,7 +14,7 @@ export default function MobileHeader() {
                     style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                     <HeartPulse className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-sm gradient-text">HealthTrack</span>
+                <span className="font-bold text-sm gradient-text">{t("healthTrack")}</span>
             </div>
 
             <button
