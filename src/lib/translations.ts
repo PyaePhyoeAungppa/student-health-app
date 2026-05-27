@@ -185,6 +185,18 @@ export const translations = {
         bmiCategory: "BMI Category",
         backToLookup: "Back to Lookup",
         staffSignIn: "Sign in to the admin portal",
+        importCompleted: "Import Completed",
+        importSuccessDetail: "Import successful: Added {added} new students and {records} health records.",
+        importSkippedWarning: "* Skipped {count} rows due to abnormal data. Please see details below.",
+        skippedRowsTitle: "Incorrect Data Detected & Skipped (Skipped {count} Rows)",
+        skippedRowsExplanation: "The system detected abnormal inputs from typing typos (e.g., weight 666 kg or height 1165 cm) and skipped importing those rows to prevent errors. You can download the error spreadsheet below, fix the highlighted pink cells, and upload it again:",
+        downloadIncorrectRows: "Download Incorrect Rows (.xlsx)",
+        tableRowHeader: "Row",
+        tableStudentHeader: "Student",
+        tableFieldHeader: "Field",
+        tableValueHeader: "Typed Value",
+        tableReasonHeader: "Cause of Error",
+        importFailed: "Import Failed",
     },
     th: {
         // Shared
@@ -372,6 +384,18 @@ export const translations = {
         bmiCategory: "เกณฑ์ BMI",
         backToLookup: "ย้อนกลับหน้าค้นหา",
         staffSignIn: "เข้าสู่ระบบสำหรับเจ้าหน้าที่",
+        importCompleted: "การนำเข้าข้อมูลเสร็จสิ้น",
+        importSuccessDetail: "นำเข้าสำเร็จ: เพิ่มนักเรียนใหม่ {added} คน และบันทึกข้อมูลสุขภาพ {records} รายการ",
+        importSkippedWarning: "* มีการข้าม {count} แถว เนื่องจากพบข้อมูลผิดปกติ โปรดดูรายละเอียดด้านล่าง",
+        skippedRowsTitle: "พบข้อมูลไม่ถูกต้องและข้ามการนำเข้า (ข้าม {count} แถว)",
+        skippedRowsExplanation: "ระบบตรวจพบความผิดปกติของข้อมูลจากตัวเลขที่พิมพ์เกินช่วงปกติ (เช่น น้ำหนัก 666 กก. หรือ ส่วนสูง 1165 ซม.) จึงข้ามการบันทึกข้อมูลเหล่านั้นเพื่อป้องกันข้อผิดพลาด คุณสามารถคลิกดาวน์โหลดไฟล์เพื่อแก้ไขช่องที่เป็นสีไฮไลต์แล้วอัปโหลดใหม่อีกครั้ง:",
+        downloadIncorrectRows: "ดาวน์โหลดรายการที่ผิดพลาด (.xlsx)",
+        tableRowHeader: "แถว",
+        tableStudentHeader: "นักเรียน",
+        tableFieldHeader: "ฟิลด์",
+        tableValueHeader: "ค่าที่พิมพ์",
+        tableReasonHeader: "สาเหตุ",
+        importFailed: "การนำเข้าล้มเหลว",
     }
 };
 

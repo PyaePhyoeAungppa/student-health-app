@@ -373,8 +373,8 @@ export default function ProfilePage() {
 
                     {/* Metadata & Admin Note */}
                     <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 flex gap-3">
-                        <Calendar className="w-5 h-5 text-amber-500 shrink-0" />
-                        <p className="text-xs text-amber-200/80 leading-relaxed">
+                        <Calendar className="w-5 h-5 text-amber-600 shrink-0" />
+                        <p className="text-xs text-amber-800 leading-relaxed font-medium">
                             Profile details and password can be updated above. System-controlled roles and school assignments are managed by administrators. Language preferences are saved locally and synced with your account.
                         </p>
                     </div>

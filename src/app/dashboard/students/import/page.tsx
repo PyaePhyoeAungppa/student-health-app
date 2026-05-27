@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, ArrowLeft, Download } from "lucide-react";
+import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, ArrowLeft, Download, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -13,13 +13,17 @@ export default function ImportStudentsPage() {
     const router = useRouter();
     const { t } = useLanguage();
 
-    const [file, setFile] = useState<File | null>(null);
+        const [file, setFile] = useState<File | null>(null);
     const [schools, setSchools] = useState<any[]>([]);
     const [selectedSchool, setSelectedSchool] = useState("");
     const [searchSchoolTerm, setSearchSchoolTerm] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<any>(null);
+    const [warnings, setWarnings] = useState<any[]>([]);
+    const [skippedCount, setSkippedCount] = useState(0);
+    const [errorFileBase64, setErrorFileBase64] = useState("");
+    const [errorFileName, setErrorFileName] = useState("");
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -34,6 +38,10 @@ export default function ImportStudentsPage() {
         e.preventDefault();
         setError("");
         setSuccess(null);
+        setWarnings([]);
+        setSkippedCount(0);
+        setErrorFileBase64("");
+        setErrorFileName("");
 
         if (!file) {
             setError("Please select an Excel file.");
@@ -63,11 +71,38 @@ export default function ImportStudentsPage() {
                 studentsAdded: data.studentsAdded,
                 recordsAdded: data.recordsAdded
             });
+            setWarnings(data.warnings || []);
+            setSkippedCount(data.skippedCount || 0);
+            setErrorFileBase64(data.errorFileBase64 || "");
+            setErrorFileName(data.errorFileName || "");
             setFile(null);
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDownloadIncorrect = () => {
+        if (!errorFileBase64) return;
+        try {
+            const byteCharacters = atob(errorFileBase64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = errorFileName || "incorrect-student-records.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Failed to download file", err);
         }
     };
 
@@ -92,16 +127,21 @@ export default function ImportStudentsPage() {
                     </div>
                 </div>
 
-
-
                 {success && (
-                    <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-600 flex items-start gap-3">
+                    <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-600 flex items-start gap-3 animate-fade-in">
                         <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
                         <div>
-                            <h3 className="font-medium">Import Successful!</h3>
-                            <p className="text-sm opacity-90 mt-1">
-                                Added {success.studentsAdded} new students and {success.recordsAdded} health records.
+                            <h3 className="font-bold text-sm">{t("importCompleted" as any)}</h3>
+                            <p className="text-xs opacity-90 mt-1">
+                                {t("importSuccessDetail" as any)
+                                    .replace("{added}", success.studentsAdded)
+                                    .replace("{records}", success.recordsAdded)}
                             </p>
+                            {skippedCount > 0 && (
+                                <p className="text-xs text-amber-600 font-semibold mt-1">
+                                    {t("importSkippedWarning" as any).replace("{count}", String(skippedCount))}
+                                </p>
+                            )}
                         </div>
                     </div>
                 )}
@@ -110,8 +150,62 @@ export default function ImportStudentsPage() {
                     <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 flex items-start gap-3">
                         <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
                         <div>
-                            <h3 className="font-medium">Import Failed</h3>
+                            <h3 className="font-medium">{t("importFailed" as any)}</h3>
                             <p className="text-sm opacity-90 mt-1">{error}</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Warnings / Abnormal Data Review Panel */}
+                {skippedCount > 0 && (
+                    <div className="mb-6 p-5 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-fade-in">
+                        <div className="flex items-center gap-2 mb-3 text-amber-700">
+                            <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+                            <h3 className="font-bold text-sm">
+                                {t("skippedRowsTitle" as any).replace("{count}", String(skippedCount))}
+                            </h3>
+                        </div>
+                        <p className="text-xs text-amber-800 mb-4 leading-relaxed font-medium">
+                            {t("skippedRowsExplanation" as any)}
+                        </p>
+
+                        {errorFileBase64 && (
+                            <button
+                                onClick={handleDownloadIncorrect}
+                                className="mb-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-white font-semibold transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-lg text-xs"
+                                style={{ background: "linear-gradient(135deg, hsl(35, 100%, 50%) 0%, hsl(20, 95%, 45%) 100%)" }}
+                            >
+                                <Download className="w-4 h-4 animate-bounce" />
+                                {t("downloadIncorrectRows" as any)}
+                            </button>
+                        )}
+                        
+                        <div className="overflow-x-auto rounded-lg border border-border/50 bg-black/10">
+                            <table className="w-full text-xs text-left min-w-[550px]">
+                                <thead className="bg-secondary text-muted-foreground font-semibold border-b border-border/30">
+                                    <tr>
+                                        <th className="px-3 py-2 text-center w-16">{t("tableRowHeader" as any)}</th>
+                                        <th className="px-3 py-2">{t("tableStudentHeader" as any)}</th>
+                                        <th className="px-3 py-2 w-32">{t("tableFieldHeader" as any)}</th>
+                                        <th className="px-3 py-2 text-right w-24">{t("tableValueHeader" as any)}</th>
+                                        <th className="px-3 py-2 pl-4">{t("tableReasonHeader" as any)}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/20">
+                                    {warnings.map((warn, idx) => (
+                                        <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                            <td className="px-3 py-2.5 text-center font-mono text-muted-foreground">{warn.row}</td>
+                                            <td className="px-3 py-2.5">
+                                                <div className="font-semibold">{warn.name}</div>
+                                                <div className="text-[10px] text-muted-foreground">ID: {warn.studentId}</div>
+                                            </td>
+                                            <td className="px-3 py-2.5 text-amber-400 font-medium">{warn.field}</td>
+                                            <td className="px-3 py-2.5 text-right font-semibold text-red-400">{warn.value}</td>
+                                            <td className="px-3 py-2.5 pl-4 text-muted-foreground">{warn.message}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}
