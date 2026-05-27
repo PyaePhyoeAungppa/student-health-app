@@ -5,6 +5,19 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, HeartPulse, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
+const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number, amplitude: number) => {
+    let path = "";
+    const points = 120;
+    for (let i = 0; i <= points; i++) {
+        const angle = (i / points) * Math.PI * 2;
+        const r = radius + Math.sin(angle * waves) * amplitude;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        path += (i === 0 ? "M " : " L ") + `${x.toFixed(2)},${y.toFixed(2)}`;
+    }
+    return path + " Z";
+};
+
 export default function LoginPage() {
     const router = useRouter();
     const [username, setUsername] = useState("");
@@ -42,10 +55,25 @@ export default function LoginPage() {
 
             <div className="w-full max-w-md animate-fade-in">
                 {/* Logo */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 ring-2 ring-primary/30"
-                        style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
-                        <HeartPulse className="w-10 h-10 text-white" />
+                <div className="text-center mb-8 flex flex-col items-center">
+                    <div className="relative w-24 h-24 mb-4 flex items-center justify-center group cursor-pointer">
+                        <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full drop-shadow-sm transition-transform duration-700 ease-in-out group-hover:rotate-180">
+                            <defs>
+                                <linearGradient id="wavy-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="hsl(var(--primary))" />
+                                    <stop offset="100%" stopColor="hsl(var(--accent))" />
+                                </linearGradient>
+                            </defs>
+                            <path
+                                d={getWavyCirclePath(50, 50, 44, 14, 2.5)}
+                                fill="url(#wavy-gradient)"
+                            />
+                            <circle cx="50" cy="50" r="37" fill="hsl(var(--card))" />
+                            <circle cx="50" cy="50" r="34" fill="none" stroke="hsl(var(--primary) / 0.15)" strokeWidth="1" strokeDasharray="3,3" />
+                        </svg>
+                        <div className="relative z-10 w-[72px] h-[72px] rounded-full bg-primary/10 flex items-center justify-center">
+                            <HeartPulse className="w-9 h-9 text-primary bouncy-avatar-icon" />
+                        </div>
                     </div>
                     <h1 className="text-3xl font-bold gradient-text">Delta Healthcare Thailand</h1>
                     <p className="text-muted-foreground mt-2 text-sm">ระบบข้อมูลสุขภาพนักเรียน</p>
