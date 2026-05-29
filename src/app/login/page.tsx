@@ -37,7 +37,7 @@ export default function LoginPage() {
         });
         setLoading(false);
         if (result?.error) {
-            setError("Invalid username or password. Please try again.");
+            setError("Invalid username, email, or password. Please try again.");
         } else {
             router.push("/dashboard");
         }
@@ -93,13 +93,13 @@ export default function LoginPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-muted-foreground mb-1.5">Username</label>
+                            <label className="block text-sm font-medium text-muted-foreground mb-1.5">Username or Email</label>
                             <input
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-                                placeholder="Enter your username"
+                                placeholder="Enter your username or email"
                                 required
                             />
                         </div>

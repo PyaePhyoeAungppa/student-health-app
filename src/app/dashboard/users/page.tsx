@@ -147,8 +147,11 @@ export default function UsersPage() {
                             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1.5">{t("username")} *</label>
-                                    <input type="text" required value={form.username} onChange={e => setForm({ ...form, username: e.target.value })}
+                                    <input type="text" required value={form.username} onChange={e => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "") })}
                                         className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                    <p className="text-[11px] text-muted-foreground mt-1 leading-normal">
+                                        Only lowercase letters and numbers are allowed (no spaces, uppercase letters, or special characters).
+                                    </p>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1.5">{t("tempPassword")} {editingId ? "" : "*"}</label>

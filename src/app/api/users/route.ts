@@ -28,6 +28,14 @@ export async function POST(req: Request) {
 
     const { username, password, role, fullName, email, schoolId } = await req.json();
 
+    const usernameRegex = /^[a-z0-9]+$/;
+    if (!username || !usernameRegex.test(username)) {
+        return NextResponse.json(
+            { error: "Username must only contain lowercase letters and numbers (no spaces, uppercase letters, or special characters)" },
+            { status: 400 }
+        );
+    }
+
     const db = readDb();
     if (db.users.some(u => u.username === username)) {
         return NextResponse.json({ error: "Username already exists" }, { status: 400 });

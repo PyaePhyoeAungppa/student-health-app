@@ -23,9 +23,13 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
-                    const user = db.users.find(u => u.username === credentials.username);
+                    const loginIdentifier = credentials.username.trim().toLowerCase();
+                    const user = db.users.find(u => 
+                        u.username.toLowerCase() === loginIdentifier || 
+                        (u.email && u.email.toLowerCase() === loginIdentifier)
+                    );
                     if (!user) {
-                        console.log(`[AUTH-DEBUG] User NOT found in JSON for: ${credentials.username}`);
+                        console.log(`[AUTH-DEBUG] User NOT found in JSON for: ${loginIdentifier}`);
                         return null;
                     }
 

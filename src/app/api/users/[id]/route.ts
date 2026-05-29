@@ -28,6 +28,17 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const data = await req.json();
+
+    if (data.username !== undefined) {
+        const usernameRegex = /^[a-z0-9]+$/;
+        if (!data.username || !usernameRegex.test(data.username)) {
+            return NextResponse.json(
+                { error: "Username must only contain lowercase letters and numbers (no spaces, uppercase letters, or special characters)" },
+                { status: 400 }
+            );
+        }
+    }
+
     const db = readDb();
     
     const index = db.users.findIndex(u => u.id === params.id);
