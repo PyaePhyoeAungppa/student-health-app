@@ -44,6 +44,7 @@ model Student {
   firstName         String
   surName           String
   dob               DateTime
+  passwordHash      String?
   schoolId          String
   school            School       @relation(fields: [schoolId], references: [id])
   createdAt         DateTime     @default(now())

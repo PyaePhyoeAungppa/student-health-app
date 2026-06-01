@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Edit, Plus, Loader2, HeartPulse, Weight, Ruler, Eye, Ear, X, Save } from "lucide-react";
+import { ArrowLeft, Edit, Plus, Loader2, HeartPulse, Weight, Ruler, Eye, Ear, X, Save, Check } from "lucide-react";
 import Link from "next/link";
 import { calculateAge, formatDate, getBMICategory } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -17,6 +17,9 @@ export default function StudentDetailPage() {
     const [loading, setLoading] = useState(true);
     const [showAddRecord, setShowAddRecord] = useState(false);
     const [savingRecord, setSavingRecord] = useState(false);
+    const [resettingPassword, setResettingPassword] = useState(false);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
     const [form, setForm] = useState({
         academicYear: new Date().getFullYear().toString(),
         underlyingDisease: "", drugAllergy: "", bloodType: "UNKNOWN",
@@ -95,8 +98,33 @@ export default function StudentDetailPage() {
             .catch(() => setLoading(false));
     };
 
+    const executeResetPassword = async () => {
+        setResettingPassword(true);
+        try {
+            const res = await fetch(`/api/students/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ passwordHash: null }),
+            });
+            if (res.ok) {
+                fetchStudent();
+                setShowResetConfirm(false);
+                setToastMessage(t("passwordResetSuccess" as any));
+                setTimeout(() => setToastMessage(null), 3000);
+            } else {
+                alert("Failed to reset password.");
+            }
+        } catch (error) {
+            console.error("Error resetting password:", error);
+            alert("An error occurred while resetting the password.");
+        } finally {
+            setResettingPassword(false);
+        }
+    };
+
     useEffect(() => {
         fetchStudent();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const handleSaveRecord = async (e: React.FormEvent) => {
@@ -185,6 +213,30 @@ export default function StudentDetailPage() {
                                 <span className="font-medium text-right">{val}</span>
                             </div>
                         ))}
+
+                        {/* Password Status & Reset */}
+                        <div className="border-t border-border/50 pt-3 mt-3 space-y-3">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">{t("passwordStatus" as any)}</span>
+                                <span className={`px-2 py-0.5 rounded text-xs font-semibold ${student.passwordHash ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-zinc-500/10 text-zinc-400 border border-zinc-500/20"}`}>
+                                    {student.passwordHash ? t("passwordSet" as any) : t("passwordNotSet" as any)}
+                                </span>
+                            </div>
+
+                            {student.passwordHash && (role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
+                                <button
+                                    onClick={() => setShowResetConfirm(true)}
+                                    disabled={resettingPassword}
+                                    className="w-full mt-2 py-2 rounded-lg text-xs font-semibold bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                                >
+                                    {resettingPassword ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                        t("resetPassword" as any)
+                                    )}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -590,6 +642,50 @@ export default function StudentDetailPage() {
                             </form>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Custom Reset Password Confirmation Modal */}
+            {showResetConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-background max-w-md w-full rounded-2xl shadow-2xl border border-border/50 p-6 text-center animate-in zoom-in-95 duration-200">
+                        <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
+                            <span className="text-red-400 text-xl font-bold">!</span>
+                        </div>
+                        <h3 className="text-lg font-bold mb-2">Reset Student Password?</h3>
+                        <p className="text-muted-foreground text-sm mb-6">
+                            Are you sure you want to reset this student&apos;s password? They will need to create a new password next time they log in.
+                        </p>
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                type="button"
+                                onClick={() => setShowResetConfirm(false)}
+                                className="px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-secondary border border-border transition-colors flex-1"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={executeResetPassword}
+                                disabled={resettingPassword}
+                                className="px-5 py-2.5 rounded-lg text-sm font-medium bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all flex-1 flex items-center justify-center gap-1.5"
+                            >
+                                {resettingPassword ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    "Confirm Reset"
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Success Toast */}
+            {toastMessage && (
+                <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 shadow-2xl animate-in slide-in-from-bottom duration-300 backdrop-blur">
+                    <Check className="w-4 h-4 text-green-400 shrink-0" />
+                    <span className="text-sm font-semibold">{toastMessage}</span>
                 </div>
             )}
         </div>

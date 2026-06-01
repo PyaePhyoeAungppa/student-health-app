@@ -20,27 +20,91 @@ const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number
 export default function StudentPortalPage() {
     const { t, language, setLanguage } = useLanguage();
     const [thaiId, setThaiId] = useState("");
-    const [dob, setDob] = useState("");
+    const [step, setStep] = useState<"id" | "register" | "login">("id");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleLookup = async (e: React.FormEvent) => {
+    const handleCheckId = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError("");
-        setResult(null);
-        const res = await fetch("/api/student-lookup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ studentId: thaiId, dob }),
-        });
-        const data = await res.json();
-        setLoading(false);
-        if (!res.ok) {
-            setError(data.error || t("error"));
-        } else {
-            setResult(data);
+        try {
+            const res = await fetch("/api/student-lookup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId: thaiId, action: "check" }),
+            });
+            const data = await res.json();
+            setLoading(false);
+            if (!res.ok) {
+                setError(t(data.error as any) || data.error || t("error"));
+            } else {
+                if (data.hasPassword) {
+                    setStep("login");
+                } else {
+                    setStep("register");
+                }
+            }
+        } catch (err) {
+            setLoading(false);
+            setError(t("error"));
+        }
+    };
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        try {
+            const res = await fetch("/api/student-lookup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId: thaiId, password, action: "login" }),
+            });
+            const data = await res.json();
+            setLoading(false);
+            if (!res.ok) {
+                setError(t(data.error as any) || data.error || t("error"));
+            } else {
+                setResult(data);
+            }
+        } catch (err) {
+            setLoading(false);
+            setError(t("error"));
+        }
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (password !== confirmPassword) {
+            setError(t("passwordMismatch" as any));
+            return;
+        }
+        if (password.length < 6) {
+            setError(t("passwordLengthError" as any));
+            return;
+        }
+        setLoading(true);
+        setError("");
+        try {
+            const res = await fetch("/api/student-lookup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId: thaiId, password, action: "register" }),
+            });
+            const data = await res.json();
+            setLoading(false);
+            if (!res.ok) {
+                setError(t(data.error as any) || data.error || t("error"));
+            } else {
+                setResult(data);
+            }
+        } catch (err) {
+            setLoading(false);
+            setError(t("error"));
         }
     };
 
@@ -90,35 +154,101 @@ export default function StudentPortalPage() {
                 </div>
 
                 {/* Lookup Form */}
-                <div className="glass-card p-8 shadow-2xl mb-6">
-                    <div className="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
-                        <ShieldCheck className="w-4 h-4 text-green-400" />
-                        <span>{t("privacyProtected")}</span>
-                    </div>
+                {!result && (
+                    <div className="glass-card p-8 shadow-2xl mb-6">
+                        <div className="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
+                            <ShieldCheck className="w-4 h-4 text-green-400" />
+                            <span>{t("privacyProtected")}</span>
+                        </div>
 
-                    <form onSubmit={handleLookup} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("thaiId" as any)}</label>
-                            <input type="text" value={thaiId} onChange={e => setThaiId(e.target.value)} required
-                                placeholder="e.g. 1100100000001"
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("passwordDOB" as any)}</label>
-                            <input type="text" value={dob} onChange={e => setDob(e.target.value)} required
-                                placeholder="YYYY/MM/DD (e.g. 2010/05/20)"
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
-                        </div>
-                        {error && (
-                            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
+                        {step === "id" && (
+                            <form onSubmit={handleCheckId} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("studentIdOrThaiId" as any)}</label>
+                                    <input type="text" value={thaiId} onChange={e => setThaiId(e.target.value)} required
+                                        placeholder="e.g. STU001 or 1100100000001"
+                                        className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                                </div>
+                                {error && (
+                                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
+                                )}
+                                <button type="submit" disabled={loading}
+                                    className="w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-70 hover:opacity-90 transition-all"
+                                    style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
+                                    {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("loading")}</> : <>{t("continue" as any)} →</>}
+                                </button>
+                            </form>
                         )}
-                        <button type="submit" disabled={loading}
-                            className="w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-70 hover:opacity-90 transition-all"
-                            style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
-                            {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("lookingUp")}</> : <><Search className="w-5 h-5" /> {t("viewMyHealthData")}</>}
-                        </button>
-                    </form>
-                </div>
+
+                        {step === "register" && (
+                            <form onSubmit={handleRegister} className="space-y-4">
+                                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm mb-4">
+                                    <p className="font-semibold text-primary">{t("firstTimeSetup" as any)}</p>
+                                    <p className="text-muted-foreground text-xs mt-1">{t("firstTimeMessage" as any)}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-muted-foreground mb-1 uppercase">{t("studentIdOrThaiId" as any)}</label>
+                                    <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border text-muted-foreground text-sm font-medium">{thaiId}</div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("createPassword" as any)}</label>
+                                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+                                        placeholder="••••••••"
+                                        className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("confirmPassword" as any)}</label>
+                                    <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required
+                                        placeholder="••••••••"
+                                        className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                                </div>
+                                {error && (
+                                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
+                                )}
+                                <div className="flex gap-3 pt-2">
+                                    <button type="button" onClick={() => { setStep("id"); setError(""); setPassword(""); setConfirmPassword(""); }}
+                                        className="flex-1 py-3 rounded-lg font-semibold text-muted-foreground border border-border hover:bg-secondary/50 transition-all text-center text-sm">
+                                        {t("back")}
+                                    </button>
+                                    <button type="submit" disabled={loading}
+                                        className="flex-[2] py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-70 hover:opacity-90 transition-all text-sm"
+                                        style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
+                                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("loading")}</> : t("createPassword" as any)}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {step === "login" && (
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-muted-foreground mb-1 uppercase">{t("studentIdOrThaiId" as any)}</label>
+                                    <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border text-muted-foreground text-sm font-medium">{thaiId}</div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("enterPassword" as any)}</label>
+                                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+                                        placeholder="••••••••"
+                                        className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
+                                </div>
+                                {error && (
+                                    <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>
+                                )}
+                                <div className="flex gap-3 pt-2">
+                                    <button type="button" onClick={() => { setStep("id"); setError(""); setPassword(""); }}
+                                        className="flex-1 py-3 rounded-lg font-semibold text-muted-foreground border border-border hover:bg-secondary/50 transition-all text-center text-sm">
+                                        {t("back")}
+                                    </button>
+                                    <button type="submit" disabled={loading}
+                                        className="flex-[2] py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-70 hover:opacity-90 transition-all text-sm"
+                                        style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
+                                        {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> {t("lookingUp")}</> : <><Search className="w-5 h-5" /> {t("viewMyHealthData")}</>}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                )}
 
                 {/* Results */}
                 {result && (
@@ -245,7 +375,7 @@ export default function StudentPortalPage() {
                             </div>
                         )}
 
-                        <button onClick={() => { setResult(null); setThaiId(""); setDob(""); }}
+                        <button onClick={() => { setResult(null); setThaiId(""); setPassword(""); setConfirmPassword(""); setStep("id"); }}
                             className="w-full py-2.5 rounded-lg text-sm text-muted-foreground border border-border hover:bg-secondary/50 transition-colors">
                             ← {t("backToLookup")}
                         </button>
