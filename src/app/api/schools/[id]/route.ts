@@ -21,6 +21,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
         name: data.name || db.schools[index].name,
         province: data.province !== undefined ? data.province : db.schools[index].province,
         address: data.address !== undefined ? data.address : db.schools[index].address,
+        testsConfig: data.testsConfig !== undefined ? data.testsConfig : db.schools[index].testsConfig,
         updatedAt: new Date().toISOString()
     };
 

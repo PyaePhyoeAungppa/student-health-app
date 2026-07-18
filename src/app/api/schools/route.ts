@@ -25,6 +25,7 @@ export async function POST(req: Request) {
     const newSchool = {
         ...data,
         id: `school-${Date.now()}`,
+        testsConfig: data.testsConfig || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
     };

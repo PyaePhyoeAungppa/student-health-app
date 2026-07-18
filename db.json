@@ -20,7 +20,22 @@
       "address": "iuaduis",
       "id": "school-1777988293660",
       "createdAt": "2026-05-05T13:38:13.660Z",
-      "updatedAt": "2026-05-05T13:38:13.660Z"
+      "updatedAt": "2026-07-18T18:37:39.507Z",
+      "testsConfig": {
+        "bloodType": true,
+        "tenSteps": true,
+        "symptoms": true,
+        "hearingTest": true,
+        "colorBlindness": true,
+        "eyeTest": true,
+        "visionBothEyes": true,
+        "flexibility": true,
+        "handgripStrength": true,
+        "standingKneeRaises": true,
+        "situps": true,
+        "pushups": true,
+        "xRayResult": false
+      }
     }
   ],
   "users": [

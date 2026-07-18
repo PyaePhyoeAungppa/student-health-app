@@ -235,6 +235,9 @@ export async function POST(req: Request) {
             const xRayResultVal = String(row["ผลเอ็กซเรย์"] || row["X-Ray Result"] || "—").trim();
             const flexibilityVal = parseFloat(row["ความอ่อนตัว"] || row["Flexibility"]) || null;
             const handgripVal = parseFloat(row["แรงบีบมือ"] || row["Handgrip Strength"]) || null;
+            const standingKneeRaisesVal = parseInt(row["ยืนยกเข่า"] || row["Standing Knee Raises"], 10) || null;
+            const situpsVal = parseInt(row["ลุกนั่ง"] || row["Sit-ups"], 10) || null;
+            const pushupsVal = parseInt(row["ดันพื้น"] || row["Push-ups"], 10) || null;
             const symptomsVal = String(row["อาการเบื้องต้น"] || row["Symptoms"] || "").trim();
             const additionalNotesVal = String(row["บันทึกเพิ่มเติม"] || row["Additional Notes"] || "").trim();
 
@@ -258,6 +261,9 @@ export async function POST(req: Request) {
                 xRayResult: xRayResultVal,
                 flexibility: flexibilityVal,
                 handgripStrength: handgripVal,
+                standingKneeRaises: standingKneeRaisesVal,
+                situps: situpsVal,
+                pushups: pushupsVal,
                 symptoms: symptomsVal,
                 additionalNotes: additionalNotesVal,
                 updatedAt: new Date().toISOString()

@@ -120,7 +120,7 @@ export default function ImportStudentsPage() {
                     <div>
                         <h1 className="text-xl font-bold">Import Student Data</h1>
                         <p className="text-sm text-muted-foreground mb-3">Upload the Thai Excel Template containing student records.</p>
-                        <a href="/api/students/import/sample" target="_blank" className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md transition-colors">
+                        <a href={selectedSchool ? `/api/students/import/sample?schoolId=${selectedSchool}` : `/api/students/import/sample`} target="_blank" className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md transition-colors">
                             <Download className="w-3.5 h-3.5" />
                             {t("downloadSample" as any) || "Download Sample Excel"}
                         </a>

@@ -252,7 +252,13 @@ export default function StudentPortalPage() {
 
                 {/* Results */}
                 {result && (
-                    <div className="space-y-4 animate-fade-in">
+                    (() => {
+                        const latestRecord = result.healthRecords?.[0];
+                        const bmiInfo = latestRecord?.bmi ? getBMICategory(latestRecord.bmi) : null;
+                        const isTestEnabled = (key: string) => result.school?.testsConfig ? result.school.testsConfig[key] !== false : true;
+                        
+                        return (
+                            <div className="space-y-4 animate-fade-in">
                         {/* Student Info */}
                         <div className="glass-card p-6">
                             <div className="flex items-center gap-4 mb-4">
@@ -297,10 +303,10 @@ export default function StudentPortalPage() {
                                         <h4 className="font-semibold text-primary mt-4 mb-2 border-b pb-1">General Details ข้อมูลทั่วไป</h4>
                                         <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                [t("bloodType"), latestRecord.bloodType],
-                                                [t("underlyingDisease"), latestRecord.underlyingDisease || t("none")],
-                                                [t("drugAllergy"), latestRecord.drugAllergy || t("none")],
-                                            ].map(([label, val]) => (
+                                                { label: t("bloodType"), val: latestRecord.bloodType, enabled: isTestEnabled("bloodType") },
+                                                { label: t("underlyingDisease"), val: latestRecord.underlyingDisease || t("none"), enabled: true },
+                                                { label: t("drugAllergy"), val: latestRecord.drugAllergy || t("none"), enabled: true },
+                                            ].filter(item => item.enabled).map(({ label, val }) => (
                                                 <div key={label.toString()} className="flex justify-between">
                                                     <span className="text-muted-foreground">{label}</span>
                                                     <span className="font-medium text-right max-w-[60%]">{val}</span>
@@ -314,17 +320,20 @@ export default function StudentPortalPage() {
                                         <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">Examinations & Tests ผลตรวจ</h4>
                                         <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                ["Symptoms เบื้องต้น", latestRecord.symptoms || "—"],
-                                                ["Hearing Test การได้ยิน", latestRecord.hearingTest || "—"],
-                                                ["Color Blindness ตาบอดสี", latestRecord.colorBlindness || "—"],
-                                                ["Eye Test ทดสอบสายตา", latestRecord.eyeTest || "—"],
-                                                ["Vision Left ตาซ้าย", latestRecord.visionBothEyesLeft || "—"],
-                                                ["Vision Right ตาขวา", latestRecord.visionBothEyesRight || "—"],
-                                                ["Flexibility ความอ่อนตัว (cm)", latestRecord.flexibility ? `${latestRecord.flexibility} cm` : "—"],
-                                                ["Handgrip Strength แรงบีบมือ", latestRecord.handgripStrength ? `${latestRecord.handgripStrength}` : "—"],
-                                                ["X-Ray Result", latestRecord.xRayResult || "—"],
-                                            ].map(([label, val]) => (
-                                                <div key={label.toString()} className="flex justify-between">
+                                                { label: "Symptoms เบื้องต้น", val: latestRecord.symptoms || "—", enabled: isTestEnabled("symptoms") },
+                                                { label: "Hearing Test การได้ยิน", val: latestRecord.hearingTest || "—", enabled: isTestEnabled("hearingTest") },
+                                                { label: "Color Blindness ตาบอดสี", val: latestRecord.colorBlindness || "—", enabled: isTestEnabled("colorBlindness") },
+                                                { label: "Eye Test ทดสอบสายตา", val: latestRecord.eyeTest || "—", enabled: isTestEnabled("eyeTest") },
+                                                { label: "Vision Left ตาซ้าย", val: latestRecord.visionBothEyesLeft || "—", enabled: isTestEnabled("visionBothEyes") },
+                                                { label: "Vision Right ตาขวา", val: latestRecord.visionBothEyesRight || "—", enabled: isTestEnabled("visionBothEyes") },
+                                                { label: "Flexibility ความอ่อนตัว (cm)", val: latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "—", enabled: isTestEnabled("flexibility") },
+                                                { label: "Handgrip Strength แรงบีบมือ", val: latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "—", enabled: isTestEnabled("handgripStrength") },
+                                                { label: "Standing Knee Raises ยืนยกเข่า", val: latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "—", enabled: isTestEnabled("standingKneeRaises") },
+                                                { label: "Sit-ups ลุกนั่ง", val: latestRecord.situps != null ? `${latestRecord.situps}` : "—", enabled: isTestEnabled("situps") },
+                                                { label: "Push-ups ดันพื้น", val: latestRecord.pushups != null ? `${latestRecord.pushups}` : "—", enabled: isTestEnabled("pushups") },
+                                                { label: "X-Ray Result", val: latestRecord.xRayResult || "—", enabled: isTestEnabled("xRayResult") },
+                                            ].filter(item => item.enabled).map(({ label, val }) => (
+                                                <div key={label} className="flex justify-between">
                                                     <span className="text-muted-foreground">{label}</span>
                                                     <span className="font-medium text-right max-w-[60%]">{val}</span>
                                                 </div>
@@ -333,27 +342,29 @@ export default function StudentPortalPage() {
                                     </div>
 
                                     {/* 10 Steps Physical Examination */}
-                                    <div>
-                                        <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">10 Steps Physical Examination</h4>
-                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
-                                            {[
-                                                ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.join(", ")],
-                                                ["Auscultation (Heart/Lungs)", latestRecord.auscultation?.join(", ")],
-                                                ["Cleanliness", latestRecord.cleanliness?.join(", ")],
-                                                ["Mouth", latestRecord.mouth?.join(", ")],
-                                                ["Kidney", latestRecord.kidney ? "Yes/พบ" : "Normal/ปกติ"],
-                                                ["Thyroid", latestRecord.thyroid ? "Yes/พบ" : "Normal/ปกติ"],
-                                                ["Lymphnode", latestRecord.lymphnode ? "Yes/พบ" : "Normal/ปกติ"],
-                                                ["Skin", latestRecord.skin?.join(", ")],
-                                                ["Bone", latestRecord.bone?.join(", ")],
-                                            ].map(([label, val]) => (
-                                                <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
-                                                    <span className="text-muted-foreground w-1/3">{label}</span>
-                                                    <span className="font-medium text-right text-xs max-w-[60%]">{val || "Normal / ปกติ"}</span>
-                                                </div>
-                                            ))}
+                                    {isTestEnabled("tenSteps") && (
+                                        <div>
+                                            <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">10 Steps Physical Examination</h4>
+                                            <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                {[
+                                                    ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.join(", ")],
+                                                    ["Auscultation (Heart/Lungs)", latestRecord.auscultation?.join(", ")],
+                                                    ["Cleanliness", latestRecord.cleanliness?.join(", ")],
+                                                    ["Mouth", latestRecord.mouth?.join(", ")],
+                                                    ["Kidney", latestRecord.kidney ? "Yes/พบ" : "Normal/ปกติ"],
+                                                    ["Thyroid", latestRecord.thyroid ? "Yes/พบ" : "Normal/ปกติ"],
+                                                    ["Lymphnode", latestRecord.lymphnode ? "Yes/พบ" : "Normal/ปกติ"],
+                                                    ["Skin", latestRecord.skin?.join(", ")],
+                                                    ["Bone", latestRecord.bone?.join(", ")],
+                                                ].map(([label, val]) => (
+                                                    <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
+                                                        <span className="text-muted-foreground w-1/3">{label}</span>
+                                                        <span className="font-medium text-right text-xs max-w-[60%]">{val || "Normal / ปกติ"}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Additional Health Info */}
                                     <div>
@@ -379,7 +390,9 @@ export default function StudentPortalPage() {
                             className="w-full py-2.5 rounded-lg text-sm text-muted-foreground border border-border hover:bg-secondary/50 transition-colors">
                             ← {t("backToLookup")}
                         </button>
-                    </div>
+                            </div>
+                        );
+                    })()
                 )}
 
                 <p className="text-center text-xs text-muted-foreground mt-8">

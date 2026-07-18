@@ -30,16 +30,37 @@ export default function SchoolsPage() {
     const [schoolToDelete, setSchoolToDelete] = useState<{ id: string, name: string } | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
-    const [form, setForm] = useState({ name: "", province: "", address: "" });
+    const defaultTestsConfig = {
+        bloodType: true,
+        tenSteps: true,
+        symptoms: true,
+        hearingTest: true,
+        colorBlindness: true,
+        eyeTest: true,
+        visionBothEyes: true,
+        flexibility: true,
+        handgripStrength: true,
+        standingKneeRaises: true,
+        situps: true,
+        pushups: true,
+        xRayResult: true,
+    };
+
+    const [form, setForm] = useState({ name: "", province: "", address: "", testsConfig: defaultTestsConfig });
 
     const openAddForm = () => {
-        setForm({ name: "", province: "", address: "" });
+        setForm({ name: "", province: "", address: "", testsConfig: defaultTestsConfig });
         setEditingId(null);
         setShowAddForm(true);
     };
 
     const handleEdit = (school: any) => {
-        setForm({ name: school.name, province: school.province || "", address: school.address || "" });
+        setForm({ 
+            name: school.name, 
+            province: school.province || "", 
+            address: school.address || "",
+            testsConfig: school.testsConfig || defaultTestsConfig
+        });
         setEditingId(school.id);
         setShowAddForm(true);
     };
@@ -86,7 +107,7 @@ export default function SchoolsPage() {
         });
         setAdding(false);
         if (res.ok) {
-            setForm({ name: "", province: "", address: "" });
+            setForm({ name: "", province: "", address: "", testsConfig: defaultTestsConfig });
             setShowAddForm(false);
             setEditingId(null);
             fetchSchools();
@@ -113,8 +134,8 @@ export default function SchoolsPage() {
 
             {showAddForm && role === "SYSTEM_ADMIN" && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                    <div className="bg-background w-full max-w-lg rounded-2xl shadow-2xl border border-border/50 overflow-hidden relative">
-                        <div className="p-6">
+                    <div className="bg-background w-full max-w-2xl rounded-2xl shadow-2xl border border-border/50 overflow-hidden relative">
+                        <div className="p-6 max-h-[85vh] overflow-y-auto">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="font-semibold text-lg">
                                     {editingId ? t("edit") || "Edit School" : t("addSchool")}
@@ -160,6 +181,37 @@ export default function SchoolsPage() {
                                     <label className="block text-sm font-medium mb-1.5">{t("address")}</label>
                                     <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                </div>
+                                <div className="md:col-span-2 mt-2 pt-4 border-t border-border/30">
+                                    <label className="block text-sm font-medium mb-3">Configured Health Assessments</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50">
+                                        {[
+                                            { key: "bloodType", label: "Blood Type / กรุ๊ปเลือด" },
+                                            { key: "tenSteps", label: "10 Steps Physical Exam" },
+                                            { key: "symptoms", label: "Symptoms / อาการเบื้องต้น" },
+                                            { key: "hearingTest", label: "Hearing Test / การได้ยิน" },
+                                            { key: "colorBlindness", label: "Color Blindness / ตาบอดสี" },
+                                            { key: "eyeTest", label: "Eye Test / ทดสอบสายตา" },
+                                            { key: "visionBothEyes", label: "Vision (Left/Right) / การมองเห็น" },
+                                            { key: "flexibility", label: "Flexibility / ความอ่อนตัว" },
+                                            { key: "handgripStrength", label: "Handgrip / แรงบีบมือ" },
+                                            { key: "standingKneeRaises", label: "Standing Knee Raises / ยืนยกเข่า" },
+                                            { key: "situps", label: "Sit-ups / ลุกนั่ง" },
+                                            { key: "pushups", label: "Push-ups / ดันพื้น" },
+                                            { key: "xRayResult", label: "X-Ray Result / ผลเอ็กซเรย์" },
+                                        ].map(item => (
+                                            <label key={item.key} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-lg transition-colors">
+                                                <input type="checkbox" 
+                                                    checked={form.testsConfig[item.key as keyof typeof defaultTestsConfig]} 
+                                                    onChange={e => setForm({
+                                                        ...form, 
+                                                        testsConfig: { ...form.testsConfig, [item.key]: e.target.checked }
+                                                    })}
+                                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50" />
+                                                <span>{item.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div className="md:col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t border-border/30">
                                     <button type="button" onClick={() => setShowAddForm(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-secondary transition-colors">{t("cancel")}</button>
@@ -209,9 +261,7 @@ export default function SchoolsPage() {
                                 </div>
                             )}
                         </div>
-                        <div className="text-xs text-muted-foreground border-t border-border/50 pt-3 mt-2">
-                            {t("generated")} {formatDate(school.createdAt, language)}
-                        </div>
+
                     </div>
                 ))}
             </div>
