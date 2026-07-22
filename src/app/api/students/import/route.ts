@@ -55,21 +55,27 @@ export async function POST(req: Request) {
         const errorCells: { r: number; c: number }[] = [];
 
         rows.forEach((row, rowIndex) => {
+            // Helper to get value ignoring whitespace in headers
+            const getValue = (possibleKeys: string[]) => {
+                const key = Object.keys(row).find(k => possibleKeys.includes(k.trim()));
+                return key ? row[key] : undefined;
+            };
+
             // Support Thai or English headers
-            const studentId = String(row["เลขประจำตัว"] || row["Student ID"] || "").trim();
-            const thaiId = String(row["รหัสบัตรประชาชน"] || row["Thai ID"] || "").trim();
+            const studentId = String(getValue(["เลขประจำตัว", "Student ID"]) || "").trim();
+            const thaiId = String(getValue(["รหัสบัตรประชาชน", "Thai ID"]) || "").trim();
             
             if ((!studentId || studentId === "-") && (!thaiId || thaiId === "-")) {
                 return; // Skip empty rows
             }
 
-            const prefix = String(row["คำนำ"] || row["Prefix"] || "").trim();
-            const firstName = String(row["ชื่อ"] || row["First Name"] || "").trim();
-            const surName = String(row["นามสกุล"] || row["Last Name"] || "").trim();
+            const prefix = String(getValue(["คำนำ", "Prefix"]) || "").trim();
+            const firstName = String(getValue(["ชื่อ", "First Name"]) || "").trim();
+            const surName = String(getValue(["นามสกุล", "Last Name"]) || "").trim();
             const studentName = `${prefix} ${firstName} ${surName}`.trim() || studentId || "Unknown Student";
 
-            const weightRaw = row["น้ำหนัก"] !== undefined ? row["น้ำหนัก"] : row["Weight"];
-            const heightRaw = row["ส่วนสูง"] !== undefined ? row["ส่วนสูง"] : row["Height"];
+            const weightRaw = getValue(["น้ำหนัก", "Weight"]);
+            const heightRaw = getValue(["ส่วนสูง", "Height"]);
 
             let rowHasErrors = false;
             const rowWarnings: any[] = [];
@@ -141,17 +147,21 @@ export async function POST(req: Request) {
             }
 
             // Proceed with importing correct data
-            let dobRaw = row["วันเกิด"] || row["Date of Birth"];
-            let dobValue = new Date().toISOString();
+            let dobRaw = getValue(["วันเกิด", "Date of Birth"]);
+            let dobValue: string | null = null;
             if (dobRaw) {
                 const parsed = new Date(dobRaw);
                 if (!isNaN(parsed.getTime())) dobValue = parsed.toISOString();
             }
 
-            const classVal = String(row["ชั้น"] || row["Class"] || "").trim();
-            const roomVal = String(row["ห้อง"] || row["Room"] || "").trim();
-            const orderNum = parseInt(row["เลขที่"] || row["Order Number"] || "0", 10);
-            const ageVal = parseInt(row["อายุ"] || row["Age"] || "0", 10) || null;
+            const classVal = String(getValue(["ชั้น", "Class"]) || "").trim();
+            const roomVal = String(getValue(["ห้อง", "Room"]) || "").trim();
+            
+            const rawOrder = getValue(["เลขที่", "Order Number"]);
+            const orderNum = parseInt(rawOrder || "0", 10);
+            
+            const rawAge = getValue(["อายุ", "Age"]);
+            const ageVal = rawAge ? parseInt(rawAge, 10) : null;
 
             // Check if student exists in the target school
             let student = db.students.find(s => 
@@ -180,7 +190,7 @@ export async function POST(req: Request) {
             } else {
                 // Update profile info if present
                 if (thaiId && !student.thaiId) student.thaiId = thaiId;
-                if (dobRaw) student.dob = dobValue;
+                if (dobValue !== null) student.dob = dobValue;
                 if (firstName) student.firstName = firstName;
                 if (surName) student.surName = surName;
                 if (prefix) {
@@ -190,15 +200,15 @@ export async function POST(req: Request) {
                 if (classVal || roomVal) {
                     student.class = `${classVal || student.class.split('/')[0]}/${roomVal || student.class.split('/')[1] || ""}`.replace(/^\//, "").replace(/\/$/, "");
                 }
-                if (orderNum) student.orderNumber = orderNum;
-                if (ageVal) student.age = ageVal;
+                if (rawOrder !== undefined) student.orderNumber = orderNum;
+                if (rawAge !== undefined && rawAge !== "") student.age = ageVal;
 
                 const idx = db.students.findIndex(s => s.id === student.id);
                 if (idx > -1) db.students[idx] = student;
             }
 
             // Health Data parsing
-            const academicYearVal = String(row["ปีการศึกษา"] || row["Academic Year"] || new Date().getFullYear()).trim();
+            const academicYearVal = String(getValue(["ปีการศึกษา", "Academic Year"]) || new Date().getFullYear()).trim();
             
             let weightVal = null;
             let heightVal = null;
@@ -225,21 +235,21 @@ export async function POST(req: Request) {
             }
 
             // Parse remaining diagnostic and health checks
-            const bloodTypeVal = String(row["กรุ๊ปเลือด"] || row["Blood Type"] || "UNKNOWN").toUpperCase().trim();
-            const underlyingDiseaseVal = String(row["โรคประจำตัว"] || row["Underlying Disease"] || "").trim();
-            const drugAllergyVal = String(row["ประวัติแพ้ยา"] || row["Drug Allergy"] || "").trim();
-            const hearingTestVal = String(row["การได้ยิน"] || row["Hearing Test"] || "Normal ปกติ").trim();
-            const colorBlindnessVal = String(row["ตาบอดสี"] || row["Color Blindness"] || "Pass ผ่าน").trim();
-            const visionLeftVal = String(row["การมองเห็นซ้าย"] || row["Vision Left"] || "—").trim();
-            const visionRightVal = String(row["การมองเห็นขวา"] || row["Vision Right"] || "—").trim();
-            const xRayResultVal = String(row["ผลเอ็กซเรย์"] || row["X-Ray Result"] || "—").trim();
-            const flexibilityVal = parseFloat(row["ความอ่อนตัว"] || row["Flexibility"]) || null;
-            const handgripVal = parseFloat(row["แรงบีบมือ"] || row["Handgrip Strength"]) || null;
-            const standingKneeRaisesVal = parseInt(row["ยืนยกเข่า"] || row["Standing Knee Raises"], 10) || null;
-            const situpsVal = parseInt(row["ลุกนั่ง"] || row["Sit-ups"], 10) || null;
-            const pushupsVal = parseInt(row["ดันพื้น"] || row["Push-ups"], 10) || null;
-            const symptomsVal = String(row["อาการเบื้องต้น"] || row["Symptoms"] || "").trim();
-            const additionalNotesVal = String(row["บันทึกเพิ่มเติม"] || row["Additional Notes"] || "").trim();
+            const bloodTypeVal = String(getValue(["กรุ๊ปเลือด", "Blood Type"]) || "UNKNOWN").toUpperCase().trim();
+            const underlyingDiseaseVal = String(getValue(["โรคประจำตัว", "Underlying Disease"]) || "").trim();
+            const drugAllergyVal = String(getValue(["แพ้ยา", "ประวัติแพ้ยา", "Drug Allergy"]) || "").trim();
+            const hearingTestVal = String(getValue(["การได้ยิน", "Hearing Test"]) || "Normal ปกติ").trim();
+            const colorBlindnessVal = String(getValue(["ตาบอดสี", "การแยกสี", "Color Blindness"]) || "Pass ผ่าน").trim();
+            const visionLeftVal = String(getValue(["การมองเห็นซ้าย", "ระยะการมอง", "Vision Left"]) || "—").trim();
+            const visionRightVal = String(getValue(["การมองเห็นขวา", "สรุปผลสายตา", "Vision Right"]) || "—").trim();
+            const xRayResultVal = String(getValue(["ผลเอ็กซเรย์", "X-Ray Result"]) || "—").trim();
+            const flexibilityVal = parseFloat(getValue(["ความอ่อนตัว", "อ่อนตัว", "Flexibility"])) || null;
+            const handgripVal = parseFloat(getValue(["แรงบีบมือ", "Handgrip Strength"])) || null;
+            const standingKneeRaisesVal = parseInt(getValue(["ยืนยกเข่า", "ยกเข่า", "Standing Knee Raises"]), 10) || null;
+            const situpsVal = parseInt(getValue(["ลุกนั่ง", "Sit-ups"]), 10) || null;
+            const pushupsVal = parseInt(getValue(["ดันพื้น", "Push-ups"]), 10) || null;
+            const symptomsVal = String(getValue(["อาการเบื้องต้น", "Symptoms"]) || "").trim();
+            const additionalNotesVal = String(getValue(["บันทึกเพิ่มเติม", "Additional Notes"]) || "").trim();
 
             // Find or create HealthRecord for this student and academic year
             let healthRecord = db.healthRecords.find(hr => 

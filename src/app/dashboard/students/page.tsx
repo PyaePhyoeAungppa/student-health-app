@@ -50,7 +50,7 @@ interface School {
 // ─── Column definitions ───────────────────────────────────────────────────────
 
 type ColKey =
-    | "studentId" | "thaiId" | "fullName" | "class" | "gender"
+    | "studentId" | "thaiId" | "fullName" | "class" | "gender" | "age"
     | "weight" | "height" | "bmi" | "school" | "actions"
     // health config columns
     | "bloodType" | "tenSteps" | "symptoms" | "hearingTest"
@@ -58,7 +58,7 @@ type ColKey =
     | "flexibility" | "handgripStrength" | "standingKneeRaises"
     | "situps" | "pushups" | "xRayResult";
 
-const BASE_COLUMNS: ColKey[] = ["studentId", "thaiId", "fullName", "class", "gender", "weight", "height", "bmi", "school", "actions"];
+const BASE_COLUMNS: ColKey[] = ["studentId", "thaiId", "fullName", "class", "gender", "age", "weight", "height", "bmi", "school", "actions"];
 const HEALTH_COLUMNS: ColKey[] = ["bloodType", "tenSteps", "symptoms", "hearingTest", "colorBlindness", "eyeTest", "visionBothEyes", "flexibility", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult"];
 
 // Map testsConfig key → ColKey
@@ -84,6 +84,7 @@ const COL_LABELS: Record<ColKey, string> = {
     fullName: "Full Name",
     class: "Class",
     gender: "Gender",
+    age: "Age",
     weight: "Weight",
     height: "Height",
     bmi: "BMI",
@@ -235,7 +236,7 @@ export default function StudentsPage() {
 
     // ── Export ───────────────────────────────────────────────────────────────
     const exportExcel = async () => {
-        const XLSX = (await import("xlsx")).default;
+        const XLSX = await import("xlsx");
         const isEnabled = (col: ColKey) => enabledHealthCols.has(col);
         const rows = students.map(s => {
             const hr = s.healthRecords[0];
@@ -247,6 +248,7 @@ export default function StudentsPage() {
                 [t("firstName")]: s.firstName,
                 [t("lastName")]: s.surName,
                 [t("gender")]: s.gender,
+                "Age": (s as any).age ?? "",
                 [t("school")]: s.school?.name,
                 "Weight (kg)": hr?.weight ?? "",
                 "Height (cm)": hr?.height ?? "",
@@ -330,6 +332,8 @@ export default function StudentsPage() {
                 return <td key={col}><span className="px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">{s.class}</span></td>;
             case "gender":
                 return <td key={col}><span className={`text-xs ${s.gender === "Male" ? "text-blue-400" : "text-pink-400"}`}>{s.gender}</span></td>;
+            case "age":
+                return <td key={col}><span className="text-sm">{(s as any).age ?? "—"}</span></td>;
             case "weight":
                 return <td key={col}><span className="text-sm">{hr?.weight ?? "—"}</span></td>;
             case "height":

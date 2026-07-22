@@ -214,7 +214,7 @@ export default function StudentDetailPage() {
                             [t("fullName"), `${student.firstName} ${student.surName}`],
                             [t("gender"), t(student.gender.toLowerCase() as any) || student.gender],
                             [t("dob"), formatDate(student.dob, language)],
-                            [t("age"), `${calculateAge(student.dob)} ${t("years")}`],
+                            [t("age"), student.age != null ? `${student.age} ${t("years")}` : `${calculateAge(student.dob)} ${t("years")}`],
                             [t("class"), student.class],
                             [t("rosterNumber"), student.orderNumber],
                             [t("school"), student.school?.name],
