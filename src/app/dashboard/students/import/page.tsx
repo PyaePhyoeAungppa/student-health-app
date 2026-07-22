@@ -278,7 +278,7 @@ export default function ImportStudentsPage() {
 
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || ((role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && !selectedSchool)}
                         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-white font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
                         style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}
                     >

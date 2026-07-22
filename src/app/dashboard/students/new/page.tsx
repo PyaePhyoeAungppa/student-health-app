@@ -25,7 +25,6 @@ export default function NewStudentPage() {
         gender: "Male",
         class: "",
         orderNumber: "1",
-        dob: "",
         schoolId: userSchoolId || "",
     });
 
@@ -47,7 +46,6 @@ export default function NewStudentPage() {
         const payload = {
             ...form,
             orderNumber: parseInt(form.orderNumber),
-            dob: new Date(form.dob).toISOString(),
         };
 
         const res = await fetch("/api/students", {
@@ -103,11 +101,7 @@ export default function NewStudentPage() {
                                 placeholder="e.g. 1100000000000"
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("dob")} *</label>
-                            <input type="date" required value={form.dob} onChange={e => set("dob", e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                        </div>
+
                         <div>
                             <label className="block text-sm font-medium mb-1.5">{t("firstName")} *</label>
                             <input type="text" required value={form.firstName} onChange={e => set("firstName", e.target.value)}

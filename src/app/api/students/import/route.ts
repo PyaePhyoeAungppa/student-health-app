@@ -147,13 +147,6 @@ export async function POST(req: Request) {
             }
 
             // Proceed with importing correct data
-            let dobRaw = getValue(["วันเกิด", "Date of Birth"]);
-            let dobValue: string | null = null;
-            if (dobRaw) {
-                const parsed = new Date(dobRaw);
-                if (!isNaN(parsed.getTime())) dobValue = parsed.toISOString();
-            }
-
             const classVal = String(getValue(["ชั้น", "Class"]) || "").trim();
             const roomVal = String(getValue(["ห้อง", "Room"]) || "").trim();
             
@@ -180,7 +173,6 @@ export async function POST(req: Request) {
                     prefix: prefix,
                     firstName: firstName,
                     surName: surName,
-                    dob: dobValue,
                     age: ageVal,
                     schoolId: targetSchoolId,
                     createdAt: new Date().toISOString()
@@ -190,7 +182,6 @@ export async function POST(req: Request) {
             } else {
                 // Update profile info if present
                 if (thaiId && !student.thaiId) student.thaiId = thaiId;
-                if (dobValue !== null) student.dob = dobValue;
                 if (firstName) student.firstName = firstName;
                 if (surName) student.surName = surName;
                 if (prefix) {

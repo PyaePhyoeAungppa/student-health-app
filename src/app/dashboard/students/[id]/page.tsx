@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ArrowLeft, Edit, Plus, Loader2, HeartPulse, Weight, Ruler, Eye, Ear, X, Save, Check } from "lucide-react";
 import Link from "next/link";
-import { calculateAge, formatDate, getBMICategory } from "@/lib/utils";
+import { formatDate, getBMICategory } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
 
 export default function StudentDetailPage() {
@@ -213,8 +213,7 @@ export default function StudentDetailPage() {
                             [t("thaiId" as any), student.thaiId || "—"],
                             [t("fullName"), `${student.firstName} ${student.surName}`],
                             [t("gender"), t(student.gender.toLowerCase() as any) || student.gender],
-                            [t("dob"), formatDate(student.dob, language)],
-                            [t("age"), student.age != null ? `${student.age} ${t("years")}` : `${calculateAge(student.dob)} ${t("years")}`],
+                            [t("age"), student.age != null ? `${student.age} ${t("years")}` : "—"],
                             [t("class"), student.class],
                             [t("rosterNumber"), student.orderNumber],
                             [t("school"), student.school?.name],

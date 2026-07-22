@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { HeartPulse, Search, Loader2, ShieldCheck, User, Eye, Ear, Globe } from "lucide-react";
-import { formatDate, calculateAge, getBMICategory } from "@/lib/utils";
+import { formatDate, getBMICategory } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
 
 const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number, amplitude: number) => {
@@ -271,7 +271,7 @@ export default function StudentPortalPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
-                                <div><span className="text-muted-foreground">{t("age")}: </span><span className="font-medium">{calculateAge(result.dob)} {t("years")}</span></div>
+                                <div><span className="text-muted-foreground">{t("age")}: </span><span className="font-medium">{result.age ?? "—"} {t("years")}</span></div>
                                 <div><span className="text-muted-foreground">{t("gender")}: </span><span className="font-medium">{t(result.gender.toLowerCase() as any) || result.gender}</span></div>
                             </div>
                         </div>
