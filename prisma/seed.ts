@@ -66,11 +66,11 @@ async function main() {
 
     // Create students
     const students = [
-        { studentId: "STU001", firstName: "สมชาย", surName: "ใจดี", gender: "Male", class: "ม.1/1", orderNumber: 1, dob: new Date("2012-03-15") },
-        { studentId: "STU002", firstName: "สมหญิง", surName: "รักเรียน", gender: "Female", class: "ม.1/1", orderNumber: 2, dob: new Date("2012-07-22") },
-        { studentId: "STU003", firstName: "ประยุทธ", surName: "สมใจ", gender: "Male", class: "ม.1/2", orderNumber: 1, dob: new Date("2011-11-05") },
-        { studentId: "STU004", firstName: "มาลี", surName: "ดอกไม้", gender: "Female", class: "ม.2/1", orderNumber: 2, dob: new Date("2011-01-18") },
-        { studentId: "STU005", firstName: "วิชัย", surName: "ขยันเรียน", gender: "Male", class: "ม.2/2", orderNumber: 3, dob: new Date("2010-05-30") },
+        { studentId: "STU001", firstName: "สมชาย", surName: "ใจดี", class: "ม.1/1", orderNumber: 1, dob: new Date("2012-03-15") },
+        { studentId: "STU002", firstName: "สมหญิง", surName: "รักเรียน", class: "ม.1/1", orderNumber: 2, dob: new Date("2012-07-22") },
+        { studentId: "STU003", firstName: "ประยุทธ", surName: "สมใจ", class: "ม.1/2", orderNumber: 1, dob: new Date("2011-11-05") },
+        { studentId: "STU004", firstName: "มาลี", surName: "ดอกไม้", class: "ม.2/1", orderNumber: 2, dob: new Date("2011-01-18") },
+        { studentId: "STU005", firstName: "วิชัย", surName: "ขยันเรียน", class: "ม.2/2", orderNumber: 3, dob: new Date("2010-05-30") },
     ];
 
     for (const s of students) {
@@ -107,7 +107,6 @@ async function main() {
             studentId: "STU006",
             firstName: "อรุณ",
             surName: "เชียงใหม่",
-            gender: "Male",
             class: "ป.6",
             orderNumber: 1,
             dob: new Date("2012-09-10"),
