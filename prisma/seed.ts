@@ -94,7 +94,7 @@ async function main() {
                 bmi,
                 hearingTest: Math.random() > 0.9 ? "ABNORMAL" : "NORMAL",
                 bodyExamination: "ปกติ",
-                visionPrescription: Math.random() > 0.7 ? "-1.50" : "20/20",
+                visualAcuity: Math.random() > 0.7 ? "20/40" : "20/20",
                 colorBlindness: Math.random() > 0.95 ? "ABNORMAL" : "NORMAL",
                 xRayResult: "ปกติ",
             },
@@ -125,7 +125,7 @@ async function main() {
             bmi: 18.3,
             hearingTest: "NORMAL",
             bodyExamination: "ปกติ",
-            visionPrescription: "20/20",
+            visualAcuity: "20/20",
             colorBlindness: "NORMAL",
         },
     });
