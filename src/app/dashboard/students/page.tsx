@@ -18,8 +18,8 @@ interface HealthRecord {
     symptoms: string;
     bodyExamination: string;
     eyeTest: string;
-    visionBothEyesLeft: string;
-    visionBothEyesRight: string;
+    visualAcuity: string;
+    eyeExamReport: string;
     flexibility: number | null;
     handgripStrength: number | null;
     standingKneeRaises: number | null;
@@ -31,11 +31,10 @@ interface HealthRecord {
 interface Student {
     id: string;
     studentId: string;
-    thaiId?: string;
     firstName: string;
     surName: string;
+    gender?: string;
     class: string;
-    gender: string;
     orderNumber: number;
     school: { name: string; id: string };
     healthRecords: HealthRecord[];
@@ -50,16 +49,16 @@ interface School {
 // ─── Column definitions ───────────────────────────────────────────────────────
 
 type ColKey =
-    | "studentId" | "thaiId" | "fullName" | "class" | "gender" | "age"
+    | "studentId" | "fullName" | "class" | "gender" | "age"
     | "weight" | "height" | "bmi" | "school" | "actions"
     // health config columns
     | "bloodType" | "tenSteps" | "symptoms" | "hearingTest"
-    | "colorBlindness" | "eyeTest" | "visionBothEyes"
+    | "colorBlindness" | "eyeTest" | "visualAcuity" | "eyeExamReport"
     | "flexibility" | "handgripStrength" | "standingKneeRaises"
     | "situps" | "pushups" | "xRayResult";
 
-const BASE_COLUMNS: ColKey[] = ["studentId", "thaiId", "fullName", "class", "gender", "age", "weight", "height", "bmi", "school", "actions"];
-const HEALTH_COLUMNS: ColKey[] = ["bloodType", "tenSteps", "symptoms", "hearingTest", "colorBlindness", "eyeTest", "visionBothEyes", "flexibility", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult"];
+const BASE_COLUMNS: ColKey[] = ["studentId", "fullName", "class", "gender", "age", "weight", "height", "bmi", "school", "actions"];
+const HEALTH_COLUMNS: ColKey[] = ["bloodType", "tenSteps", "symptoms", "hearingTest", "colorBlindness", "eyeTest", "visualAcuity", "eyeExamReport", "flexibility", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult"];
 
 // Map testsConfig key → ColKey
 const TESTS_CONFIG_MAP: Record<string, ColKey> = {
@@ -69,7 +68,8 @@ const TESTS_CONFIG_MAP: Record<string, ColKey> = {
     hearingTest: "hearingTest",
     colorBlindness: "colorBlindness",
     eyeTest: "eyeTest",
-    visionBothEyes: "visionBothEyes",
+    visualAcuity: "visualAcuity",
+    eyeExamReport: "eyeExamReport",
     flexibility: "flexibility",
     handgripStrength: "handgripStrength",
     standingKneeRaises: "standingKneeRaises",
@@ -80,7 +80,6 @@ const TESTS_CONFIG_MAP: Record<string, ColKey> = {
 
 const COL_LABELS: Record<ColKey, string> = {
     studentId: "Student ID",
-    thaiId: "Thai ID",
     fullName: "Full Name",
     class: "Class",
     gender: "Gender",
@@ -96,7 +95,8 @@ const COL_LABELS: Record<ColKey, string> = {
     hearingTest: "Hearing Test",
     colorBlindness: "Color Vision",
     eyeTest: "Eye Test",
-    visionBothEyes: "Vision (L/R)",
+    visualAcuity: "Visual Acuity",
+    eyeExamReport: "Eye Exam Report",
     flexibility: "Flexibility",
     handgripStrength: "Handgrip",
     standingKneeRaises: "Knee Raises",
@@ -126,7 +126,6 @@ export default function StudentsPage() {
 
     // Filters
     const [classFilter, setClassFilter] = useState("");
-    const [genderFilter, setGenderFilter] = useState("");
     const [hearingFilter, setHearingFilter] = useState("");
     const [colorFilter, setColorFilter] = useState("");
 
@@ -141,7 +140,7 @@ export default function StudentsPage() {
     const colMenuRef = useRef<HTMLDivElement>(null);
     const colBtnRef = useRef<HTMLButtonElement>(null);
 
-    const activeFilterCount = [classFilter, genderFilter, hearingFilter, colorFilter].filter(Boolean).length;
+    const activeFilterCount = [classFilter, hearingFilter, colorFilter].filter(Boolean).length;
 
     // ── Fetch schools → compute enabled columns ──────────────────────────────
     useEffect(() => {
@@ -163,6 +162,13 @@ export default function StudentsPage() {
                         HEALTH_COLUMNS.forEach(c => unionEnabled.add(c));
                         break;
                     }
+                    const optionalKeys = ["gender", "handgripStrength", "standingKneeRaises", "situps", "pushups"];
+                    HEALTH_COLUMNS.forEach(c => {
+                        if (!optionalKeys.includes(c)) {
+                            unionEnabled.add(c);
+                        }
+                    });
+
                     for (const [key, enabled] of Object.entries(school.testsConfig)) {
                         if (enabled && TESTS_CONFIG_MAP[key]) {
                             unionEnabled.add(TESTS_CONFIG_MAP[key]);
@@ -212,7 +218,7 @@ export default function StudentsPage() {
 
     // ── Fetch students ───────────────────────────────────────────────────────
     const clearFilters = () => {
-        setClassFilter(""); setGenderFilter(""); setHearingFilter(""); setColorFilter("");
+        setClassFilter(""); setHearingFilter(""); setColorFilter("");
         setPage(1);
     };
 
@@ -221,7 +227,6 @@ export default function StudentsPage() {
         const params = new URLSearchParams({ page: String(page), limit: "15" });
         if (search) params.set("search", search);
         if (classFilter) params.set("class", classFilter);
-        if (genderFilter) params.set("gender", genderFilter);
         if (hearingFilter) params.set("hearing", hearingFilter);
         if (colorFilter) params.set("colorBlindness", colorFilter);
         const res = await fetch(`/api/students?${params}`);
@@ -230,7 +235,7 @@ export default function StudentsPage() {
         setTotal(data.total || 0);
         setTotalPages(data.totalPages || 1);
         setLoading(false);
-    }, [page, search, classFilter, genderFilter, hearingFilter, colorFilter]);
+    }, [page, search, classFilter, hearingFilter, colorFilter]);
 
     useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
@@ -242,12 +247,11 @@ export default function StudentsPage() {
             const hr = s.healthRecords[0];
             const row: Record<string, any> = {
                 [t("studentId")]: s.studentId,
-                "Thai ID": s.thaiId || "",
                 "Order No.": s.orderNumber,
                 [t("class")]: s.class,
                 [t("firstName")]: s.firstName,
                 [t("lastName")]: s.surName,
-                [t("gender")]: s.gender,
+                "Gender": s.gender ?? "",
                 "Age": (s as any).age ?? "",
                 [t("school")]: s.school?.name,
                 "Weight (kg)": hr?.weight ?? "",
@@ -258,10 +262,8 @@ export default function StudentsPage() {
             if (isEnabled("hearingTest"))        row["Hearing Test"]       = hr?.hearingTest ?? "";
             if (isEnabled("colorBlindness"))     row["Color Vision"]       = hr?.colorBlindness ?? "";
             if (isEnabled("eyeTest"))            row["Eye Test"]           = hr?.eyeTest ?? "";
-            if (isEnabled("visionBothEyes")) {
-                row["Vision Left"]  = hr?.visionBothEyesLeft ?? "";
-                row["Vision Right"] = hr?.visionBothEyesRight ?? "";
-            }
+            if (isEnabled("visualAcuity")) row["Visual Acuity"] = hr?.visualAcuity ?? "";
+            if (isEnabled("eyeExamReport")) row["Eye Exam Report"] = hr?.eyeExamReport ?? "";
             if (isEnabled("xRayResult"))         row["X-Ray Result"]      = hr?.xRayResult ?? "";
             if (isEnabled("flexibility"))        row["Flexibility"]        = hr?.flexibility ?? "";
             if (isEnabled("handgripStrength"))   row["Handgrip Strength"]  = hr?.handgripStrength ?? "";
@@ -317,8 +319,6 @@ export default function StudentsPage() {
         switch (col) {
             case "studentId":
                 return <td key={col}><span className="font-mono text-xs text-muted-foreground">{s.studentId}</span></td>;
-            case "thaiId":
-                return <td key={col}><span className="font-mono text-xs text-muted-foreground">{s.thaiId || "—"}</span></td>;
             case "fullName":
                 return (
                     <td key={col}>
@@ -331,7 +331,7 @@ export default function StudentsPage() {
             case "class":
                 return <td key={col}><span className="px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">{s.class}</span></td>;
             case "gender":
-                return <td key={col}><span className={`text-xs ${s.gender === "Male" ? "text-blue-400" : "text-pink-400"}`}>{s.gender}</span></td>;
+                return <td key={col}><span className="text-sm">{s.gender || "—"}</span></td>;
             case "age":
                 return <td key={col}><span className="text-sm">{(s as any).age ?? "—"}</span></td>;
             case "weight":
@@ -379,14 +379,10 @@ export default function StudentsPage() {
                 );
             case "eyeTest":
                 return <td key={col}><span className="text-xs">{hr?.eyeTest || "—"}</span></td>;
-            case "visionBothEyes":
-                return (
-                    <td key={col}>
-                        <span className="text-xs">
-                            {hr ? `L: ${hr.visionBothEyesLeft || "—"} / R: ${hr.visionBothEyesRight || "—"}` : "—"}
-                        </span>
-                    </td>
-                );
+            case "visualAcuity":
+                return <td key={col}><span className="text-xs">{hr?.visualAcuity || "—"}</span></td>;
+            case "eyeExamReport":
+                return <td key={col}><span className="text-xs">{hr?.eyeExamReport || "—"}</span></td>;
             case "flexibility":
                 return <td key={col}><span className="text-sm">{hr?.flexibility ?? "—"}</span></td>;
             case "handgripStrength":
@@ -456,13 +452,6 @@ export default function StudentsPage() {
                         className="w-28 px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground placeholder:text-muted-foreground"
                     />
 
-                    {/* Gender */}
-                    <select value={genderFilter} onChange={e => { setGenderFilter(e.target.value); setPage(1); }}
-                        className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        <option value="">{t("gender")}: {t("all")}</option>
-                        <option value="Male">{t("male")}</option>
-                        <option value="Female">{t("female")}</option>
-                    </select>
 
                     {/* Hearing */}
                     <select value={hearingFilter} onChange={e => { setHearingFilter(e.target.value); setPage(1); }}

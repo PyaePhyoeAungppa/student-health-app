@@ -18,11 +18,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     // Sync with session on load and updates
     useEffect(() => {
         const sessionLang = (session?.user as any)?.language;
-        if (sessionLang && sessionLang !== language) {
-            console.log(`[LANG-SYNC] Updating state to session lang: ${sessionLang}`);
+        if (sessionLang) {
             setLanguageState(sessionLang);
         }
-    }, [session, language]);
+    }, [session?.user]);
 
     const setLanguage = async (lang: Language) => {
         if (lang === language) return;

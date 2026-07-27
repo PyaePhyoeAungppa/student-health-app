@@ -19,10 +19,11 @@ export default function NewStudentPage() {
 
     const [form, setForm] = useState({
         studentId: "",
-        thaiId: "",
+        prefix: "",
         firstName: "",
         surName: "",
-        gender: "Male",
+        gender: "",
+        age: "",
         class: "",
         orderNumber: "1",
         schoolId: userSchoolId || "",
@@ -46,6 +47,7 @@ export default function NewStudentPage() {
         const payload = {
             ...form,
             orderNumber: parseInt(form.orderNumber),
+            age: form.age ? parseInt(form.age) : null,
         };
 
         const res = await fetch("/api/students", {
@@ -88,7 +90,7 @@ export default function NewStudentPage() {
             <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
                 <div className="form-section">
                     <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">{t("personalInfo")}</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-1.5">{t("studentId")} *</label>
                             <input type="text" required value={form.studentId} onChange={e => set("studentId", e.target.value)}
@@ -96,12 +98,16 @@ export default function NewStudentPage() {
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("thaiId" as any)}</label>
-                            <input type="text" value={form.thaiId} onChange={e => set("thaiId", e.target.value)}
-                                placeholder="e.g. 1100000000000"
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                            <label className="block text-sm font-medium mb-1.5">คำนำ (Prefix)</label>
+                            <select value={form.prefix} onChange={e => set("prefix", e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="">— เลือกคำนำ —</option>
+                                <option value="เด็กชาย">เด็กชาย</option>
+                                <option value="เด็กหญิง">เด็กหญิง</option>
+                                <option value="นาย">นาย</option>
+                                <option value="นางสาว">นางสาว</option>
+                            </select>
                         </div>
-
                         <div>
                             <label className="block text-sm font-medium mb-1.5">{t("firstName")} *</label>
                             <input type="text" required value={form.firstName} onChange={e => set("firstName", e.target.value)}
@@ -113,12 +119,18 @@ export default function NewStudentPage() {
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("gender")} *</label>
-                            <select required value={form.gender} onChange={e => set("gender", e.target.value)}
+                            <label className="block text-sm font-medium mb-1.5">เพศ (Gender)</label>
+                            <select value={form.gender} onChange={e => set("gender", e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                <option value="Male">{t("male")}</option>
-                                <option value="Female">{t("female")}</option>
+                                <option value="">— ไม่ระบุ —</option>
+                                <option value="ชาย">ชาย</option>
+                                <option value="หญิง">หญิง</option>
                             </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1.5">อายุ (Age)</label>
+                            <input type="number" min="1" value={form.age} onChange={e => set("age", e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                     </div>
                 </div>

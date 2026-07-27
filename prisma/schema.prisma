@@ -37,10 +37,8 @@ model User {
 model Student {
   id                String       @id @default(cuid())
   studentId         String       @unique
-  thaiId            String?      @unique
   orderNumber       Int
   class             String
-  gender            String
   firstName         String
   surName           String
   dob               DateTime
@@ -66,7 +64,8 @@ model HealthRecord {
   bmi                 Float?
   hearingTest         String     @default("NORMAL") // "NORMAL" | "ABNORMAL"
   bodyExamination     String?
-  visionPrescription  String?
+  visualAcuity        String?
+  eyeExamReport       String?
   colorBlindness      String     @default("NORMAL") // "NORMAL" | "ABNORMAL"
   xRayResult          String?
   additionalNotes     String?

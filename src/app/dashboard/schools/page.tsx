@@ -31,19 +31,11 @@ export default function SchoolsPage() {
     const [deleting, setDeleting] = useState(false);
     const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
     const defaultTestsConfig = {
-        bloodType: true,
-        tenSteps: true,
-        symptoms: true,
-        hearingTest: true,
-        colorBlindness: true,
-        eyeTest: true,
-        visionBothEyes: true,
-        flexibility: true,
+        gender: true,
         handgripStrength: true,
         standingKneeRaises: true,
         situps: true,
         pushups: true,
-        xRayResult: true,
     };
 
     const [form, setForm] = useState({ name: "", province: "", address: "", testsConfig: defaultTestsConfig });
@@ -186,19 +178,11 @@ export default function SchoolsPage() {
                                     <label className="block text-sm font-medium mb-3">Configured Health Assessments</label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50">
                                         {[
-                                            { key: "bloodType", label: "Blood Type / กรุ๊ปเลือด" },
-                                            { key: "tenSteps", label: "10 Steps Physical Exam" },
-                                            { key: "symptoms", label: "Symptoms / อาการเบื้องต้น" },
-                                            { key: "hearingTest", label: "Hearing Test / การได้ยิน" },
-                                            { key: "colorBlindness", label: "Color Blindness / ตาบอดสี" },
-                                            { key: "eyeTest", label: "Eye Test / ทดสอบสายตา" },
-                                            { key: "visionBothEyes", label: "Vision (Left/Right) / การมองเห็น" },
-                                            { key: "flexibility", label: "Flexibility / ความอ่อนตัว" },
-                                            { key: "handgripStrength", label: "Handgrip / แรงบีบมือ" },
-                                            { key: "standingKneeRaises", label: "Standing Knee Raises / ยืนยกเข่า" },
-                                            { key: "situps", label: "Sit-ups / ลุกนั่ง" },
-                                            { key: "pushups", label: "Push-ups / ดันพื้น" },
-                                            { key: "xRayResult", label: "X-Ray Result / ผลเอ็กซเรย์" },
+                                            { key: "gender", label: "เพศ (Gender)" },
+                                            { key: "handgripStrength", label: "แรงบีบมือ : Hand Grip Strength" },
+                                            { key: "standingKneeRaises", label: "ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down" },
+                                            { key: "situps", label: "ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups" },
+                                            { key: "pushups", label: "ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups" },
                                         ].map(item => (
                                             <label key={item.key} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-lg transition-colors">
                                                 <input type="checkbox" 

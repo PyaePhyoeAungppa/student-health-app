@@ -19,7 +19,7 @@ const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number
 
 export default function StudentPortalPage() {
     const { t, language, setLanguage } = useLanguage();
-    const [thaiId, setThaiId] = useState("");
+    const [studentId, setStudentId] = useState("");
     const [step, setStep] = useState<"id" | "register" | "login">("id");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,7 +35,7 @@ export default function StudentPortalPage() {
             const res = await fetch("/api/student-lookup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ studentId: thaiId, action: "check" }),
+                body: JSON.stringify({ studentId: studentId, action: "check" }),
             });
             const data = await res.json();
             setLoading(false);
@@ -62,7 +62,7 @@ export default function StudentPortalPage() {
             const res = await fetch("/api/student-lookup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ studentId: thaiId, password, action: "login" }),
+                body: JSON.stringify({ studentId: studentId, password, action: "login" }),
             });
             const data = await res.json();
             setLoading(false);
@@ -93,7 +93,7 @@ export default function StudentPortalPage() {
             const res = await fetch("/api/student-lookup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ studentId: thaiId, password, action: "register" }),
+                body: JSON.stringify({ studentId: studentId, password, action: "register" }),
             });
             const data = await res.json();
             setLoading(false);
@@ -165,8 +165,8 @@ export default function StudentPortalPage() {
                             <form onSubmit={handleCheckId} className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1.5">{t("studentIdOrThaiId" as any)}</label>
-                                    <input type="text" value={thaiId} onChange={e => setThaiId(e.target.value)} required
-                                        placeholder="e.g. STU001 or 1100100000001"
+                                    <input type="text" value={studentId} onChange={e => setStudentId(e.target.value)} required
+                                        placeholder="e.g. STU001"
                                         className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" />
                                 </div>
                                 {error && (
@@ -188,7 +188,7 @@ export default function StudentPortalPage() {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-muted-foreground mb-1 uppercase">{t("studentIdOrThaiId" as any)}</label>
-                                    <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border text-muted-foreground text-sm font-medium">{thaiId}</div>
+                                    <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border text-muted-foreground text-sm font-medium">{studentId}</div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1.5">{t("createPassword" as any)}</label>
@@ -223,7 +223,7 @@ export default function StudentPortalPage() {
                             <form onSubmit={handleLogin} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-semibold text-muted-foreground mb-1 uppercase">{t("studentIdOrThaiId" as any)}</label>
-                                    <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border text-muted-foreground text-sm font-medium">{thaiId}</div>
+                                    <div className="px-4 py-3 rounded-lg bg-secondary/50 border border-border text-muted-foreground text-sm font-medium">{studentId}</div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1.5">{t("enterPassword" as any)}</label>
@@ -272,7 +272,6 @@ export default function StudentPortalPage() {
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm">
                                 <div><span className="text-muted-foreground">{t("age")}: </span><span className="font-medium">{result.age ?? "—"} {t("years")}</span></div>
-                                <div><span className="text-muted-foreground">{t("gender")}: </span><span className="font-medium">{t(result.gender.toLowerCase() as any) || result.gender}</span></div>
                             </div>
                         </div>
 
@@ -324,8 +323,8 @@ export default function StudentPortalPage() {
                                                 { label: "Hearing Test การได้ยิน", val: latestRecord.hearingTest || "—", enabled: isTestEnabled("hearingTest") },
                                                 { label: "Color Blindness ตาบอดสี", val: latestRecord.colorBlindness || "—", enabled: isTestEnabled("colorBlindness") },
                                                 { label: "Eye Test ทดสอบสายตา", val: latestRecord.eyeTest || "—", enabled: isTestEnabled("eyeTest") },
-                                                { label: "Vision Left ตาซ้าย", val: latestRecord.visionBothEyesLeft || "—", enabled: isTestEnabled("visionBothEyes") },
-                                                { label: "Vision Right ตาขวา", val: latestRecord.visionBothEyesRight || "—", enabled: isTestEnabled("visionBothEyes") },
+                                                { label: "Visual Acuity ระยะการมอง", val: latestRecord.visualAcuity || "—", enabled: isTestEnabled("visionBothEyes") },
+                                                { label: "Eye Exam Report สรุปผลสายตา", val: latestRecord.eyeExamReport || "—", enabled: isTestEnabled("visionBothEyes") },
                                                 { label: "Flexibility ความอ่อนตัว (cm)", val: latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "—", enabled: isTestEnabled("flexibility") },
                                                 { label: "Handgrip Strength แรงบีบมือ", val: latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "—", enabled: isTestEnabled("handgripStrength") },
                                                 { label: "Standing Knee Raises ยืนยกเข่า", val: latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "—", enabled: isTestEnabled("standingKneeRaises") },
@@ -386,7 +385,7 @@ export default function StudentPortalPage() {
                             </div>
                         )}
 
-                        <button onClick={() => { setResult(null); setThaiId(""); setPassword(""); setConfirmPassword(""); setStep("id"); }}
+                        <button onClick={() => { setResult(null); setStudentId(""); setPassword(""); setConfirmPassword(""); setStep("id"); }}
                             className="w-full py-2.5 rounded-lg text-sm text-muted-foreground border border-border hover:bg-secondary/50 transition-colors">
                             ← {t("backToLookup")}
                         </button>

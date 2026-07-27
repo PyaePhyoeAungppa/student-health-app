@@ -9,11 +9,11 @@ export async function POST(req: Request) {
         console.log(`[LOOKUP-DEBUG] Lookup attempt: ID=${studentId}, Action=${action}`);
 
         if (!studentId) {
-            return NextResponse.json({ error: "Student ID or Thai ID is required." }, { status: 400 });
+            return NextResponse.json({ error: "Student ID is required." }, { status: 400 });
         }
 
         const db = readDb();
-        const student = db.students.find((s: any) => s.studentId === studentId || s.thaiId === studentId);
+        const student = db.students.find((s: any) => s.studentId === studentId);
 
         if (!student) {
             console.log(`[LOOKUP-DEBUG] Student NOT found for ID: ${studentId}`);

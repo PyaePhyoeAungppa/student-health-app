@@ -61,21 +61,21 @@ export async function POST(req: Request) {
                 return key ? row[key] : undefined;
             };
 
-            // Support Thai or English headers
-            const studentId = String(getValue(["เลขประจำตัว", "Student ID"]) || "").trim();
-            const thaiId = String(getValue(["รหัสบัตรประชาชน", "Thai ID"]) || "").trim();
+            // Support exact Thai headers as requested
+            const studentId = String(getValue(["เลขประจำตัว"]) || "").trim();
             
-            if ((!studentId || studentId === "-") && (!thaiId || thaiId === "-")) {
+            if (!studentId || studentId === "-") {
                 return; // Skip empty rows
             }
 
-            const prefix = String(getValue(["คำนำ", "Prefix"]) || "").trim();
-            const firstName = String(getValue(["ชื่อ", "First Name"]) || "").trim();
-            const surName = String(getValue(["นามสกุล", "Last Name"]) || "").trim();
+            const prefix = String(getValue(["คำนำ"]) || "").trim();
+            const firstName = String(getValue(["ชื่อ"]) || "").trim();
+            const surName = String(getValue(["นามสกุล"]) || "").trim();
             const studentName = `${prefix} ${firstName} ${surName}`.trim() || studentId || "Unknown Student";
 
-            const weightRaw = getValue(["น้ำหนัก", "Weight"]);
-            const heightRaw = getValue(["ส่วนสูง", "Height"]);
+            const genderVal = String(getValue(["เพศ"]) || "").trim();
+            const weightRaw = getValue(["น้ำหนัก"]);
+            const heightRaw = getValue(["ส่วนสูง"]);
 
             let rowHasErrors = false;
             const rowWarnings: any[] = [];
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
                 rowWarnings.forEach(w => {
                     warnings.push({
                         row: rowIndex + 2, // Data rows start after header row in Excel (0-based rowIndex maps to 2)
-                        studentId: studentId || thaiId || "Unknown",
+                        studentId: studentId || "Unknown",
                         name: studentName,
                         field: w.field,
                         value: w.value,
@@ -147,18 +147,18 @@ export async function POST(req: Request) {
             }
 
             // Proceed with importing correct data
-            const classVal = String(getValue(["ชั้น", "Class"]) || "").trim();
-            const roomVal = String(getValue(["ห้อง", "Room"]) || "").trim();
+            const classVal = String(getValue(["ชั้น"]) || "").trim();
+            const roomVal = String(getValue(["ห้อง", "Room"]) || "").trim(); // Kept ห้อง as fallback if they split it
             
-            const rawOrder = getValue(["เลขที่", "Order Number"]);
+            const rawOrder = getValue(["เลขที่"]);
             const orderNum = parseInt(rawOrder || "0", 10);
             
-            const rawAge = getValue(["อายุ", "Age"]);
+            const rawAge = getValue(["อายุ"]);
             const ageVal = rawAge ? parseInt(rawAge, 10) : null;
 
             // Check if student exists in the target school
             let student = db.students.find(s => 
-                ((studentId && s.studentId === studentId) || (thaiId && s.thaiId === thaiId)) 
+                (studentId && s.studentId === studentId) 
                 && s.schoolId === targetSchoolId
             );
 
@@ -166,13 +166,12 @@ export async function POST(req: Request) {
                 student = {
                     id: `stu-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     studentId: studentId,
-                    thaiId: thaiId || null,
                     orderNumber: orderNum,
                     class: `${classVal}/${roomVal}`.replace(/^\//, "").replace(/\/$/, ""),
-                    gender: prefix.includes("หญิง") || prefix.includes("ด.ญ.") || prefix.includes("น.ส.") || prefix.toLowerCase().includes("female") || prefix.toLowerCase().includes("miss") ? "Female" : "Male",
                     prefix: prefix,
                     firstName: firstName,
                     surName: surName,
+                    gender: genderVal,
                     age: ageVal,
                     schoolId: targetSchoolId,
                     createdAt: new Date().toISOString()
@@ -181,13 +180,12 @@ export async function POST(req: Request) {
                 studentsAdded++;
             } else {
                 // Update profile info if present
-                if (thaiId && !student.thaiId) student.thaiId = thaiId;
                 if (firstName) student.firstName = firstName;
                 if (surName) student.surName = surName;
                 if (prefix) {
                     student.prefix = prefix;
-                    student.gender = prefix.includes("หญิง") || prefix.includes("ด.ญ.") || prefix.includes("น.ส.") || prefix.toLowerCase().includes("female") || prefix.toLowerCase().includes("miss") ? "Female" : "Male";
                 }
+                if (genderVal) student.gender = genderVal;
                 if (classVal || roomVal) {
                     student.class = `${classVal || student.class.split('/')[0]}/${roomVal || student.class.split('/')[1] || ""}`.replace(/^\//, "").replace(/\/$/, "");
                 }
@@ -226,20 +224,20 @@ export async function POST(req: Request) {
             }
 
             // Parse remaining diagnostic and health checks
-            const bloodTypeVal = String(getValue(["กรุ๊ปเลือด", "Blood Type"]) || "UNKNOWN").toUpperCase().trim();
-            const underlyingDiseaseVal = String(getValue(["โรคประจำตัว", "Underlying Disease"]) || "").trim();
-            const drugAllergyVal = String(getValue(["แพ้ยา", "ประวัติแพ้ยา", "Drug Allergy"]) || "").trim();
-            const hearingTestVal = String(getValue(["การได้ยิน", "Hearing Test"]) || "Normal ปกติ").trim();
-            const colorBlindnessVal = String(getValue(["ตาบอดสี", "การแยกสี", "Color Blindness"]) || "Pass ผ่าน").trim();
-            const visionLeftVal = String(getValue(["การมองเห็นซ้าย", "ระยะการมอง", "Vision Left"]) || "—").trim();
-            const visionRightVal = String(getValue(["การมองเห็นขวา", "สรุปผลสายตา", "Vision Right"]) || "—").trim();
-            const xRayResultVal = String(getValue(["ผลเอ็กซเรย์", "X-Ray Result"]) || "—").trim();
-            const flexibilityVal = parseFloat(getValue(["ความอ่อนตัว", "อ่อนตัว", "Flexibility"])) || null;
-            const handgripVal = parseFloat(getValue(["แรงบีบมือ", "Handgrip Strength"])) || null;
-            const standingKneeRaisesVal = parseInt(getValue(["ยืนยกเข่า", "ยกเข่า", "Standing Knee Raises"]), 10) || null;
-            const situpsVal = parseInt(getValue(["ลุกนั่ง", "Sit-ups"]), 10) || null;
-            const pushupsVal = parseInt(getValue(["ดันพื้น", "Push-ups"]), 10) || null;
-            const symptomsVal = String(getValue(["อาการเบื้องต้น", "Symptoms"]) || "").trim();
+            const bloodTypeVal = String(getValue(["กรุ๊ปเลือด"]) || "UNKNOWN").toUpperCase().trim();
+            const underlyingDiseaseVal = String(getValue(["โรคประจำตัว"]) || "").trim();
+            const drugAllergyVal = String(getValue(["แพ้ยา"]) || "").trim();
+            const hearingTestVal = String(getValue(["การได้ยิน"]) || "ปกติ").trim();
+            const colorBlindnessVal = String(getValue(["การแยกสี"]) || "ปกติ").trim();
+            const visualAcuityVal = String(getValue(["ระยะการมอง"]) || "—").trim();
+            const eyeExamReportVal = String(getValue(["สรุปผลสายตา"]) || "—").trim();
+            const xRayResultVal = String(getValue(["ผลเอ็กซเรย์"]) || "normal").trim();
+            const flexibilityVal = parseFloat(getValue(["ความอ่อนตัว : Sit and Reach Test", "ความอ่อนตัว"])) || null;
+            const handgripVal = parseFloat(getValue(["แรงบีบมือ : Hand Grip Strength", "แรงบีบมือ"])) || null;
+            const standingKneeRaisesVal = parseInt(getValue(["ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down", "ยืนยกเข่า 3 นาที", "ยืนยกเข่า"]), 10) || null;
+            const situpsVal = parseInt(getValue(["ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups", "ลุก-นั่ง 60 วินาที", "ลุกนั่ง"]), 10) || null;
+            const pushupsVal = parseInt(getValue(["ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups", "ดันพื้นประยุกต์ 30 วินาที", "ดันพื้น"]), 10) || null;
+            const symptomsVal = String(getValue(["อาการเบื้องต้น"]) || "").trim();
             const additionalNotesVal = String(getValue(["บันทึกเพิ่มเติม", "Additional Notes"]) || "").trim();
 
             // Find or create HealthRecord for this student and academic year
@@ -257,8 +255,8 @@ export async function POST(req: Request) {
                 bmi: bmiVal,
                 hearingTest: hearingTestVal,
                 colorBlindness: colorBlindnessVal,
-                visionBothEyesLeft: visionLeftVal,
-                visionBothEyesRight: visionRightVal,
+                visualAcuity: visualAcuityVal,
+                eyeExamReport: eyeExamReportVal,
                 xRayResult: xRayResultVal,
                 flexibility: flexibilityVal,
                 handgripStrength: handgripVal,

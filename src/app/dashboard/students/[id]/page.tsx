@@ -36,8 +36,8 @@ export default function StudentDetailPage() {
         skin: [] as string[],
         bone: [] as string[],
         eyeTest: "-",
-        visionBothEyesLeft: "-",
-        visionBothEyesRight: "-",
+        visualAcuity: "-",
+        eyeExamReport: "-",
         symptoms: "-",
         flexibility: "",
         handgripStrength: "",
@@ -90,8 +90,8 @@ export default function StudentDetailPage() {
                         skin: latest.skin || [],
                         bone: latest.bone || [],
                         eyeTest: latest.eyeTest || "-",
-                        visionBothEyesLeft: latest.visionBothEyesLeft || "-",
-                        visionBothEyesRight: latest.visionBothEyesRight || "-",
+                        visualAcuity: latest.visualAcuity || "-",
+                        eyeExamReport: latest.eyeExamReport || "-",
                         symptoms: latest.symptoms || "-",
                         flexibility: latest.flexibility != null ? String(latest.flexibility) : "",
                         handgripStrength: latest.handgripStrength != null ? String(latest.handgripStrength) : "",
@@ -163,7 +163,7 @@ export default function StudentDetailPage() {
                 weight: "", height: "", hearingTest: "-", bodyExamination: "",
                 visionPrescription: "", visionDistance: "-", visionResult: "-",
                 colorBlindness: "-", xRayResult: "-", doctorNote: "", additionalNotes: "",
-                earEyeThroatNose: [], auscultation: [], cleanliness: [], mouth: [], kidney: false, thyroid: false, lymphnode: false, skin: [], bone: [], eyeTest: "-", visionBothEyesLeft: "-", visionBothEyesRight: "-", symptoms: "-", flexibility: "", handgripStrength: "", standingKneeRaises: "", situps: "", pushups: "",
+                earEyeThroatNose: [], auscultation: [], cleanliness: [], mouth: [], kidney: false, thyroid: false, lymphnode: false, skin: [], bone: [], eyeTest: "-", visualAcuity: "-", eyeExamReport: "-", symptoms: "-", flexibility: "", handgripStrength: "", standingKneeRaises: "", situps: "", pushups: "",
             });
             fetchStudent();
         }
@@ -182,7 +182,11 @@ export default function StudentDetailPage() {
     const latestRecord = student.healthRecords?.[0];
     const bmiInfo = latestRecord?.bmi ? getBMICategory(latestRecord.bmi) : null;
 
-    const isTestEnabled = (key: string) => student?.school?.testsConfig ? student.school.testsConfig[key] !== false : true;
+    const optionalKeys = ["gender", "handgripStrength", "standingKneeRaises", "situps", "pushups"];
+    const isTestEnabled = (key: string) => {
+        if (!optionalKeys.includes(key)) return true;
+        return student?.school?.testsConfig ? student.school.testsConfig[key] !== false : true;
+    };
 
     return (
         <div>
@@ -191,7 +195,7 @@ export default function StudentDetailPage() {
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="page-title">{student.firstName} {student.surName}</h1>
+                    <h1 className="page-title">{student.prefix || ""} {student.firstName} {student.surName}</h1>
                     <p className="text-muted-foreground text-sm">{student.studentId} · {student.class} · {student.school?.name}</p>
                 </div>
                 {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
@@ -210,9 +214,8 @@ export default function StudentDetailPage() {
                     <div className="space-y-3 text-sm">
                         {[
                             [t("studentId"), student.studentId],
-                            [t("thaiId" as any), student.thaiId || "—"],
-                            [t("fullName"), `${student.firstName} ${student.surName}`],
-                            [t("gender"), t(student.gender.toLowerCase() as any) || student.gender],
+                            [t("fullName"), `${student.prefix || ""} ${student.firstName} ${student.surName}`.trim()],
+                            [t("gender"), student.gender || "—"],
                             [t("age"), student.age != null ? `${student.age} ${t("years")}` : "—"],
                             [t("class"), student.class],
                             [t("rosterNumber"), student.orderNumber],
@@ -294,21 +297,21 @@ export default function StudentDetailPage() {
 
                                     {/* Tests & Examinations */}
                                     <div>
-                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Tests & Examinations</h3>
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">{t("testsAndExaminations")}</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                                             {[
-                                                ["Symptoms", latestRecord.symptoms || "N/A"],
-                                                ["Hearing Test", latestRecord.hearingTest || "N/A"],
-                                                ["Color Blindness", latestRecord.colorBlindness || "N/A"],
-                                                ["Eye Test", latestRecord.eyeTest || "N/A"],
-                                                ["Vision (Left)", latestRecord.visionBothEyesLeft || "N/A"],
-                                                ["Vision (Right)", latestRecord.visionBothEyesRight || "N/A"],
-                                                ["Flexibility (cm)", latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "N/A"],
-                                                ["Handgrip", latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "N/A"],
-                                                ["Standing Knee Raises", latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "N/A"],
-                                                ["Sit-ups", latestRecord.situps != null ? `${latestRecord.situps}` : "N/A"],
-                                                ["Push-ups", latestRecord.pushups != null ? `${latestRecord.pushups}` : "N/A"],
-                                                ["X-Ray Result", latestRecord.xRayResult || "N/A"],
+                                                [t("symptoms"), latestRecord.symptoms || "N/A"],
+                                                [t("hearingTest"), latestRecord.hearingTest || "N/A"],
+                                                [t("colorBlindness"), latestRecord.colorBlindness || "N/A"],
+                                                [t("eyeTest"), latestRecord.eyeTest || "N/A"],
+                                                [t("visualAcuity"), latestRecord.visualAcuity || "N/A"],
+                                                [t("eyeExamReport"), latestRecord.eyeExamReport || "N/A"],
+                                                [t("flexibility"), latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "N/A"],
+                                                [t("handgripStrength"), latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "N/A"],
+                                                [t("standingKneeRaises"), latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "N/A"],
+                                                [t("situps"), latestRecord.situps != null ? `${latestRecord.situps}` : "N/A"],
+                                                [t("pushups"), latestRecord.pushups != null ? `${latestRecord.pushups}` : "N/A"],
+                                                [t("xRayResult"), latestRecord.xRayResult || "N/A"],
                                             ].map(([label, val]) => (
                                                 <div key={label.toString()} className="flex justify-between gap-2">
                                                     <span className="text-muted-foreground">{label}</span>
@@ -320,18 +323,18 @@ export default function StudentDetailPage() {
 
                                     {/* 10 Steps Physical Examination */}
                                     <div>
-                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">10 Steps Physical Examination</h3>
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">{t("tenSteps")}</h3>
                                         <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.length ? latestRecord.earEyeThroatNose.join(", ") : "N/A"],
-                                                ["Auscultation", latestRecord.auscultation?.length ? latestRecord.auscultation.join(", ") : "N/A"],
-                                                ["Cleanliness", latestRecord.cleanliness?.length ? latestRecord.cleanliness.join(", ") : "N/A"],
-                                                ["Mouth", latestRecord.mouth?.length ? latestRecord.mouth.join(", ") : "N/A"],
-                                                ["Kidney", latestRecord.kidney ? "Yes / พบ" : "N/A"],
-                                                ["Thyroid", latestRecord.thyroid ? "Yes / พบ" : "N/A"],
-                                                ["Lymphnode", latestRecord.lymphnode ? "Yes / พบ" : "N/A"],
-                                                ["Skin", latestRecord.skin?.length ? latestRecord.skin.join(", ") : "N/A"],
-                                                ["Bone", latestRecord.bone?.length ? latestRecord.bone.join(", ") : "N/A"],
+                                                [t("earEyeThroatNose"), latestRecord.earEyeThroatNose?.length ? latestRecord.earEyeThroatNose.join(", ") : "N/A"],
+                                                [t("auscultation"), latestRecord.auscultation?.length ? latestRecord.auscultation.join(", ") : "N/A"],
+                                                [t("cleanliness"), latestRecord.cleanliness?.length ? latestRecord.cleanliness.join(", ") : "N/A"],
+                                                [t("mouth"), latestRecord.mouth?.length ? latestRecord.mouth.join(", ") : "N/A"],
+                                                [t("kidney"), latestRecord.kidney ? "Yes / พบ" : "N/A"],
+                                                [t("thyroid"), latestRecord.thyroid ? "Yes / พบ" : "N/A"],
+                                                [t("lymphnode"), latestRecord.lymphnode ? "Yes / พบ" : "N/A"],
+                                                [t("skin"), latestRecord.skin?.length ? latestRecord.skin.join(", ") : "N/A"],
+                                                [t("bone"), latestRecord.bone?.length ? latestRecord.bone.join(", ") : "N/A"],
                                             ].map(([label, val]) => (
                                                 <div key={label.toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
                                                     <span className="text-muted-foreground whitespace-nowrap">{label}</span>
@@ -343,11 +346,11 @@ export default function StudentDetailPage() {
 
                                     {/* Additional Health Info */}
                                     <div>
-                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Additional Health Info</h3>
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">{t("additionalHealthInfo")}</h3>
                                         <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                ["Body Examination", latestRecord.bodyExamination || "N/A"],
-                                                ["Doctor Note", latestRecord.doctorNote || "N/A"],
+                                                [t("bodyExamination"), latestRecord.bodyExamination || "N/A"],
+                                                [t("doctorNote"), latestRecord.doctorNote || "N/A"],
                                                 [t("additionalNotes"), latestRecord.additionalNotes || "N/A"],
                                             ].map(([label, val]) => (
                                                 <div key={label.toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
@@ -425,7 +428,7 @@ export default function StudentDetailPage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                     {isTestEnabled("bloodType") && (
                                         <div>
-                                            <label className="block text-sm font-medium mb-1.5 font-bold text-primary">Blood Group / กรุ๊ปเลือด</label>
+                                            <label className="block text-sm font-medium mb-1.5 font-bold text-primary">{t("bloodType")}</label>
                                             <select value={form.bloodType || "-"} onChange={e => set("bloodType", e.target.value)}
                                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
                                                 <option value="-">-</option>
@@ -450,12 +453,12 @@ export default function StudentDetailPage() {
                                                                 {/* 10 Steps of a General Physical Examination */}
                                 {isTestEnabled("tenSteps") && (
                                     <div>
-                                        <h3 className="font-semibold text-primary mb-4 border-b pb-2">10 Steps of a General Physical Examination ตรวจร่างกายทั่วไป 10 ขั้นตอน</h3>
+                                        <h3 className="font-semibold text-primary mb-4 border-b pb-2">{t("tenSteps")}</h3>
                                         
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {/* Ear Eye Throat Nose */}
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Ear Eye Throat Nose หู ตา คอ จมูก</label>
+                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("earEyeThroatNose")}</label>
                                                 <div className="space-y-1 mt-2">
                                                     {["Eye Eyelid ตา เปลือกตา", "Ear Earwaxใบหู ขี้หู", "Nose Nasal Cavity จมูก โพรงจมูก", "Throat / Tonsil gland คอ ต่อมทอนซิล"].map(opt => (
                                                         <label key={opt} className="flex items-center gap-2 text-sm">
@@ -467,7 +470,7 @@ export default function StudentDetailPage() {
 
                                             {/* Auscultation */}
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Auscultation of the heart and lungs ฟังเสียงการเต้นของหัวใจ ปอด</label>
+                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("auscultation")}</label>
                                                 <div className="space-y-1 mt-2">
                                                     {["Heart หัวใจ", "Lung ปอด"].map(opt => (
                                                         <label key={opt} className="flex items-center gap-2 text-sm">
@@ -479,7 +482,7 @@ export default function StudentDetailPage() {
 
                                             {/* Cleanliness */}
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Cleanliness ความสะอาด</label>
+                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("cleanliness")}</label>
                                                 <div className="space-y-1 mt-2">
                                                     {["hair ผม", "scalp หนังศีรษะ", "presence of lice or nits เหา ไข่เหา", "long nails เล็บยาว"].map(opt => (
                                                         <label key={opt} className="flex items-center gap-2 text-sm">
@@ -491,7 +494,7 @@ export default function StudentDetailPage() {
 
                                             {/* Mouth */}
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Mouth ช่องปาก</label>
+                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("mouth")}</label>
                                                 <div className="space-y-1 mt-2">
                                                     {["Decay teeth ฟันผุ", "Tar tar คราบหินปูน"].map(opt => (
                                                         <label key={opt} className="flex items-center gap-2 text-sm">
@@ -503,7 +506,7 @@ export default function StudentDetailPage() {
 
                                             {/* Glands & Nodes */}
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Glands & Nodes ไต ไทรอยด์ ต่อมน้ำเหลือง</label>
+                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Glands & Nodes</label>
                                                 <div className="space-y-2 mt-2">
                                                     <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.kidney} onChange={e => set('kidney', e.target.checked)} className="rounded" /> Kidney ไต</label>
                                                     <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.thyroid} onChange={e => set('thyroid', e.target.checked)} className="rounded" /> Thyroid gland ไทรอยด์</label>
@@ -513,7 +516,7 @@ export default function StudentDetailPage() {
 
                                             {/* Skin */}
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Skin ผิวหนัง</label>
+                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("skin")}</label>
                                                 <div className="space-y-1 mt-2">
                                                     {["Rash ผื่นคัน", "Dry skin แห้งลอก", "Wound แผลสด"].map(opt => (
                                                         <label key={opt} className="flex items-center gap-2 text-sm">
@@ -525,7 +528,7 @@ export default function StudentDetailPage() {
 
                                             {/* Bone */}
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Bone กระดูก</label>
+                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("bone")}</label>
                                                 <div className="space-y-1 mt-2">
                                                     {["Bow leg ขาโก่ง", "Crooked arms แขนคดงอ"].map(opt => (
                                                         <label key={opt} className="flex items-center gap-2 text-sm">
@@ -595,25 +598,24 @@ export default function StudentDetailPage() {
                                     {form.eyeTest !== "Blindness เสียการมองเห็น (ตาบอด)" && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5">Vision Left Eye ตาซ้าย</label>
-                                                <select value={form.visionBothEyesLeft} onChange={e => set("visionBothEyesLeft", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                <label className="block text-sm font-medium mb-1.5">{t("visualAcuity")} ระยะการมอง</label>
+                                                <select value={form.visualAcuity} onChange={e => set("visualAcuity", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
                                                     <option value="-">-</option>
-                                                    <option value="20/20 ปกติ">20/20 ปกติ</option>
-                                                    <option value="20/30 ผิดปกติ">20/30 ผิดปกติ</option>
-                                                    <option value="20/50 ผิดปกติ">20/50 ผิดปกติ</option>
-                                                    <option value="20/100 ผิดปกติ">20/100 ผิดปกติ</option>
-                                                    <option value="20/200 ผิดปกติ">20/200 ผิดปกติ</option>
+                                                    <option value="20/20">20/20</option>
+                                                    <option value="20/30">20/30</option>
+                                                    <option value="20/50">20/50</option>
+                                                    <option value="20/100">20/100</option>
+                                                    <option value="20/200">20/200</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium mb-1.5">Vision Right Eye ตาขวา</label>
-                                                <select value={form.visionBothEyesRight} onChange={e => set("visionBothEyesRight", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                <label className="block text-sm font-medium mb-1.5">{t("eyeExamReport")} สรุปผลสายตา</label>
+                                                <select value={form.eyeExamReport} onChange={e => set("eyeExamReport", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
                                                     <option value="-">-</option>
-                                                    <option value="20/20 ปกติ">20/20 ปกติ</option>
-                                                    <option value="20/30 ผิดปกติ">20/30 ผิดปกติ</option>
-                                                    <option value="20/50 ผิดปกติ">20/50 ผิดปกติ</option>
-                                                    <option value="20/100 ผิดปกติ">20/100 ผิดปกติ</option>
-                                                    <option value="20/200 ผิดปกติ">20/200 ผิดปกติ</option>
+                                                    <option value="ปกติ normal">ปกติ normal</option>
+                                                    <option value="ควรเริ่มดูแลสายตา Eye care recommended">ควรเริ่มดูแลสายตา Eye care recommended</option>
+                                                    <option value="G ผิดปกติ glasses abnormal">G ผิดปกติ glasses abnormal</option>
+                                                    <option value="ผิดปกติ abnormal">ผิดปกติ abnormal</option>
                                                 </select>
                                             </div>
                                         </div>

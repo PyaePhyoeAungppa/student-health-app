@@ -22,13 +22,14 @@ export default function NewHealthRecordPage() {
         bloodType: "UNKNOWN",
         weight: "",
         height: "",
-        hearingTest: "NORMAL",
-        bodyExamination: "",
-        visionPrescription: "",
-        visionDistance: "20/20",
-        visionResult: "ปกติ",
-        colorBlindness: "NORMAL",
-        xRayResult: "",
+        hearingTest: "ปกติ Normal",
+        bodyExamination: "ปกติ normal",
+        bodyExaminationDetail: "",
+        visualAcuity: "-",
+        eyeExamReport: "-",
+        colorBlindness: "ปกติ normal",
+        xRayResult: "normal",
+        xRayResultDetail: "",
         doctorNote: "",
         additionalNotes: "",
     });
@@ -49,8 +50,23 @@ export default function NewHealthRecordPage() {
         let bmi: number | null = null;
         if (w && h) bmi = parseFloat((w / ((h / 100) ** 2)).toFixed(2));
 
+        let finalBodyExam = form.bodyExamination;
+        if (form.bodyExamination === "ผิดปกติ Abnormal" && form.bodyExaminationDetail) {
+            finalBodyExam = `ผิดปกติ Abnormal "${form.bodyExaminationDetail}"`;
+        }
+
+        let finalXRay = form.xRayResult;
+        if (form.xRayResult === "Abnormal" && form.xRayResultDetail) {
+            finalXRay = `Abnormal "${form.xRayResultDetail}"`;
+        }
+
         const payload = {
             ...form,
+            bodyExamination: undefined,
+            bodyExaminationDetail: undefined,
+            xRayResultDetail: undefined,
+            symptoms: finalBodyExam,
+            xRayResult: finalXRay,
             weight: w,
             height: h,
             bmi,
@@ -138,40 +154,74 @@ export default function NewHealthRecordPage() {
                     <h2 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground mb-4">{t("healthTests")}</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
-                            { label: t("hearingTest"), key: "hearingTest" },
-                            { label: t("colorBlindness"), key: "colorBlindness" },
-                        ].map(({ label, key }) => (
+                            { label: t("hearingTest") + " (Hearing Test)", key: "hearingTest", options: ["ปกติ Normal", "ผิดปกติ Abnormal"] },
+                            { label: t("colorBlindness") + " (Color Blindness)", key: "colorBlindness", options: ["ปกติ normal", "ผิดปกติ abnormal"] },
+                        ].map(({ label, key, options }) => (
                             <div key={key}>
                                 <label className="block text-sm font-medium mb-1.5">{label}</label>
                                 <div className="flex gap-3">
-                                    {["NORMAL", "ABNORMAL"].map(v => (
-                                        <label key={v} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border cursor-pointer transition-all text-sm ${(form as any)[key] === v ? v === "NORMAL" ? "bg-green-500/15 border-green-500/30 text-green-400" : "bg-red-500/15 border-red-500/30 text-red-400" : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+                                    {options.map(v => (
+                                        <label key={v} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border cursor-pointer transition-all text-sm ${(form as any)[key] === v ? v.includes("ปกติ") && !v.includes("ผิด") ? "bg-green-500/15 border-green-500/30 text-green-400" : "bg-red-500/15 border-red-500/30 text-red-400" : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
                                             <input type="radio" name={key} value={v} checked={(form as any)[key] === v} onChange={() => set(key, v)} className="sr-only" />
-                                            {t(v.toLowerCase() as any) || v}
+                                            {v}
                                         </label>
                                     ))}
                                 </div>
                             </div>
                         ))}
+                        
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("visionPrescription") || "Vision Details"}</label>
-                            <input type="text" value={form.visionPrescription} placeholder="e.g. 20/20 or -1.50"
-                                onChange={e => set("visionPrescription", e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 mb-3" />
-                            <div className="grid grid-cols-2 gap-2">
-                                <input type="text" value={form.visionDistance} placeholder="Distance (e.g. 20/50)"
-                                    onChange={e => set("visionDistance", e.target.value)}
-                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                <input type="text" value={form.visionResult} placeholder="Result (e.g. ปกติ)"
-                                    onChange={e => set("visionResult", e.target.value)}
-                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                            <label className="block text-sm font-medium mb-1.5">อาการเบื้องต้น (Body examination)</label>
+                            <div className="flex gap-3 mb-2">
+                                {["ปกติ normal", "ผิดปกติ Abnormal"].map(v => (
+                                    <label key={v} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border cursor-pointer transition-all text-sm ${form.bodyExamination === v ? v.includes("ปกติ") && !v.includes("ผิด") ? "bg-green-500/15 border-green-500/30 text-green-400" : "bg-red-500/15 border-red-500/30 text-red-400" : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+                                        <input type="radio" name="bodyExamination" value={v} checked={form.bodyExamination === v} onChange={() => set("bodyExamination", v)} className="sr-only" />
+                                        {v}
+                                    </label>
+                                ))}
                             </div>
+                            {form.bodyExamination === "ผิดปกติ Abnormal" && (
+                                <input type="text" value={form.bodyExaminationDetail} placeholder="ระบุอาการผิดปกติ (Specify abnormal details)"
+                                    onChange={e => set("bodyExaminationDetail", e.target.value)}
+                                    className="w-full px-4 py-2 mt-1 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                            )}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1.5">ผลเอ็กซเรย์ (Xray results)</label>
+                            <div className="flex gap-3 mb-2">
+                                {["normal", "Abnormal"].map(v => (
+                                    <label key={v} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border cursor-pointer transition-all text-sm ${form.xRayResult === v ? v === "normal" ? "bg-green-500/15 border-green-500/30 text-green-400" : "bg-red-500/15 border-red-500/30 text-red-400" : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+                                        <input type="radio" name="xRayResult" value={v} checked={form.xRayResult === v} onChange={() => set("xRayResult", v)} className="sr-only" />
+                                        {v}
+                                    </label>
+                                ))}
+                            </div>
+                            {form.xRayResult === "Abnormal" && (
+                                <input type="text" value={form.xRayResultDetail} placeholder="Specify abnormal details"
+                                    onChange={e => set("xRayResultDetail", e.target.value)}
+                                    className="w-full px-4 py-2 mt-1 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                            )}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("xRayResult")}</label>
-                            <input type="text" value={form.xRayResult} placeholder={t("normal")}
-                                onChange={e => set("xRayResult", e.target.value)}
-                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                            <label className="block text-sm font-medium mb-1.5">{t("visualAcuity")} / {t("eyeExamReport")}</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <select value={form.visualAcuity} onChange={e => set("visualAcuity", e.target.value)} className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <option value="-">-</option>
+                                    <option value="20/20">20/20</option>
+                                    <option value="20/30">20/30</option>
+                                    <option value="20/50">20/50</option>
+                                    <option value="20/100">20/100</option>
+                                    <option value="20/200">20/200</option>
+                                </select>
+                                <select value={form.eyeExamReport} onChange={e => set("eyeExamReport", e.target.value)} className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <option value="-">-</option>
+                                    <option value="ปกติ - normal">ปกติ - normal</option>
+                                    <option value="ควรเริ่มดูแลสายตา - Eye care recommended">ควรเริ่มดูแลสายตา - Eye care recommended</option>
+                                    <option value="G ผิดปกติ - glasses abnormal">G ผิดปกติ - glasses abnormal</option>
+                                    <option value="ผิดปกติ - abnormal">ผิดปกติ - abnormal</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -183,7 +233,6 @@ export default function NewHealthRecordPage() {
                         {[
                             { label: t("underlyingDisease"), key: "underlyingDisease", placeholder: t("underlyingDisease") },
                             { label: t("drugAllergy"), key: "drugAllergy", placeholder: t("drugAllergy") },
-                            { label: t("bodyExaminationNotes") || "Body Examination", key: "bodyExamination", placeholder: t("normal") },
                             { label: "Doctor Note (พบแพทย์)", key: "doctorNote", placeholder: "Recommendations from doctor" },
                             { label: t("additionalNotes"), key: "additionalNotes", placeholder: t("notes") },
                         ].map(({ label, key, placeholder }) => (
