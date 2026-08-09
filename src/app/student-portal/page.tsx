@@ -330,7 +330,7 @@ export default function StudentPortalPage() {
                                                 { label: "Standing Knee Raises ยืนยกเข่า", val: latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "—", enabled: isTestEnabled("standingKneeRaises") },
                                                 { label: "Sit-ups ลุกนั่ง", val: latestRecord.situps != null ? `${latestRecord.situps}` : "—", enabled: isTestEnabled("situps") },
                                                 { label: "Push-ups ดันพื้น", val: latestRecord.pushups != null ? `${latestRecord.pushups}` : "—", enabled: isTestEnabled("pushups") },
-                                                { label: "X-Ray Result", val: latestRecord.xRayResult || "—", enabled: isTestEnabled("xRayResult") },
+                                                { label: "X-Ray", val: latestRecord.xRayResult || "—", enabled: isTestEnabled("xRayResult") },
                                             ].filter(item => item.enabled).map(({ label, val }) => (
                                                 <div key={label} className="flex justify-between">
                                                     <span className="text-muted-foreground">{label}</span>

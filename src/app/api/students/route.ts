@@ -42,7 +42,7 @@ export async function GET(req: Request) {
 
     // Class filter
     if (classParam) {
-        students = students.filter(s => s.class?.toLowerCase().includes(classParam.toLowerCase()));
+        students = students.filter(s => s.class?.toLowerCase().includes(classParam.toLowerCase()) || s.room?.toLowerCase().includes(classParam.toLowerCase()));
     }
 
     // Gender filter

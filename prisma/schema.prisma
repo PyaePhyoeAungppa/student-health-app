@@ -39,6 +39,7 @@ model Student {
   studentId         String       @unique
   orderNumber       Int
   class             String
+  room              String?
   firstName         String
   surName           String
   dob               DateTime

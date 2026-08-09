@@ -14,6 +14,7 @@ export default function StudentDetailPage() {
     const { data: session } = useSession();
     const role = (session?.user as any)?.role;
     const [student, setStudent] = useState<any>(null);
+    const [customFields, setCustomFields] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddRecord, setShowAddRecord] = useState(false);
     const [savingRecord, setSavingRecord] = useState(false);
@@ -23,27 +24,23 @@ export default function StudentDetailPage() {
     const [form, setForm] = useState({
         academicYear: new Date().getFullYear().toString(),
         underlyingDisease: "", drugAllergy: "", bloodType: "-",
-        weight: "", height: "", hearingTest: "-", bodyExamination: "",
-        visionPrescription: "", visionDistance: "-", visionResult: "-",
-        colorBlindness: "-", xRayResult: "-", doctorNote: "", additionalNotes: "",
-        earEyeThroatNose: [] as string[],
-        auscultation: [] as string[],
-        cleanliness: [] as string[],
-        mouth: [] as string[],
-        kidney: false,
-        thyroid: false,
-        lymphnode: false,
-        skin: [] as string[],
-        bone: [] as string[],
+        weight: "", height: "", hearingTest: "-",
+        colorBlindness: "-", xRayResult: "-", xRayResultDescription: "",
         eyeTest: "-",
         visualAcuity: "-",
-        eyeExamReport: "-",
         symptoms: "-",
         flexibility: "",
         handgripStrength: "",
         standingKneeRaises: "",
         situps: "",
         pushups: "",
+        cbc: "",
+        fbs: "",
+        cholesterol: "",
+        hbsag: "",
+        ua: "",
+        amphetamine: "",
+        customData: {} as Record<string, any>,
     });
 
     const set = (k: string, v: any) => setForm(prev => ({ ...prev, [k]: v }));
@@ -72,33 +69,29 @@ export default function StudentDetailPage() {
                         weight: latest.weight != null ? String(latest.weight) : "",
                         height: latest.height != null ? String(latest.height) : "",
                         hearingTest: latest.hearingTest || "-",
-                        bodyExamination: latest.bodyExamination || "",
-                        visionPrescription: latest.visionPrescription || "",
-                        visionDistance: latest.visionDistance || "-",
-                        visionResult: latest.visionResult || "-",
                         colorBlindness: latest.colorBlindness || "-",
                         xRayResult: latest.xRayResult || "-",
-                        doctorNote: latest.doctorNote || "",
-                        additionalNotes: latest.additionalNotes || "",
-                        earEyeThroatNose: latest.earEyeThroatNose || [],
-                        auscultation: latest.auscultation || [],
-                        cleanliness: latest.cleanliness || [],
-                        mouth: latest.mouth || [],
-                        kidney: latest.kidney || false,
-                        thyroid: latest.thyroid || false,
-                        lymphnode: latest.lymphnode || false,
-                        skin: latest.skin || [],
-                        bone: latest.bone || [],
+                        xRayResultDescription: latest.xRayResultDescription || "",
                         eyeTest: latest.eyeTest || "-",
                         visualAcuity: latest.visualAcuity || "-",
-                        eyeExamReport: latest.eyeExamReport || "-",
                         symptoms: latest.symptoms || "-",
                         flexibility: latest.flexibility != null ? String(latest.flexibility) : "",
                         handgripStrength: latest.handgripStrength != null ? String(latest.handgripStrength) : "",
                         standingKneeRaises: latest.standingKneeRaises != null ? String(latest.standingKneeRaises) : "",
                         situps: latest.situps != null ? String(latest.situps) : "",
                         pushups: latest.pushups != null ? String(latest.pushups) : "",
+                        cbc: latest.cbc || "",
+                        fbs: latest.fbs || "",
+                        cholesterol: latest.cholesterol || "",
+                        hbsag: latest.hbsag || "",
+                        ua: latest.ua || "",
+                        amphetamine: latest.amphetamine || "",
+                        customData: latest.customData || {},
                     });
+                }
+                
+                if (d.school?.customFields) {
+                    setCustomFields(d.school.customFields);
                 }
             })
             .catch(() => setLoading(false));
@@ -146,7 +139,8 @@ export default function StudentDetailPage() {
         const knee = form.standingKneeRaises ? parseInt(form.standingKneeRaises) : null;
         const sit = form.situps ? parseInt(form.situps) : null;
         const push = form.pushups ? parseInt(form.pushups) : null;
-        const payload = { ...form, studentId: student.id, weight: w, height: h, bmi, flexibility: flex, handgripStrength: grip, standingKneeRaises: knee, situps: sit, pushups: push };
+        
+        const payload = { ...form, studentId: student.id, weight: w, height: h, bmi, flexibility: flex, handgripStrength: grip, standingKneeRaises: knee, situps: sit, pushups: push, customData: form.customData };
         
         const res = await fetch("/api/health-records", {
             method: "POST",
@@ -160,10 +154,11 @@ export default function StudentDetailPage() {
             setForm({
                 academicYear: new Date().getFullYear().toString(),
                 underlyingDisease: "", drugAllergy: "", bloodType: "-",
-                weight: "", height: "", hearingTest: "-", bodyExamination: "",
-                visionPrescription: "", visionDistance: "-", visionResult: "-",
-                colorBlindness: "-", xRayResult: "-", doctorNote: "", additionalNotes: "",
-                earEyeThroatNose: [], auscultation: [], cleanliness: [], mouth: [], kidney: false, thyroid: false, lymphnode: false, skin: [], bone: [], eyeTest: "-", visualAcuity: "-", eyeExamReport: "-", symptoms: "-", flexibility: "", handgripStrength: "", standingKneeRaises: "", situps: "", pushups: "",
+                weight: "", height: "", hearingTest: "-",
+                colorBlindness: "-", xRayResult: "-", xRayResultDescription: "",
+                eyeTest: "-", visualAcuity: "-", symptoms: "-",
+                flexibility: "", handgripStrength: "", standingKneeRaises: "", situps: "", pushups: "",
+                cbc: "", fbs: "", cholesterol: "", hbsag: "", ua: "", amphetamine: "", customData: {},
             });
             fetchStudent();
         }
@@ -182,7 +177,7 @@ export default function StudentDetailPage() {
     const latestRecord = student.healthRecords?.[0];
     const bmiInfo = latestRecord?.bmi ? getBMICategory(latestRecord.bmi) : null;
 
-    const optionalKeys = ["gender", "handgripStrength", "standingKneeRaises", "situps", "pushups"];
+    const optionalKeys = ["gender", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult"];
     const isTestEnabled = (key: string) => {
         if (!optionalKeys.includes(key)) return true;
         return student?.school?.testsConfig ? student.school.testsConfig[key] !== false : true;
@@ -196,7 +191,7 @@ export default function StudentDetailPage() {
                 </button>
                 <div className="flex-1">
                     <h1 className="page-title">{student.prefix || ""} {student.firstName} {student.surName}</h1>
-                    <p className="text-muted-foreground text-sm">{student.studentId} · {student.class} · {student.school?.name}</p>
+                    <p className="text-muted-foreground text-sm">{student.studentId} · {student.class}{student.room ? `/${student.room}` : ""} · {student.school?.name}</p>
                 </div>
                 {(role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") && (
                     <button onClick={() => setShowAddRecord(true)}
@@ -218,6 +213,7 @@ export default function StudentDetailPage() {
                             [t("gender"), student.gender || "—"],
                             [t("age"), student.age != null ? `${student.age} ${t("years")}` : "—"],
                             [t("class"), student.class],
+                            [t("room"), student.room || "—"],
                             [t("rosterNumber"), student.orderNumber],
                             [t("school"), student.school?.name],
                         ].map(([label, val]) => (
@@ -280,61 +276,33 @@ export default function StudentDetailPage() {
                                     {/* General Details */}
                                     <div>
                                         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">General Details</h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                [t("bloodType"), latestRecord.bloodType],
+                                                [t("year"), latestRecord.academicYear || "—"],
                                                 [t("underlyingDisease"), latestRecord.underlyingDisease || t("none")],
                                                 [t("drugAllergy"), latestRecord.drugAllergy || t("none")],
-                                                [t("year"), latestRecord.academicYear || "—"],
+                                                [t("bloodType"), latestRecord.bloodType || "-"],
+                                                [t("weight"), latestRecord.weight != null ? `${latestRecord.weight} kg` : "N/A"],
+                                                [t("height"), latestRecord.height != null ? `${latestRecord.height} cm` : "N/A"],
+                                                [t("symptoms"), latestRecord.symptoms || "N/A"],
                                             ].map(([label, val]) => (
-                                                <div key={label.toString()} className="flex justify-between gap-2">
-                                                    <span className="text-muted-foreground">{label}</span>
+                                                <div key={label.toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
+                                                    <span className="text-muted-foreground whitespace-nowrap">{label}</span>
                                                     <span className="font-medium text-right">{val}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* Tests & Examinations */}
+                                    {/* Vision & Hearing */}
                                     <div>
-                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">{t("testsAndExaminations")}</h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Vision & Hearing</h3>
+                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
                                             {[
-                                                [t("symptoms"), latestRecord.symptoms || "N/A"],
                                                 [t("hearingTest"), latestRecord.hearingTest || "N/A"],
-                                                [t("colorBlindness"), latestRecord.colorBlindness || "N/A"],
                                                 [t("eyeTest"), latestRecord.eyeTest || "N/A"],
                                                 [t("visualAcuity"), latestRecord.visualAcuity || "N/A"],
-                                                [t("eyeExamReport"), latestRecord.eyeExamReport || "N/A"],
-                                                [t("flexibility"), latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "N/A"],
-                                                [t("handgripStrength"), latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "N/A"],
-                                                [t("standingKneeRaises"), latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "N/A"],
-                                                [t("situps"), latestRecord.situps != null ? `${latestRecord.situps}` : "N/A"],
-                                                [t("pushups"), latestRecord.pushups != null ? `${latestRecord.pushups}` : "N/A"],
-                                                [t("xRayResult"), latestRecord.xRayResult || "N/A"],
-                                            ].map(([label, val]) => (
-                                                <div key={label.toString()} className="flex justify-between gap-2">
-                                                    <span className="text-muted-foreground">{label}</span>
-                                                    <span className="font-medium text-right">{val}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* 10 Steps Physical Examination */}
-                                    <div>
-                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">{t("tenSteps")}</h3>
-                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
-                                            {[
-                                                [t("earEyeThroatNose"), latestRecord.earEyeThroatNose?.length ? latestRecord.earEyeThroatNose.join(", ") : "N/A"],
-                                                [t("auscultation"), latestRecord.auscultation?.length ? latestRecord.auscultation.join(", ") : "N/A"],
-                                                [t("cleanliness"), latestRecord.cleanliness?.length ? latestRecord.cleanliness.join(", ") : "N/A"],
-                                                [t("mouth"), latestRecord.mouth?.length ? latestRecord.mouth.join(", ") : "N/A"],
-                                                [t("kidney"), latestRecord.kidney ? "Yes / พบ" : "N/A"],
-                                                [t("thyroid"), latestRecord.thyroid ? "Yes / พบ" : "N/A"],
-                                                [t("lymphnode"), latestRecord.lymphnode ? "Yes / พบ" : "N/A"],
-                                                [t("skin"), latestRecord.skin?.length ? latestRecord.skin.join(", ") : "N/A"],
-                                                [t("bone"), latestRecord.bone?.length ? latestRecord.bone.join(", ") : "N/A"],
+                                                [t("colorBlindness"), latestRecord.colorBlindness || "N/A"],
                                             ].map(([label, val]) => (
                                                 <div key={label.toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
                                                     <span className="text-muted-foreground whitespace-nowrap">{label}</span>
@@ -344,22 +312,87 @@ export default function StudentDetailPage() {
                                         </div>
                                     </div>
 
-                                    {/* Additional Health Info */}
-                                    <div>
-                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">{t("additionalHealthInfo")}</h3>
-                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
-                                            {[
-                                                [t("bodyExamination"), latestRecord.bodyExamination || "N/A"],
-                                                [t("doctorNote"), latestRecord.doctorNote || "N/A"],
-                                                [t("additionalNotes"), latestRecord.additionalNotes || "N/A"],
-                                            ].map(([label, val]) => (
-                                                <div key={label.toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
-                                                    <span className="text-muted-foreground whitespace-nowrap">{label}</span>
-                                                    <span className="font-medium text-right">{val}</span>
-                                                </div>
-                                            ))}
+                                    {/* Physical Fitness Tests */}
+                                    {isTestEnabled("flexibility") || isTestEnabled("handgripStrength") || isTestEnabled("standingKneeRaises") || isTestEnabled("situps") || isTestEnabled("pushups") ? (
+                                        <div>
+                                            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Physical Fitness Tests</h3>
+                                            <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                {[
+                                                    isTestEnabled("flexibility") ? [t("flexibility"), latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "N/A"] : null,
+                                                    isTestEnabled("handgripStrength") ? [t("handgripStrength"), latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "N/A"] : null,
+                                                    isTestEnabled("standingKneeRaises") ? [t("standingKneeRaises"), latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "N/A"] : null,
+                                                    isTestEnabled("situps") ? [t("situps"), latestRecord.situps != null ? `${latestRecord.situps}` : "N/A"] : null,
+                                                    isTestEnabled("pushups") ? [t("pushups"), latestRecord.pushups != null ? `${latestRecord.pushups}` : "N/A"] : null,
+                                                ].filter(Boolean).map((item: any) => (
+                                                    <div key={item[0].toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
+                                                        <span className="text-muted-foreground whitespace-nowrap">{item[0]}</span>
+                                                        <span className="font-medium text-right">{item[1]}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : null}
+
+                                    {/* X-Ray */}
+                                    {isTestEnabled("xRayResult") && (
+                                        <div>
+                                            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">X-Ray</h3>
+                                            <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                <div className="flex justify-between gap-4 border-b border-border/50 pb-2">
+                                                    <span className="text-muted-foreground whitespace-nowrap">{t("xRayResult")}</span>
+                                                    <span className="font-medium text-right">
+                                                        {latestRecord.xRayResult === "Abnormal" && latestRecord.xRayResultDescription 
+                                                            ? `${latestRecord.xRayResult} (${latestRecord.xRayResultDescription})` 
+                                                            : latestRecord.xRayResult || "N/A"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Laboratory Test Results */}
+                                    {(student?.school?.testsConfig?.cbc !== false || student?.school?.testsConfig?.fbs !== false || student?.school?.testsConfig?.cholesterol !== false || student?.school?.testsConfig?.hbsag !== false || student?.school?.testsConfig?.ua !== false || student?.school?.testsConfig?.amphetamine !== false) && (
+                                        <div>
+                                            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Laboratory Test Results</h3>
+                                            <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                {[
+                                                    student?.school?.testsConfig?.cbc !== false ? ["ความสมบูรณ์ของเม็ดเลือด (CBC)", latestRecord.cbc || "N/A"] : null,
+                                                    student?.school?.testsConfig?.fbs !== false ? ["ระดับน้ำตาลในเลือด (FBS)", latestRecord.fbs || "N/A"] : null,
+                                                    student?.school?.testsConfig?.cholesterol !== false ? ["ระดับไขมันในเลือด (Cholesterol)", latestRecord.cholesterol || "N/A"] : null,
+                                                    student?.school?.testsConfig?.hbsag !== false ? ["ตรวจหาเชื้อไวรัสตับอักเสบบี (HBSAG)", latestRecord.hbsag || "N/A"] : null,
+                                                    student?.school?.testsConfig?.ua !== false ? ["ตรวจปัสสาวะทั่วไป (UA)", latestRecord.ua || "N/A"] : null,
+                                                    student?.school?.testsConfig?.amphetamine !== false ? ["ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)", latestRecord.amphetamine || "N/A"] : null,
+                                                ].filter(Boolean).map((item: any) => (
+                                                    <div key={item[0].toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
+                                                        <span className="text-muted-foreground whitespace-nowrap">{item[0]}</span>
+                                                        <span className="font-medium text-right">{item[1]}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {/* Custom Fields Display */}
+                                    {customFields.length > 0 && (
+                                        <div>
+                                            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2 pt-4">Custom Fields</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                                {customFields.map(field => {
+                                                    const val = latestRecord.customData?.[field.id];
+                                                    const desc = latestRecord.customData?.[`${field.id}_desc`];
+                                                    return (
+                                                        <div key={field.id} className="flex justify-between gap-4 border-b border-border/50 pb-2">
+                                                            <span className="text-muted-foreground whitespace-nowrap">{field.label}</span>
+                                                            <span className="font-medium text-right">
+                                                                {val ? String(val) : "N/A"}
+                                                                {desc && <span className="block text-xs text-muted-foreground font-normal">{desc}</span>}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </>
@@ -425,268 +458,273 @@ export default function StudentDetailPage() {
                                 <form onSubmit={handleSaveRecord} className="space-y-6">
                                     {/* Year is hidden and managed automatically */}
                                     <input type="hidden" value={form.academicYear} name="academicYear" />
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                                    {isTestEnabled("bloodType") && (
+                                    {/* General Details */}
+                                    <div>
+                                        <h3 className="font-semibold text-primary mb-4 border-b pb-2">General Details</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1.5">{t("underlyingDisease")}</label>
+                                                <input type="text" value={form.underlyingDisease} onChange={e => set("underlyingDisease", e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1.5">{t("drugAllergy")}</label>
+                                                <input type="text" value={form.drugAllergy} onChange={e => set("drugAllergy", e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                            </div>
+                                            {isTestEnabled("bloodType") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1.5 font-bold text-primary">{t("bloodType")}</label>
+                                                    <select value={form.bloodType || "-"} onChange={e => set("bloodType", e.target.value)}
+                                                        className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                        <option value="-">-</option>
+                                                        <option value="A">A</option>
+                                                        <option value="B">B</option>
+                                                        <option value="AB">AB</option>
+                                                        <option value="O">O</option>
+                                                    </select>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1.5">{t("weight")} (kg)</label>
+                                                <input type="number" step="0.1" value={form.weight} placeholder="e.g. 45.5" onChange={e => set("weight", e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1.5">{t("height")} (cm)</label>
+                                                <input type="number" step="0.1" value={form.height} placeholder="e.g. 155" onChange={e => set("height", e.target.value)}
+                                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                            </div>
+                                            {isTestEnabled("symptoms") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1.5">Symptoms / Health อาการเจ็บป่วยเบื้องต้น</label>
+                                                    <select value={form.symptoms} onChange={e => set("symptoms", e.target.value)} className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                        <option value="-">-</option>
+                                                        <option value="Normal ปกติ">Normal ปกติ</option>
+                                                        <option value="Abnormal ไม่ปกติ">Abnormal ไม่ปกติ</option>
+                                                    </select>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Vision & Hearing */}
+                                    <div>
+                                        <h3 className="font-semibold text-primary mb-4 border-b pb-2 pt-4">Vision & Hearing</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                            {isTestEnabled("hearingTest") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1.5">Hearing Test การได้ยิน</label>
+                                                    <select value={form.hearingTest} onChange={e => set("hearingTest", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                        <option value="-">-</option>
+                                                        <option value="Normal ปกติ">Normal ปกติ</option>
+                                                        <option value="Abnormal ผิดปกติ (Right ear หูขวา)">Abnormal ผิดปกติ (Right หูขวา)</option>
+                                                        <option value="Abnormal ผิดปกติ (Left ear หูซ้าย)">Abnormal ผิดปกติ (Left หูซ้าย)</option>
+                                                        <option value="Abnormal ผิดปกติ (Both side ทั้งสองข้าง)">Abnormal ผิดปกติ (Both ทั้งสองข้าง)</option>
+                                                    </select>
+                                                </div>
+                                            )}
+                                            {isTestEnabled("eyeTest") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1.5">Vision Range การทดสอบสายตา</label>
+                                                    <select value={form.eyeTest} onChange={e => set("eyeTest", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                        <option value="-">-</option>
+                                                        <option value="Have glasses มีแว่นตา">Have glasses มีแว่นตา</option>
+                                                        <option value="No Glasses ตาเปล่า">No Glasses ตาเปล่า</option>
+                                                        <option value="Didn't bring the glasssไม่ นำแว่นมา">Didn&apos;t bring the glasssไม่ นำแว่นมา</option>
+                                                        <option value="Blindness เสียการมองเห็น (ตาบอด)">Blindness เสียการมองเห็น (ตาบอด)</option>
+                                                    </select>
+                                                </div>
+                                            )}
+                                            {isTestEnabled("eyeTest") && form.eyeTest !== "Blindness เสียการมองเห็น (ตาบอด)" && (
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1.5">{t("visualAcuity")} ระยะการมอง</label>
+                                                    <select value={form.visualAcuity} onChange={e => set("visualAcuity", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                        <option value="-">-</option>
+                                                        <option value="20/20">20/20</option>
+                                                        <option value="20/30">20/30</option>
+                                                        <option value="20/50">20/50</option>
+                                                        <option value="20/100">20/100</option>
+                                                        <option value="20/200">20/200</option>
+                                                    </select>
+                                                </div>
+                                            )}
+                                            {isTestEnabled("colorBlindness") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1.5">Color Blindness ตาบอดสี</label>
+                                                    <select value={form.colorBlindness} onChange={e => set("colorBlindness", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                        <option value="-">-</option>
+                                                        <option value="Pass ผ่าน">Pass ผ่าน</option>
+                                                        <option value="Not pass ไม่ผ่าน">Not pass ไม่ผ่าน</option>
+                                                    </select>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Physical Fitness Tests */}
+                                    {(isTestEnabled("flexibility") || isTestEnabled("handgripStrength") || isTestEnabled("standingKneeRaises") || isTestEnabled("situps") || isTestEnabled("pushups")) && (
                                         <div>
-                                            <label className="block text-sm font-medium mb-1.5 font-bold text-primary">{t("bloodType")}</label>
-                                            <select value={form.bloodType || "-"} onChange={e => set("bloodType", e.target.value)}
-                                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                <option value="-">-</option>
-                                                <option value="A">A</option>
-                                                <option value="B">B</option>
-                                                <option value="AB">AB</option>
-                                                <option value="O">O</option>
-                                            </select>
+                                            <h3 className="font-semibold text-primary mb-4 border-b pb-2 pt-4">Physical Fitness Tests</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                                                {isTestEnabled("flexibility") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">Flexibility (cm)</label>
+                                                        <input type="number" step="0.1" min="-30" max="30" value={form.flexibility} placeholder="-30 to 30 cm" onChange={e => set("flexibility", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("handgripStrength") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">Handgrip (kg)</label>
+                                                        <input type="number" step="0.1" min="0" max="50" value={form.handgripStrength} placeholder="0-50" onChange={e => set("handgripStrength", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("standingKneeRaises") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">Knee Raises</label>
+                                                        <input type="number" step="1" min="0" value={form.standingKneeRaises} placeholder="Times" onChange={e => set("standingKneeRaises", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("situps") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">Sit-ups</label>
+                                                        <input type="number" step="1" min="0" value={form.situps} placeholder="Times" onChange={e => set("situps", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("pushups") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">Push-ups</label>
+                                                        <input type="number" step="1" min="0" value={form.pushups} placeholder="Times" onChange={e => set("pushups", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1.5">{t("weight")} (kg)</label>
-                                        <input type="number" step="0.1" value={form.weight} placeholder="e.g. 45.5" onChange={e => set("weight", e.target.value)}
-                                            className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-1.5">{t("height")} (cm)</label>
-                                        <input type="number" step="0.1" value={form.height} placeholder="e.g. 155" onChange={e => set("height", e.target.value)}
-                                            className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                    </div>
-                                </div>
-                                                                {/* 10 Steps of a General Physical Examination */}
-                                {isTestEnabled("tenSteps") && (
-                                    <div>
-                                        <h3 className="font-semibold text-primary mb-4 border-b pb-2">{t("tenSteps")}</h3>
-                                        
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {/* Ear Eye Throat Nose */}
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("earEyeThroatNose")}</label>
-                                                <div className="space-y-1 mt-2">
-                                                    {["Eye Eyelid ตา เปลือกตา", "Ear Earwaxใบหู ขี้หู", "Nose Nasal Cavity จมูก โพรงจมูก", "Throat / Tonsil gland คอ ต่อมทอนซิล"].map(opt => (
-                                                        <label key={opt} className="flex items-center gap-2 text-sm">
-                                                            <input type="checkbox" checked={form.earEyeThroatNose.includes(opt)} onChange={() => toggleArrayItem('earEyeThroatNose', opt)} className="rounded" /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
 
-                                            {/* Auscultation */}
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("auscultation")}</label>
-                                                <div className="space-y-1 mt-2">
-                                                    {["Heart หัวใจ", "Lung ปอด"].map(opt => (
-                                                        <label key={opt} className="flex items-center gap-2 text-sm">
-                                                            <input type="checkbox" checked={form.auscultation.includes(opt)} onChange={() => toggleArrayItem('auscultation', opt)} className="rounded" /> {opt}
-                                                        </label>
-                                                    ))}
+                                    {/* X-Ray */}
+                                    {isTestEnabled("xRayResult") && (
+                                        <div>
+                                            <h3 className="font-semibold text-primary mb-4 border-b pb-2 pt-4">X-Ray</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1.5">X-Ray Result</label>
+                                                    <select value={form.xRayResult} onChange={e => {
+                                                        set("xRayResult", e.target.value);
+                                                        if (e.target.value !== "Abnormal") {
+                                                            set("xRayResultDescription", "");
+                                                        }
+                                                    }} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                        <option value="-">-</option>
+                                                        <option value="Normal">Normal</option>
+                                                        <option value="Abnormal">Abnormal</option>
+                                                    </select>
                                                 </div>
+                                                {form.xRayResult === "Abnormal" && (
+                                                    <div className="sm:col-span-1 md:col-span-2">
+                                                        <label className="block text-sm font-medium mb-1.5">Description</label>
+                                                        <input type="text" placeholder="Description / Remarks..."
+                                                            value={form.xRayResultDescription || ""}
+                                                            onChange={e => set("xRayResultDescription", e.target.value)}
+                                                            className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 animate-in fade-in zoom-in-95" />
+                                                    </div>
+                                                )}
                                             </div>
+                                        </div>
+                                    )}
 
-                                            {/* Cleanliness */}
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("cleanliness")}</label>
-                                                <div className="space-y-1 mt-2">
-                                                    {["hair ผม", "scalp หนังศีรษะ", "presence of lice or nits เหา ไข่เหา", "long nails เล็บยาว"].map(opt => (
-                                                        <label key={opt} className="flex items-center gap-2 text-sm">
-                                                            <input type="checkbox" checked={form.cleanliness.includes(opt)} onChange={() => toggleArrayItem('cleanliness', opt)} className="rounded" /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
+                                    {/* Laboratory Test Results */}
+                                    {(isTestEnabled("cbc") || isTestEnabled("fbs") || isTestEnabled("cholesterol") || isTestEnabled("hbsag") || isTestEnabled("ua") || isTestEnabled("amphetamine")) && (
+                                        <div>
+                                            <h3 className="font-semibold text-primary mb-4 pb-2 border-b pt-4">Laboratory Test Results</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                                {isTestEnabled("cbc") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">ความสมบูรณ์ของเม็ดเลือด (CBC)</label>
+                                                        <input type="text" value={form.cbc} placeholder="Result..." onChange={e => set("cbc", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("fbs") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">ระดับน้ำตาลในเลือด (FBS)</label>
+                                                        <input type="text" value={form.fbs} placeholder="Result..." onChange={e => set("fbs", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("cholesterol") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">ระดับไขมันในเลือด (Cholesterol)</label>
+                                                        <input type="text" value={form.cholesterol} placeholder="Result..." onChange={e => set("cholesterol", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("hbsag") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">ตรวจหาเชื้อไวรัสตับอักเสบบี (HBSAG)</label>
+                                                        <input type="text" value={form.hbsag} placeholder="Result..." onChange={e => set("hbsag", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("ua") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">ตรวจปัสสาวะทั่วไป (UA)</label>
+                                                        <input type="text" value={form.ua} placeholder="Result..." onChange={e => set("ua", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("amphetamine") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)</label>
+                                                        <input type="text" value={form.amphetamine} placeholder="Result..." onChange={e => set("amphetamine", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
                                             </div>
+                                        </div>
+                                    )}
 
-                                            {/* Mouth */}
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("mouth")}</label>
-                                                <div className="space-y-1 mt-2">
-                                                    {["Decay teeth ฟันผุ", "Tar tar คราบหินปูน"].map(opt => (
-                                                        <label key={opt} className="flex items-center gap-2 text-sm">
-                                                            <input type="checkbox" checked={form.mouth.includes(opt)} onChange={() => toggleArrayItem('mouth', opt)} className="rounded" /> {opt}
-                                                        </label>
-                                                    ))}
+                                {customFields.length > 0 && (
+                                    <div className="mt-6">
+                                        <h3 className="font-semibold text-primary mb-4 border-b pb-2 pt-4">Custom Fields</h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            {customFields.map((field) => (
+                                                <div key={field.id} className="flex flex-col gap-2">
+                                                    <label className="block text-sm font-medium">{field.label}</label>
+                                                    
+                                                    {field.type === "text" && (
+                                                        <input type="text" value={form.customData?.[field.id] || ""} onChange={e => setForm(prev => ({ ...prev, customData: { ...prev.customData, [field.id]: e.target.value } }))}
+                                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    )}
+                                                    {field.type === "number" && (
+                                                        <input type="number" step="any" value={form.customData?.[field.id] || ""} onChange={e => setForm(prev => ({ ...prev, customData: { ...prev.customData, [field.id]: e.target.value } }))}
+                                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    )}
+                                                    {field.type === "select" && (
+                                                        <select value={form.customData?.[field.id] || ""} onChange={e => setForm(prev => ({ ...prev, customData: { ...prev.customData, [field.id]: e.target.value } }))}
+                                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                                            <option value="">- Select -</option>
+                                                            {(field.options || "").split(",").map((opt: string) => opt.trim()).filter((o: string) => o).map((opt: string) => (
+                                                                <option key={opt} value={opt}>{opt}</option>
+                                                            ))}
+                                                        </select>
+                                                    )}
+                                                    {field.type === "radio" && (
+                                                        <div className="flex flex-col gap-2">
+                                                            {(field.options || "").split(",").map((opt: string) => opt.trim()).filter((o: string) => o).map((opt: string) => (
+                                                                <label key={opt} className="flex items-center gap-2 text-sm cursor-pointer">
+                                                                    <input type="radio" name={`cf_${field.id}`} value={opt} checked={form.customData?.[field.id] === opt} onChange={e => setForm(prev => ({ ...prev, customData: { ...prev.customData, [field.id]: e.target.value } }))} className="text-primary" />
+                                                                    {opt}
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {field.allowExtraDescription && (
+                                                        <input type="text" placeholder="Description / Remarks..." 
+                                                            value={form.customData?.[`${field.id}_desc`] || ""}
+                                                            onChange={e => setForm(prev => ({ ...prev, customData: { ...prev.customData, [`${field.id}_desc`]: e.target.value } }))}
+                                                            className="w-full px-3 py-1.5 mt-1 rounded-md bg-secondary/50 border border-border/50 text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground/60" />
+                                                    )}
                                                 </div>
-                                            </div>
-
-                                            {/* Glands & Nodes */}
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">Glands & Nodes</label>
-                                                <div className="space-y-2 mt-2">
-                                                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.kidney} onChange={e => set('kidney', e.target.checked)} className="rounded" /> Kidney ไต</label>
-                                                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.thyroid} onChange={e => set('thyroid', e.target.checked)} className="rounded" /> Thyroid gland ไทรอยด์</label>
-                                                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.lymphnode} onChange={e => set('lymphnode', e.target.checked)} className="rounded" /> lympnode ต่อมน้ำเหลือง</label>
-                                                </div>
-                                            </div>
-
-                                            {/* Skin */}
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("skin")}</label>
-                                                <div className="space-y-1 mt-2">
-                                                    {["Rash ผื่นคัน", "Dry skin แห้งลอก", "Wound แผลสด"].map(opt => (
-                                                        <label key={opt} className="flex items-center gap-2 text-sm">
-                                                            <input type="checkbox" checked={form.skin.includes(opt)} onChange={() => toggleArrayItem('skin', opt)} className="rounded" /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Bone */}
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5 border-b pb-1">{t("bone")}</label>
-                                                <div className="space-y-1 mt-2">
-                                                    {["Bow leg ขาโก่ง", "Crooked arms แขนคดงอ"].map(opt => (
-                                                        <label key={opt} className="flex items-center gap-2 text-sm">
-                                                            <input type="checkbox" checked={form.bone.includes(opt)} onChange={() => toggleArrayItem('bone', opt)} className="rounded" /> {opt}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                            ))}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Examinations & Tests */}
-                                <div>
-                                    <h3 className="font-semibold text-primary mb-4 border-b pb-2 pt-4">Symptoms and Tests</h3>
-                                    
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        {isTestEnabled("symptoms") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Symptoms / Health อาการเจ็บป่วยเบื้องต้น</label>
-                                                <select value={form.symptoms} onChange={e => set("symptoms", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                    <option value="-">-</option>
-                                                    <option value="Normal ปกติ">Normal ปกติ</option>
-                                                    <option value="Abnormal ไม่ปกติ">Abnormal ไม่ปกติ</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {isTestEnabled("hearingTest") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Hearing Test การได้ยิน</label>
-                                                <select value={form.hearingTest} onChange={e => set("hearingTest", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                    <option value="-">-</option>
-                                                    <option value="Normal ปกติ">Normal ปกติ</option>
-                                                    <option value="Abnormal ผิดปกติ (Right ear หูขวา)">Abnormal ผิดปกติ (Right หูขวา)</option>
-                                                    <option value="Abnormal ผิดปกติ (Left ear หูซ้าย)">Abnormal ผิดปกติ (Left หูซ้าย)</option>
-                                                    <option value="Abnormal ผิดปกติ (Both side ทั้งสองข้าง)">Abnormal ผิดปกติ (Both ทั้งสองข้าง)</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {isTestEnabled("colorBlindness") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Color Blindness ตาบอดสี</label>
-                                                <select value={form.colorBlindness} onChange={e => set("colorBlindness", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                    <option value="-">-</option>
-                                                    <option value="Pass ผ่าน">Pass ผ่าน</option>
-                                                    <option value="Not pass ไม่ผ่าน">Not pass ไม่ผ่าน</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {isTestEnabled("eyeTest") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Eye Test การทดสอบสายตา</label>
-                                                <select value={form.eyeTest} onChange={e => set("eyeTest", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                    <option value="-">-</option>
-                                                    <option value="Have glasses มีแว่นตา">Have glasses มีแว่นตา</option>
-                                                    <option value="No Glasses ตาเปล่า">No Glasses ตาเปล่า</option>
-                                                    <option value="Didn't bring the glasssไม่ นำแว่นมา">Didn&apos;t bring the glasssไม่ นำแว่นมา</option>
-                                                    <option value="Blindness เสียการมองเห็น (ตาบอด)">Blindness เสียการมองเห็น (ตาบอด)</option>
-                                                </select>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {form.eyeTest !== "Blindness เสียการมองเห็น (ตาบอด)" && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">{t("visualAcuity")} ระยะการมอง</label>
-                                                <select value={form.visualAcuity} onChange={e => set("visualAcuity", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                    <option value="-">-</option>
-                                                    <option value="20/20">20/20</option>
-                                                    <option value="20/30">20/30</option>
-                                                    <option value="20/50">20/50</option>
-                                                    <option value="20/100">20/100</option>
-                                                    <option value="20/200">20/200</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">{t("eyeExamReport")} สรุปผลสายตา</label>
-                                                <select value={form.eyeExamReport} onChange={e => set("eyeExamReport", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                    <option value="-">-</option>
-                                                    <option value="ปกติ normal">ปกติ normal</option>
-                                                    <option value="ควรเริ่มดูแลสายตา Eye care recommended">ควรเริ่มดูแลสายตา Eye care recommended</option>
-                                                    <option value="G ผิดปกติ glasses abnormal">G ผิดปกติ glasses abnormal</option>
-                                                    <option value="ผิดปกติ abnormal">ผิดปกติ abnormal</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                                        {isTestEnabled("flexibility") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Flexibility วัดความอ่อนตัว (cm)</label>
-                                                <input type="number" step="0.1" min="-30" max="30" value={form.flexibility} placeholder="-30 to 30 cm" onChange={e => set("flexibility", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                            </div>
-                                        )}
-                                        {isTestEnabled("handgripStrength") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Handgrip Strength แรงบีบมือ</label>
-                                                <input type="number" step="0.1" min="0" max="50" value={form.handgripStrength} placeholder="0-50" onChange={e => set("handgripStrength", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                            </div>
-                                        )}
-                                        {isTestEnabled("xRayResult") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">X-Ray Result</label>
-                                                <select value={form.xRayResult} onChange={e => set("xRayResult", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                                    <option value="-">-</option>
-                                                    <option value="Normal ปกติ">Normal ปกติ</option>
-                                                    <option value="Abnormal ไม่ปกติ">Abnormal ไม่ปกติ</option>
-                                                </select>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                                        {isTestEnabled("standingKneeRaises") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Standing Knee Raises ยืนยกเข่า</label>
-                                                <input type="number" step="1" min="0" value={form.standingKneeRaises} placeholder="Times/ครั้ง" onChange={e => set("standingKneeRaises", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                            </div>
-                                        )}
-                                        {isTestEnabled("situps") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Sit-ups ลุกนั่ง</label>
-                                                <input type="number" step="1" min="0" value={form.situps} placeholder="Times/ครั้ง" onChange={e => set("situps", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                            </div>
-                                        )}
-                                        {isTestEnabled("pushups") && (
-                                            <div>
-                                                <label className="block text-sm font-medium mb-1.5">Push-ups ดันพื้น</label>
-                                                <input type="number" step="1" min="0" value={form.pushups} placeholder="Times/ครั้ง" onChange={e => set("pushups", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <h3 className="font-semibold text-primary mb-4 border-b pb-2 pt-4">Additional Health Info</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                                        {[
-                                            { label: t("underlyingDisease"), key: "underlyingDisease" },
-                                            { label: t("drugAllergy"), key: "drugAllergy" },
-                                            { label: "Body Examination", key: "bodyExamination" },
-                                            { label: "Doctor Note", key: "doctorNote" },
-                                            { label: t("additionalNotes"), key: "additionalNotes" },
-                                        ].map(({ label, key }) => (
-                                            <div key={key}>
-                                                <label className="block text-sm font-medium mb-1.5">{label}</label>
-                                                <input type="text" value={(form as any)[key]} onChange={e => set(key, e.target.value)}
-                                                    className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
                                 <div className="flex justify-end gap-3 pt-4 border-t border-border/30">
                                     <button type="button" onClick={() => setShowAddRecord(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-secondary transition-colors">{t("cancel")}</button>
                                     <button type="submit" disabled={savingRecord} className="px-6 py-2.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all flex items-center gap-2 shadow-sm"

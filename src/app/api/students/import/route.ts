@@ -47,6 +47,13 @@ export async function POST(req: Request) {
         const heightColIdx = headers.findIndex(h => h === "ส่วนสูง" || h === "Height");
 
         const db = readDb();
+        const school = db.schools.find((s: any) => s.id === targetSchoolId);
+        if (!school) {
+            return NextResponse.json({ error: "Target school not found." }, { status: 404 });
+        }
+        
+        const testsConfig = school.testsConfig || { flexibility: true, handgripStrength: true, standingKneeRaises: true, situps: true, pushups: true, xRayResult: true };
+        const customFields = school.customFields || [];
         
         let studentsAdded = 0;
         let recordsAdded = 0;
@@ -73,9 +80,31 @@ export async function POST(req: Request) {
             const surName = String(getValue(["นามสกุล"]) || "").trim();
             const studentName = `${prefix} ${firstName} ${surName}`.trim() || studentId || "Unknown Student";
 
-            const genderVal = String(getValue(["เพศ"]) || "").trim();
+            let genderVal = String(getValue(["เพศ"]) || "").trim();
+            if (!genderVal && prefix) {
+                if (prefix.includes("ชาย") || prefix === "นาย") genderVal = "ชาย";
+                else if (prefix.includes("หญิง") || prefix === "นางสาว" || prefix === "นาง") genderVal = "หญิง";
+            }
+            
+            const rawAge = getValue(["อายุ"]);
+            const ageVal = rawAge ? parseInt(rawAge, 10) : null;
+
             const weightRaw = getValue(["น้ำหนัก"]);
             const heightRaw = getValue(["ส่วนสูง"]);
+
+            // Determine validation ranges based on configured age rules or fallbacks
+            let minWeight = 10, maxWeight = 200;
+            let minHeight = 50, maxHeight = 220;
+            
+            if (ageVal !== null && db.settings?.ageValidations) {
+                const config = db.settings.ageValidations.find((v: any) => v.age === ageVal);
+                if (config) {
+                    minWeight = config.minWeight;
+                    maxWeight = config.maxWeight;
+                    minHeight = config.minHeight;
+                    maxHeight = config.maxHeight;
+                }
+            }
 
             let rowHasErrors = false;
             const rowWarnings: any[] = [];
@@ -84,15 +113,15 @@ export async function POST(req: Request) {
             // Weight validation
             if (weightRaw !== undefined && weightRaw !== null && String(weightRaw).trim() !== "" && String(weightRaw) !== "-") {
                 const parsedWeight = parseFloat(weightRaw);
-                if (isNaN(parsedWeight) || parsedWeight < 10 || parsedWeight > 200) {
+                if (isNaN(parsedWeight) || parsedWeight < minWeight || parsedWeight > maxWeight) {
                     rowHasErrors = true;
                     rowWarnings.push({
                         field: isTh ? "น้ำหนัก (Weight)" : "Weight (น้ำหนัก)",
                         value: weightRaw,
-                        expected: "10 - 200 kg",
+                        expected: `${minWeight} - ${maxWeight} kg`,
                         message: isTh
-                            ? (isNaN(parsedWeight) ? `น้ำหนักมีค่าไม่ใช่ตัวเลข: ${weightRaw}` : `น้ำหนักมีค่าผิดปกติ: ${parsedWeight} กก. (ควรอยู่ระหว่าง 10 - 200 กก.)`)
-                            : (isNaN(parsedWeight) ? `Weight is not a number: ${weightRaw}` : `Abnormal weight: ${parsedWeight} kg (expected 10 - 200 kg)`)
+                            ? (isNaN(parsedWeight) ? `น้ำหนักมีค่าไม่ใช่ตัวเลข: ${weightRaw}` : `น้ำหนักมีค่าผิดปกติ: ${parsedWeight} กก. (ควรอยู่ระหว่าง ${minWeight} - ${maxWeight} กก.)`)
+                            : (isNaN(parsedWeight) ? `Weight is not a number: ${weightRaw}` : `Abnormal weight: ${parsedWeight} kg (expected ${minWeight} - ${maxWeight} kg)`)
                     });
                 }
             }
@@ -100,15 +129,15 @@ export async function POST(req: Request) {
             // Height validation
             if (heightRaw !== undefined && heightRaw !== null && String(heightRaw).trim() !== "" && String(heightRaw) !== "-") {
                 const parsedHeight = parseFloat(heightRaw);
-                if (isNaN(parsedHeight) || parsedHeight < 50 || parsedHeight > 220) {
+                if (isNaN(parsedHeight) || parsedHeight < minHeight || parsedHeight > maxHeight) {
                     rowHasErrors = true;
                     rowWarnings.push({
                         field: isTh ? "ส่วนสูง (Height)" : "Height (ส่วนสูง)",
                         value: heightRaw,
-                        expected: "50 - 220 cm",
+                        expected: `${minHeight} - ${maxHeight} cm`,
                         message: isTh
-                            ? (isNaN(parsedHeight) ? `ส่วนสูงมีค่าไม่ใช่ตัวเลข: ${heightRaw}` : `ส่วนสูงมีค่าผิดปกติ: ${parsedHeight} ซม. (ควรอยู่ระหว่าง 50 - 220 ซม.)`)
-                            : (isNaN(parsedHeight) ? `Height is not a number: ${heightRaw}` : `Abnormal height: ${parsedHeight} cm (expected 50 - 220 cm)`)
+                            ? (isNaN(parsedHeight) ? `ส่วนสูงมีค่าไม่ใช่ตัวเลข: ${heightRaw}` : `ส่วนสูงมีค่าผิดปกติ: ${parsedHeight} ซม. (ควรอยู่ระหว่าง ${minHeight} - ${maxHeight} ซม.)`)
+                            : (isNaN(parsedHeight) ? `Height is not a number: ${heightRaw}` : `Abnormal height: ${parsedHeight} cm (expected ${minHeight} - ${maxHeight} cm)`)
                     });
                 }
             }
@@ -153,8 +182,7 @@ export async function POST(req: Request) {
             const rawOrder = getValue(["เลขที่"]);
             const orderNum = parseInt(rawOrder || "0", 10);
             
-            const rawAge = getValue(["อายุ"]);
-            const ageVal = rawAge ? parseInt(rawAge, 10) : null;
+            // Age has already been extracted earlier
 
             // Check if student exists in the target school
             let student = db.students.find(s => 
@@ -167,7 +195,8 @@ export async function POST(req: Request) {
                     id: `stu-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     studentId: studentId,
                     orderNumber: orderNum,
-                    class: `${classVal}/${roomVal}`.replace(/^\//, "").replace(/\/$/, ""),
+                    class: classVal,
+                    room: roomVal,
                     prefix: prefix,
                     firstName: firstName,
                     surName: surName,
@@ -186,9 +215,8 @@ export async function POST(req: Request) {
                     student.prefix = prefix;
                 }
                 if (genderVal) student.gender = genderVal;
-                if (classVal || roomVal) {
-                    student.class = `${classVal || student.class.split('/')[0]}/${roomVal || student.class.split('/')[1] || ""}`.replace(/^\//, "").replace(/\/$/, "");
-                }
+                if (classVal !== undefined) student.class = classVal;
+                if (roomVal !== undefined) student.room = roomVal;
                 if (rawOrder !== undefined) student.orderNumber = orderNum;
                 if (rawAge !== undefined && rawAge !== "") student.age = ageVal;
 
@@ -231,14 +259,33 @@ export async function POST(req: Request) {
             const colorBlindnessVal = String(getValue(["การแยกสี"]) || "ปกติ").trim();
             const visualAcuityVal = String(getValue(["ระยะการมอง"]) || "—").trim();
             const eyeExamReportVal = String(getValue(["สรุปผลสายตา"]) || "—").trim();
-            const xRayResultVal = String(getValue(["ผลเอ็กซเรย์"]) || "normal").trim();
-            const flexibilityVal = parseFloat(getValue(["ความอ่อนตัว : Sit and Reach Test", "ความอ่อนตัว"])) || null;
-            const handgripVal = parseFloat(getValue(["แรงบีบมือ : Hand Grip Strength", "แรงบีบมือ"])) || null;
-            const standingKneeRaisesVal = parseInt(getValue(["ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down", "ยืนยกเข่า 3 นาที", "ยืนยกเข่า"]), 10) || null;
-            const situpsVal = parseInt(getValue(["ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups", "ลุก-นั่ง 60 วินาที", "ลุกนั่ง"]), 10) || null;
-            const pushupsVal = parseInt(getValue(["ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups", "ดันพื้นประยุกต์ 30 วินาที", "ดันพื้น"]), 10) || null;
+            
+            const xRayResultVal = testsConfig.xRayResult !== false ? String(getValue(["X-Ray", "X-Ray Result", "ผลเอ็กซเรย์"]) || "Normal").trim() : "-";
+            const flexibilityVal = testsConfig.flexibility !== false ? (parseFloat(getValue(["ความอ่อนตัว : Sit and Reach Test", "ความอ่อนตัว", "อ่อนตัว"])) || null) : null;
+            const handgripVal = testsConfig.handgripStrength !== false ? (parseFloat(getValue(["แรงบีบมือ : Hand Grip Strength", "แรงบีบมือ"])) || null) : null;
+            const standingKneeRaisesVal = testsConfig.standingKneeRaises !== false ? (parseInt(getValue(["ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down", "ยืนยกเข่า 3 นาที", "ยืนยกเข่า", "ยกเข่า"]), 10) || null) : null;
+            const situpsVal = testsConfig.situps !== false ? (parseInt(getValue(["ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups", "ลุก-นั่ง 60 วินาที", "ลุกนั่ง"]), 10) || null) : null;
+            const pushupsVal = testsConfig.pushups !== false ? (parseInt(getValue(["ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups", "ดันพื้นประยุกต์ 30 วินาที", "ดันพื้น"]), 10) || null) : null;
+            
+            const cbcVal = testsConfig.cbc !== false ? String(getValue(["ความสมบูรณ์ของเม็ดเลือด (CBC)", "ความสมบูรณ์ของเม็ดเลือด", "CBC"]) || "").trim() : "";
+            const fbsVal = testsConfig.fbs !== false ? String(getValue(["ระดับน้ำตาลในเลือด (FBS)", "ระดับน้ำตาลในเลือด", "FBS"]) || "").trim() : "";
+            const cholesterolVal = testsConfig.cholesterol !== false ? String(getValue(["ระดับไขมันในเลือด (Cholesterol)", "ระดับไขมันในเลือด", "Cholesterol"]) || "").trim() : "";
+            const hbsagVal = testsConfig.hbsag !== false ? String(getValue(["ตรวจหาเชื้อไวรัสตับอักเสบบี (HBSAG)", "ตรวจหาเชื้อไวรัสตับอักเสบบี", "HBSAG"]) || "").trim() : "";
+            const uaVal = testsConfig.ua !== false ? String(getValue(["ตรวจปัสสาวะทั่วไป (UA)", "ตรวจปัสสาวะทั่วไป", "UA"]) || "").trim() : "";
+            const amphetamineVal = testsConfig.amphetamine !== false ? String(getValue(["ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)", "ตรวจหาสารเสพติดในปัสสาวะ", "Amphetamine"]) || "").trim() : "";
+            
             const symptomsVal = String(getValue(["อาการเบื้องต้น"]) || "").trim();
             const additionalNotesVal = String(getValue(["บันทึกเพิ่มเติม", "Additional Notes"]) || "").trim();
+
+            const customData: any = {};
+            customFields.forEach((field: any) => {
+                const val = String(getValue([field.label]) || "").trim();
+                if (val) customData[field.id] = val;
+                if (field.allowExtraDescription) {
+                    const descVal = String(getValue([`${field.label} (Description)`]) || "").trim();
+                    if (descVal) customData[`${field.id}_desc`] = descVal;
+                }
+            });
 
             // Find or create HealthRecord for this student and academic year
             let healthRecord = db.healthRecords.find(hr => 
@@ -263,8 +310,15 @@ export async function POST(req: Request) {
                 standingKneeRaises: standingKneeRaisesVal,
                 situps: situpsVal,
                 pushups: pushupsVal,
+                cbc: cbcVal,
+                fbs: fbsVal,
+                cholesterol: cholesterolVal,
+                hbsag: hbsagVal,
+                ua: uaVal,
+                amphetamine: amphetamineVal,
                 symptoms: symptomsVal,
                 additionalNotes: additionalNotesVal,
+                customData: Object.keys(customData).length > 0 ? customData : undefined,
                 updatedAt: new Date().toISOString()
             };
 

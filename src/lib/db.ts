@@ -9,14 +9,27 @@ export interface Database {
     users: any[];
     students: any[];
     healthRecords: any[];
+    settings?: {
+        ageValidations: {
+            id: string;
+            age: number;
+            minWeight: number;
+            maxWeight: number;
+            minHeight: number;
+            maxHeight: number;
+        }[];
+    };
 }
 
 export function readDb(): Database {
     if (!fs.existsSync(DB_PATH)) {
-        return { schools: [], users: [], students: [], healthRecords: [] };
+        return { schools: [], users: [], students: [], healthRecords: [], settings: { ageValidations: [] } };
     }
     const data = fs.readFileSync(DB_PATH, "utf-8");
-    return JSON.parse(data);
+    const db = JSON.parse(data);
+    if (!db.settings) db.settings = { ageValidations: [] };
+    if (!db.settings.ageValidations) db.settings.ageValidations = [];
+    return db;
 }
 
 export function writeDb(data: Database) {

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useLanguage } from "@/components/providers/language-provider";
-import { User, Mail, Globe, Shield, Building, Calendar, Lock, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { User, Mail, Globe, Shield, Building, Calendar, Lock, AlertCircle, CheckCircle2, Loader2, Settings, Plus, Trash2, Edit, X, Save } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number, amplitude: number) => {
@@ -38,13 +38,108 @@ export default function ProfilePage() {
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+    // System Settings (Admin only)
+    const [validations, setValidations] = useState<any[]>([]);
+    const [settingsLoading, setSettingsLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [showForm, setShowForm] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
+
+    const [form, setForm] = useState({
+        age: 12,
+        minWeight: 10,
+        maxWeight: 200,
+        minHeight: 50,
+        maxHeight: 220
+    });
+
     // Sync input fields when session loads
     useEffect(() => {
         if (session?.user) {
             setFullName(session.user.name || "");
             setEmail(session.user.email || "");
+            if ((session.user as any).role === "SYSTEM_ADMIN") {
+                fetchSettings();
+            }
         }
     }, [session]);
+
+    const fetchSettings = async () => {
+        setSettingsLoading(true);
+        try {
+            const res = await fetch("/api/settings");
+            const data = await res.json();
+            setValidations(data.ageValidations || []);
+        } catch (error) {
+            console.error("Failed to fetch settings");
+        }
+        setSettingsLoading(false);
+    };
+
+    const handleSaveSettings = async (updatedValidations: any[]) => {
+        setSaving(true);
+        try {
+            const res = await fetch("/api/settings", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ageValidations: updatedValidations }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setValidations(data.ageValidations || []);
+                setShowForm(false);
+            } else {
+                alert(t("error") || "Failed to save settings");
+            }
+        } catch (error) {
+            alert(t("error") || "Failed to save settings");
+        }
+        setSaving(false);
+    };
+
+    const onSubmitSettings = (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        let newValidations = [...validations];
+        
+        if (editingId) {
+            newValidations = newValidations.map(v => v.id === editingId ? { ...form, id: editingId } : v);
+        } else {
+            if (validations.some(v => v.age === form.age)) {
+                alert(t("ageAlreadyExists") || "Validation for this age already exists.");
+                return;
+            }
+            newValidations.push({ ...form, id: `val-${Date.now()}` });
+        }
+        
+        newValidations.sort((a, b) => a.age - b.age);
+        handleSaveSettings(newValidations);
+    };
+
+    const handleDeleteValidation = (id: string) => {
+        if (confirm(t("confirmDelete") || "Are you sure?")) {
+            const newValidations = validations.filter(v => v.id !== id);
+            handleSaveSettings(newValidations);
+        }
+    };
+
+    const openEdit = (v: any) => {
+        setForm({
+            age: v.age,
+            minWeight: v.minWeight,
+            maxWeight: v.maxWeight,
+            minHeight: v.minHeight,
+            maxHeight: v.maxHeight
+        });
+        setEditingId(v.id);
+        setShowForm(true);
+    };
+
+    const openAdd = () => {
+        setForm({ age: 12, minWeight: 10, maxWeight: 200, minHeight: 50, maxHeight: 220 });
+        setEditingId(null);
+        setShowForm(true);
+    };
 
     if (!session?.user) return null;
 
@@ -371,6 +466,70 @@ export default function ProfilePage() {
                         </form>
                     </div>
 
+                    {/* System Settings (Admin Only) */}
+                    {user.role === "SYSTEM_ADMIN" && (
+                        <div className="glass-card p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2 text-primary">
+                                    <Settings className="w-5 h-5" />
+                                    <h3 className="font-bold">{t("systemSettings") || "System Settings"}</h3>
+                                </div>
+                            </div>
+                            
+                            <div className="mb-4 flex justify-between items-center">
+                                <div>
+                                    <h4 className="text-sm font-semibold">{t("ageBasedValidation") || "Age-Based Validation Ranges"}</h4>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {t("ageBasedValidationDesc") || "Configure expected weight and height ranges per age for import validation."}
+                                    </p>
+                                </div>
+                                <button onClick={openAdd} className="px-3 py-1.5 bg-primary text-primary-foreground text-xs rounded-lg flex items-center gap-1 hover:bg-primary/90 transition-colors shrink-0">
+                                    <Plus className="w-3 h-3" /> {t("add") || "Add"}
+                                </button>
+                            </div>
+
+                            <div className="rounded-xl border border-border overflow-hidden">
+                                {settingsLoading ? (
+                                    <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                                ) : validations.length === 0 ? (
+                                    <div className="p-8 text-center text-sm text-muted-foreground bg-secondary/20">
+                                        {t("noData")}
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse text-sm">
+                                            <thead>
+                                                <tr className="bg-secondary/50 border-b border-border">
+                                                    <th className="px-4 py-3 font-semibold">{t("age")}</th>
+                                                    <th className="px-4 py-3 font-semibold">{t("weightRange") || "Weight Range (kg)"}</th>
+                                                    <th className="px-4 py-3 font-semibold">{t("heightRange") || "Height Range (cm)"}</th>
+                                                    <th className="px-4 py-3 font-semibold text-right">{t("actions")}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {validations.map(v => (
+                                                    <tr key={v.id} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
+                                                        <td className="px-4 py-3">{v.age} {t("years")}</td>
+                                                        <td className="px-4 py-3">{v.minWeight} - {v.maxWeight} kg</td>
+                                                        <td className="px-4 py-3">{v.minHeight} - {v.maxHeight} cm</td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <button onClick={() => openEdit(v)} className="p-1.5 text-muted-foreground hover:text-primary transition-colors">
+                                                                <Edit className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button onClick={() => handleDeleteValidation(v.id)} className="p-1.5 text-muted-foreground hover:text-red-500 transition-colors ml-1">
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Metadata & Admin Note */}
                     <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 flex gap-3">
                         <Calendar className="w-5 h-5 text-amber-600 shrink-0" />
@@ -380,6 +539,62 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Settings Form Modal */}
+            {showForm && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-background w-full max-w-md rounded-2xl shadow-2xl border border-border/50 overflow-hidden relative">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="font-semibold text-lg">
+                                    {editingId ? (t("edit") || "Edit") : (t("add") || "Add")} Validation Rule
+                                </h2>
+                                <button onClick={() => setShowForm(false)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <form onSubmit={onSubmitSettings} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("age")}</label>
+                                    <input type="number" required min="3" max="25" value={form.age} onChange={e => setForm({ ...form, age: parseInt(e.target.value) })}
+                                        disabled={!!editingId}
+                                        className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Min Weight (kg)</label>
+                                        <input type="number" required min="5" max="200" step="0.1" value={form.minWeight} onChange={e => setForm({ ...form, minWeight: parseFloat(e.target.value) })}
+                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Max Weight (kg)</label>
+                                        <input type="number" required min="5" max="200" step="0.1" value={form.maxWeight} onChange={e => setForm({ ...form, maxWeight: parseFloat(e.target.value) })}
+                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Min Height (cm)</label>
+                                        <input type="number" required min="30" max="250" step="0.1" value={form.minHeight} onChange={e => setForm({ ...form, minHeight: parseFloat(e.target.value) })}
+                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Max Height (cm)</label>
+                                        <input type="number" required min="30" max="250" step="0.1" value={form.maxHeight} onChange={e => setForm({ ...form, maxHeight: parseFloat(e.target.value) })}
+                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border/30">
+                                    <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2 rounded-lg text-sm font-medium hover:bg-secondary transition-colors">{t("cancel")}</button>
+                                    <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2">
+                                        {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("loading")}</> : <><Save className="w-4 h-4" /> {t("save")}</>}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

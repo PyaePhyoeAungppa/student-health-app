@@ -25,6 +25,7 @@ export default function NewStudentPage() {
         gender: "",
         age: "",
         class: "",
+        room: "",
         orderNumber: "1",
         schoolId: userSchoolId || "",
     });
@@ -151,9 +152,15 @@ export default function NewStudentPage() {
                             </div>
                         )}
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">{t("classRoom")} *</label>
+                            <label className="block text-sm font-medium mb-1.5">{t("class")} *</label>
                             <input type="text" required value={form.class} onChange={e => set("class", e.target.value)}
-                                placeholder="e.g. 1/1, 2A"
+                                placeholder="e.g. 1"
+                                className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1.5">{t("room")} *</label>
+                            <input type="text" required value={form.room} onChange={e => set("room", e.target.value)}
+                                placeholder="e.g. 1"
                                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                         </div>
                         <div>

@@ -5,18 +5,7 @@ import { Plus, Loader2, Building2, Edit, Trash2, X, AlertOctagon } from "lucide-
 import { formatDate } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
 
-const THAI_PROVINCES = [
-    "กระบี่", "กรุงเทพมหานคร", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี",
-    "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท", "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง",
-    "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์",
-    "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์", "ปราจีนบุรี",
-    "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี",
-    "เพชรบูรณ์", "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด",
-    "ระนอง", "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร",
-    "สงขลา", "สตูล", "สมุทรปราการ", "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี",
-    "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย", "หนองบัวลำภู", "อ่างทอง",
-    "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"
-];
+
 
 export default function SchoolsPage() {
     const { data: session } = useSession();
@@ -29,19 +18,34 @@ export default function SchoolsPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [schoolToDelete, setSchoolToDelete] = useState<{ id: string, name: string } | null>(null);
     const [deleting, setDeleting] = useState(false);
-    const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
     const defaultTestsConfig = {
-        gender: true,
+        flexibility: true,
         handgripStrength: true,
         standingKneeRaises: true,
         situps: true,
         pushups: true,
+        xRayResult: true,
+        cbc: true,
+        fbs: true,
+        cholesterol: true,
+        hbsag: true,
+        ua: true,
+        amphetamine: true,
     };
 
-    const [form, setForm] = useState({ name: "", province: "", address: "", testsConfig: defaultTestsConfig });
+    const [form, setForm] = useState({ name: "", governmentId: "", systemId: "", testsConfig: defaultTestsConfig, customFields: [] as any[] });
+
+    const [showFieldForm, setShowFieldForm] = useState(false);
+    const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+    const [fieldForm, setFieldForm] = useState({
+        label: "",
+        type: "text", // text, number, select, radio
+        options: "", // comma separated
+        allowExtraDescription: false
+    });
 
     const openAddForm = () => {
-        setForm({ name: "", province: "", address: "", testsConfig: defaultTestsConfig });
+        setForm({ name: "", governmentId: "", systemId: "", testsConfig: defaultTestsConfig, customFields: [] });
         setEditingId(null);
         setShowAddForm(true);
     };
@@ -49,9 +53,10 @@ export default function SchoolsPage() {
     const handleEdit = (school: any) => {
         setForm({ 
             name: school.name, 
-            province: school.province || "", 
-            address: school.address || "",
-            testsConfig: school.testsConfig || defaultTestsConfig
+            governmentId: school.governmentId || "",
+            systemId: school.systemId || "",
+            testsConfig: school.testsConfig || defaultTestsConfig,
+            customFields: school.customFields || []
         });
         setEditingId(school.id);
         setShowAddForm(true);
@@ -99,7 +104,7 @@ export default function SchoolsPage() {
         });
         setAdding(false);
         if (res.ok) {
-            setForm({ name: "", province: "", address: "", testsConfig: defaultTestsConfig });
+            setForm({ name: "", governmentId: "", systemId: "", testsConfig: defaultTestsConfig, customFields: [] });
             setShowAddForm(false);
             setEditingId(null);
             fetchSchools();
@@ -142,43 +147,23 @@ export default function SchoolsPage() {
                                     <input type="text" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
                                 </div>
-                                <div className="relative">
-                                    <label className="block text-sm font-medium mb-1.5">{t("province")}</label>
-                                    <input type="text" value={form.province} 
-                                        onChange={e => {
-                                            setForm({ ...form, province: e.target.value });
-                                            setShowProvinceDropdown(true);
-                                        }}
-                                        onFocus={() => setShowProvinceDropdown(true)}
-                                        onBlur={() => setTimeout(() => setShowProvinceDropdown(false), 200)}
-                                        className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
-                                    {showProvinceDropdown && (
-                                        <ul className="absolute z-10 w-full mt-1 bg-secondary border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                            {THAI_PROVINCES.filter(p => !form.province || p.includes(form.province)).map(p => (
-                                                <li key={p} className="px-4 py-2 text-sm cursor-pointer hover:bg-primary/10 text-foreground"
-                                                    onMouseDown={() => {
-                                                        setForm({...form, province: p});
-                                                        setShowProvinceDropdown(false);
-                                                    }}>
-                                                    {p}
-                                                </li>
-                                            ))}
-                                            {THAI_PROVINCES.filter(p => !form.province || p.includes(form.province)).length === 0 && (
-                                                <li className="px-4 py-3 text-sm text-muted-foreground text-center">No matching province</li>
-                                            )}
-                                        </ul>
-                                    )}
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium mb-1.5">{t("address")}</label>
-                                    <input type="text" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })}
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">{t("governmentId") || "Government ID"}</label>
+                                    <input type="text" value={form.governmentId} onChange={e => setForm({ ...form, governmentId: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
                                 </div>
+                                {editingId && form.systemId && (
+                                    <div className="md:col-span-2">
+                                        <label className="block text-sm font-medium mb-1.5">{t("systemId") || "System ID"}</label>
+                                        <input type="text" readOnly value={form.systemId}
+                                            className="w-full px-4 py-2.5 rounded-lg bg-secondary/50 border border-border text-muted-foreground font-mono focus:outline-none cursor-not-allowed" />
+                                    </div>
+                                )}
                                 <div className="md:col-span-2 mt-2 pt-4 border-t border-border/30">
-                                    <label className="block text-sm font-medium mb-3">Configured Health Assessments</label>
+                                    <label className="block text-sm font-medium mb-3">{t("configuredHealthAssessments") || "การทดสอบสมรรถภาพทางกาย"}</label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50">
                                         {[
-                                            { key: "gender", label: "เพศ (Gender)" },
+                                            { key: "flexibility", label: t("flexibility") || "ความอ่อนตัว (Flexibility)" },
                                             { key: "handgripStrength", label: "แรงบีบมือ : Hand Grip Strength" },
                                             { key: "standingKneeRaises", label: "ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down" },
                                             { key: "situps", label: "ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups" },
@@ -197,6 +182,99 @@ export default function SchoolsPage() {
                                         ))}
                                     </div>
                                 </div>
+                                
+                                <div className="md:col-span-2 mt-2 pt-4 border-t border-border/30">
+                                    <label className="block text-sm font-medium mb-3">X-Ray</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50">
+                                        {[
+                                            { key: "xRayResult", label: "X-Ray" },
+                                        ].map(item => (
+                                            <label key={item.key} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-lg transition-colors">
+                                                <input type="checkbox" 
+                                                    checked={form.testsConfig[item.key as keyof typeof defaultTestsConfig]} 
+                                                    onChange={e => setForm({
+                                                        ...form, 
+                                                        testsConfig: { ...form.testsConfig, [item.key]: e.target.checked }
+                                                    })}
+                                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50" />
+                                                <span>{item.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="md:col-span-2 mt-2 pt-4 border-t border-border/30">
+                                    <label className="block text-sm font-medium mb-3">ผลตรวจห้องปฏิบัติการ (Laboratory Test Results)</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50">
+                                        {[
+                                            { key: "cbc", label: "ความสมบูรณ์ของเม็ดเลือด (CBC)" },
+                                            { key: "fbs", label: "ระดับน้ำตาลในเลือด (FBS)" },
+                                            { key: "cholesterol", label: "ระดับไขมันในเลือด (Cholesterol)" },
+                                            { key: "hbsag", label: "ตรวจหาเชื้อไวรัสตับอักเสบบี (HBSAG)" },
+                                            { key: "ua", label: "ตรวจปัสสาวะทั่วไป (UA)" },
+                                            { key: "amphetamine", label: "ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)" },
+                                        ].map(item => (
+                                            <label key={item.key} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-lg transition-colors">
+                                                <input type="checkbox" 
+                                                    checked={form.testsConfig[item.key as keyof typeof defaultTestsConfig]} 
+                                                    onChange={e => setForm({
+                                                        ...form, 
+                                                        testsConfig: { ...form.testsConfig, [item.key]: e.target.checked }
+                                                    })}
+                                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50" />
+                                                <span>{item.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Custom Fields Section */}
+                                <div className="md:col-span-2 mt-2 pt-4 border-t border-border/30">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("customHealthFields" as any) || "Custom Health Fields"}</h3>
+                                        <button type="button" onClick={() => { setFieldForm({ label: "", type: "text", options: "", allowExtraDescription: false }); setEditingFieldId(null); setShowFieldForm(true); }} className="px-3 py-1.5 bg-primary text-primary-foreground text-xs rounded-lg flex items-center gap-1 hover:bg-primary/90 transition-colors shrink-0">
+                                            <Plus className="w-3 h-3" /> {t("add") || "Add"}
+                                        </button>
+                                    </div>
+                                    <div className="rounded-xl border border-border overflow-hidden bg-secondary/10">
+                                        {form.customFields.length === 0 ? (
+                                            <div className="p-4 text-center text-xs text-muted-foreground bg-secondary/20">
+                                                {t("noData") || "No custom fields added"}
+                                            </div>
+                                        ) : (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left border-collapse text-xs">
+                                                    <thead>
+                                                        <tr className="bg-secondary/50 border-b border-border">
+                                                            <th className="px-4 py-2 font-semibold">Label</th>
+                                                            <th className="px-4 py-2 font-semibold">Type</th>
+                                                            <th className="px-4 py-2 font-semibold">Options</th>
+                                                            <th className="px-4 py-2 font-semibold text-right">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {form.customFields.map((f: any) => (
+                                                            <tr key={f.id} className="border-b border-border last:border-0 hover:bg-secondary/20 transition-colors">
+                                                                <td className="px-4 py-2">{f.label}</td>
+                                                                <td className="px-4 py-2 capitalize">{f.type}</td>
+                                                                <td className="px-4 py-2">{f.options || "—"}</td>
+                                                                <td className="px-4 py-2 text-right">
+                                                                    <button type="button" onClick={() => { setFieldForm({ label: f.label, type: f.type, options: f.options || "", allowExtraDescription: !!f.allowExtraDescription }); setEditingFieldId(f.id); setShowFieldForm(true); }} className="p-1 text-muted-foreground hover:text-primary transition-colors">
+                                                                        <Edit className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                    <button type="button" onClick={() => { if(confirm("Are you sure?")) setForm({...form, customFields: form.customFields.filter(x => x.id !== f.id)}) }} className="p-1 text-muted-foreground hover:text-red-500 transition-colors ml-1">
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                
                                 <div className="md:col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t border-border/30">
                                     <button type="button" onClick={() => setShowAddForm(false)} className="px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-secondary transition-colors">{t("cancel")}</button>
                                     <button type="submit" disabled={adding} className="px-6 py-2.5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2">
@@ -237,13 +315,26 @@ export default function SchoolsPage() {
                                 )}
                             </div>
                             <h3 className="font-bold text-lg mb-1">{school.name}</h3>
-                            <p className="text-sm text-muted-foreground mb-4">{school.province || t("noData")}</p>
-                            {school.address && (
-                                <div className="p-3 bg-secondary/50 rounded-lg text-sm mb-4 border border-border/50">
-                                    <span className="text-muted-foreground text-xs block mb-1">{t("address")}</span>
-                                    {school.address}
+                            <p className="text-sm text-muted-foreground mb-4">
+                                {t("systemId") || "System ID"}: <span className="font-mono text-foreground font-medium">{school.systemId || t("noData")}</span>
+                            </p>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                {t("governmentId") || "Government ID"}: <span className="font-mono text-foreground font-medium">{school.governmentId || t("noData")}</span>
+                            </p>
+                            <div className="mt-2 pt-4 border-t border-border/30 flex flex-col gap-2 text-sm">
+                                <div className="flex justify-between items-center bg-secondary/20 p-2 rounded-md">
+                                    <span className="text-muted-foreground font-medium">{t("statTotalStudents") || "Total students"}:</span>
+                                    <span className="font-bold">{school.stats?.total || 0}</span>
                                 </div>
-                            )}
+                                <div className="flex justify-between items-center bg-green-500/10 p-2 rounded-md">
+                                    <span className="text-green-600 dark:text-green-400 font-medium">{t("statParticipate") || "Participate"}:</span>
+                                    <span className="font-bold text-green-700 dark:text-green-300">{school.stats?.participated || 0}</span>
+                                </div>
+                                <div className="flex justify-between items-center bg-red-500/10 p-2 rounded-md">
+                                    <span className="text-red-500 font-medium">{t("statUnparticipate") || "Unparticipate"}:</span>
+                                    <span className="font-bold text-red-600 dark:text-red-400">{school.stats?.unparticipated || 0}</span>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -271,6 +362,73 @@ export default function SchoolsPage() {
                                 {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                                 {deleting ? "Deleting..." : "Delete"}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Field Form Modal */}
+            {showFieldForm && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-background w-full max-w-md rounded-2xl shadow-2xl border border-border/50 overflow-hidden relative">
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="font-semibold text-lg">
+                                    {editingFieldId ? (t("edit") || "Edit") : (t("add") || "Add")} Custom Field
+                                </h2>
+                                <button onClick={() => setShowFieldForm(false)} className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <form onSubmit={(e) => {
+                                e.preventDefault();
+                                let newFields = [...form.customFields];
+                                if (editingFieldId) {
+                                    newFields = newFields.map(f => f.id === editingFieldId ? { ...fieldForm, id: editingFieldId } : f);
+                                } else {
+                                    newFields.push({ ...fieldForm, id: `customField_${Date.now()}` });
+                                }
+                                setForm({ ...form, customFields: newFields });
+                                setShowFieldForm(false);
+                            }} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-medium mb-1.5">{t("label" as any) || "Field Label"}</label>
+                                    <input type="text" required value={fieldForm.label} onChange={e => setFieldForm({ ...fieldForm, label: e.target.value })}
+                                        className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium mb-1.5">{t("type" as any) || "Field Type"}</label>
+                                    <select value={fieldForm.type} onChange={e => setFieldForm({ ...fieldForm, type: e.target.value })}
+                                        className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                        <option value="text">Text Input</option>
+                                        <option value="number">Number Input</option>
+                                        <option value="select">Dropdown (Select)</option>
+                                        <option value="radio">Radio Buttons</option>
+                                    </select>
+                                </div>
+                                {(fieldForm.type === "select" || fieldForm.type === "radio") && (
+                                    <div>
+                                        <label className="block text-xs font-medium mb-1.5">{t("options" as any) || "Options (comma-separated)"}</label>
+                                        <input type="text" required value={fieldForm.options} onChange={e => setFieldForm({ ...fieldForm, options: e.target.value })}
+                                            placeholder="Option A, Option B, Option C"
+                                            className="w-full px-4 py-2 rounded-lg bg-secondary border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                        <p className="text-xs text-muted-foreground mt-1">Separate each option with a comma.</p>
+                                    </div>
+                                )}
+                                <div>
+                                    <label className="flex items-center gap-3 text-sm cursor-pointer">
+                                        <input type="checkbox" checked={fieldForm.allowExtraDescription} onChange={e => setFieldForm({ ...fieldForm, allowExtraDescription: e.target.checked })}
+                                            className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50" />
+                                        <span>Have extra description field</span>
+                                    </label>
+                                </div>
+                                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-border/30">
+                                    <button type="button" onClick={() => setShowFieldForm(false)} className="px-5 py-2 rounded-lg text-sm font-medium hover:bg-secondary transition-colors">{t("cancel")}</button>
+                                    <button type="submit" className="px-6 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2">
+                                        {t("save") || "Save"}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

@@ -26,15 +26,25 @@ interface HealthRecord {
     situps: number | null;
     pushups: number | null;
     xRayResult: string;
+    cbc?: string;
+    fbs?: string;
+    cholesterol?: string;
+    hbsag?: string;
+    ua?: string;
+    amphetamine?: string;
+    underlyingDisease?: string;
+    drugAllergy?: string;
 }
 
 interface Student {
     id: string;
     studentId: string;
+    prefix?: string;
     firstName: string;
     surName: string;
     gender?: string;
     class: string;
+    room?: string;
     orderNumber: number;
     school: { name: string; id: string };
     healthRecords: HealthRecord[];
@@ -49,65 +59,54 @@ interface School {
 // ─── Column definitions ───────────────────────────────────────────────────────
 
 type ColKey =
-    | "studentId" | "fullName" | "class" | "gender" | "age"
-    | "weight" | "height" | "bmi" | "school" | "actions"
-    // health config columns
-    | "bloodType" | "tenSteps" | "symptoms" | "hearingTest"
-    | "colorBlindness" | "eyeTest" | "visualAcuity" | "eyeExamReport"
-    | "flexibility" | "handgripStrength" | "standingKneeRaises"
-    | "situps" | "pushups" | "xRayResult";
+    | "studentId" | "class" | "room" | "orderNumber" | "prefix" | "firstName" | "lastName"
+    | "congenitalDisease" | "drugAllergy" | "bloodType" | "age" | "weight" | "height"
+    | "healthCheckResult" | "hearingTest" | "eyeTest" | "visualAcuity" | "colorBlindness"
+    | "flexibility" | "handgripStrength" | "standingKneeRaises" | "situps" | "pushups" | "xRayResult"
+    | "cbc" | "fbs" | "cholesterol" | "hbsag" | "ua" | "amphetamine";
 
-const BASE_COLUMNS: ColKey[] = ["studentId", "fullName", "class", "gender", "age", "weight", "height", "bmi", "school", "actions"];
-const HEALTH_COLUMNS: ColKey[] = ["bloodType", "tenSteps", "symptoms", "hearingTest", "colorBlindness", "eyeTest", "visualAcuity", "eyeExamReport", "flexibility", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult"];
-
-// Map testsConfig key → ColKey
-const TESTS_CONFIG_MAP: Record<string, ColKey> = {
-    bloodType: "bloodType",
-    tenSteps: "tenSteps",
-    symptoms: "symptoms",
-    hearingTest: "hearingTest",
-    colorBlindness: "colorBlindness",
-    eyeTest: "eyeTest",
-    visualAcuity: "visualAcuity",
-    eyeExamReport: "eyeExamReport",
-    flexibility: "flexibility",
-    handgripStrength: "handgripStrength",
-    standingKneeRaises: "standingKneeRaises",
-    situps: "situps",
-    pushups: "pushups",
-    xRayResult: "xRayResult",
-};
+const ALL_COLUMNS_ORDER: ColKey[] = [
+    "studentId", "class", "room", "orderNumber", "prefix", "firstName", "lastName",
+    "congenitalDisease", "drugAllergy", "bloodType", "age", "weight", "height",
+    "healthCheckResult", "hearingTest", "eyeTest", "visualAcuity", "colorBlindness",
+    "flexibility", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult",
+    "cbc", "fbs", "cholesterol", "hbsag", "ua", "amphetamine"
+];
 
 const COL_LABELS: Record<ColKey, string> = {
     studentId: "Student ID",
-    fullName: "Full Name",
     class: "Class",
-    gender: "Gender",
+    room: "Room",
+    orderNumber: "Order",
+    prefix: "Prefix",
+    firstName: "First Name",
+    lastName: "Last Name",
+    congenitalDisease: "Congenital Disease",
+    drugAllergy: "Drug Allergy",
+    bloodType: "Blood Type",
     age: "Age",
     weight: "Weight",
     height: "Height",
-    bmi: "BMI",
-    school: "School",
-    actions: "Actions",
-    bloodType: "Blood Type",
-    tenSteps: "10-Step Exam",
-    symptoms: "Symptoms",
+    healthCheckResult: "Health Result",
     hearingTest: "Hearing Test",
+    eyeTest: "Vision Range",
+    visualAcuity: "Vision Result",
     colorBlindness: "Color Vision",
-    eyeTest: "Eye Test",
-    visualAcuity: "Visual Acuity",
-    eyeExamReport: "Eye Exam Report",
-    flexibility: "Flexibility",
-    handgripStrength: "Handgrip",
-    standingKneeRaises: "Knee Raises",
-    situps: "Sit-ups",
-    pushups: "Push-ups",
+    flexibility: "ความอ่อนตัว (ซม.)",
+    handgripStrength: "แรงบีบมือ : Hand Grip Strength",
+    standingKneeRaises: "ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down",
+    situps: "ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups",
+    pushups: "ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups",
     xRayResult: "X-Ray",
+    cbc: "ความสมบูรณ์ของเม็ดเลือด (CBC)",
+    fbs: "ระดับน้ำตาลในเลือด (FBS)",
+    cholesterol: "ระดับไขมันในเลือด (Cholesterol)",
+    hbsag: "ตรวจหาเชื้อไวรัสตับอักเสบบี (HBSAG)",
+    ua: "ตรวจปัสสาวะทั่วไป (UA)",
+    amphetamine: "ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)",
 };
 
-const ALL_COLUMNS_ORDER: ColKey[] = [...BASE_COLUMNS.slice(0, -1), ...HEALTH_COLUMNS, "actions"];
-
-const LS_KEY = "students_visible_cols";
+const LS_KEY = "students_visible_cols_v2";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -131,7 +130,7 @@ export default function StudentsPage() {
 
     // Schools & column config
     const [schools, setSchools] = useState<School[]>([]);
-    const [enabledHealthCols, setEnabledHealthCols] = useState<Set<ColKey>>(new Set(HEALTH_COLUMNS));
+
     const [visibleColumns, setVisibleColumns] = useState<Set<ColKey>>(new Set(ALL_COLUMNS_ORDER));
     const [colsReady, setColsReady] = useState(false);
 
@@ -149,40 +148,8 @@ export default function StudentsPage() {
             .then((data: School[]) => {
                 setSchools(data);
 
-                // Compute union of enabled testsConfig keys across relevant schools
-                const relevantSchools = role === "SCHOOL_STAFF"
-                    ? data.filter(s => s.id === userSchoolId)
-                    : data;
-
-                const unionEnabled = new Set<ColKey>();
-
-                for (const school of relevantSchools) {
-                    if (!school.testsConfig) {
-                        // No config means all are enabled
-                        HEALTH_COLUMNS.forEach(c => unionEnabled.add(c));
-                        break;
-                    }
-                    const optionalKeys = ["gender", "handgripStrength", "standingKneeRaises", "situps", "pushups"];
-                    HEALTH_COLUMNS.forEach(c => {
-                        if (!optionalKeys.includes(c)) {
-                            unionEnabled.add(c);
-                        }
-                    });
-
-                    for (const [key, enabled] of Object.entries(school.testsConfig)) {
-                        if (enabled && TESTS_CONFIG_MAP[key]) {
-                            unionEnabled.add(TESTS_CONFIG_MAP[key]);
-                        }
-                    }
-                }
-
-                setEnabledHealthCols(unionEnabled);
-
                 // Load from localStorage or use enabled columns as default
-                const defaultVisible = new Set<ColKey>([
-                    ...BASE_COLUMNS,
-                    ...Array.from(unionEnabled),
-                ]);
+                const defaultVisible = new Set<ColKey>(ALL_COLUMNS_ORDER);
 
                 try {
                     const saved = localStorage.getItem(LS_KEY);
@@ -242,36 +209,28 @@ export default function StudentsPage() {
     // ── Export ───────────────────────────────────────────────────────────────
     const exportExcel = async () => {
         const XLSX = await import("xlsx");
-        const isEnabled = (col: ColKey) => enabledHealthCols.has(col);
         const rows = students.map(s => {
             const hr = s.healthRecords[0];
             const row: Record<string, any> = {
                 [t("studentId")]: s.studentId,
-                "Order No.": s.orderNumber,
                 [t("class")]: s.class,
+                [t("room")]: s.room || "",
+                [t("orderNumber")]: s.orderNumber,
+                [t("prefix")]: s.prefix || "",
                 [t("firstName")]: s.firstName,
                 [t("lastName")]: s.surName,
-                "Gender": s.gender ?? "",
-                "Age": (s as any).age ?? "",
-                [t("school")]: s.school?.name,
-                "Weight (kg)": hr?.weight ?? "",
-                "Height (cm)": hr?.height ?? "",
-                [t("bmi")]: hr?.bmi ?? "",
+                [t("congenitalDisease")]: hr?.underlyingDisease || "",
+                [t("drugAllergy")]: hr?.drugAllergy || "",
+                [t("bloodType")]: hr?.bloodType || "",
+                [t("age")]: (s as any).age ?? "",
+                [t("weight")]: hr?.weight ?? "",
+                [t("height")]: hr?.height ?? "",
+                [t("healthCheckResult")]: hr?.symptoms ?? "",
+                [t("hearingTest")]: hr?.hearingTest ?? "",
+                [t("eyeTest")]: hr?.eyeTest ?? "",
+                [t("visualAcuity")]: hr?.visualAcuity ?? "",
+                [t("colorBlindness")]: hr?.colorBlindness ?? "",
             };
-            if (isEnabled("bloodType"))         row["Blood Type"]         = hr?.bloodType ?? "";
-            if (isEnabled("hearingTest"))        row["Hearing Test"]       = hr?.hearingTest ?? "";
-            if (isEnabled("colorBlindness"))     row["Color Vision"]       = hr?.colorBlindness ?? "";
-            if (isEnabled("eyeTest"))            row["Eye Test"]           = hr?.eyeTest ?? "";
-            if (isEnabled("visualAcuity")) row["Visual Acuity"] = hr?.visualAcuity ?? "";
-            if (isEnabled("eyeExamReport")) row["Eye Exam Report"] = hr?.eyeExamReport ?? "";
-            if (isEnabled("xRayResult"))         row["X-Ray Result"]      = hr?.xRayResult ?? "";
-            if (isEnabled("flexibility"))        row["Flexibility"]        = hr?.flexibility ?? "";
-            if (isEnabled("handgripStrength"))   row["Handgrip Strength"]  = hr?.handgripStrength ?? "";
-            if (isEnabled("standingKneeRaises")) row["Knee Raises"]        = (hr as any)?.standingKneeRaises ?? "";
-            if (isEnabled("situps"))             row["Sit-ups"]            = (hr as any)?.situps ?? "";
-            if (isEnabled("pushups"))            row["Push-ups"]           = (hr as any)?.pushups ?? "";
-            if (isEnabled("symptoms"))           row["Symptoms"]           = hr?.symptoms ?? "";
-            if (isEnabled("tenSteps"))           row["10-Step Exam"]       = hr?.bodyExamination ?? "";
             return row;
         });
         const ws = XLSX.utils.json_to_sheet(rows);
@@ -303,12 +262,12 @@ export default function StudentsPage() {
     };
 
     const resetCols = () => {
-        setVisibleColumns(new Set([...BASE_COLUMNS, ...Array.from(enabledHealthCols)]));
+        setVisibleColumns(new Set(ALL_COLUMNS_ORDER));
     };
 
     // Ordered visible columns
     const orderedVisible = ALL_COLUMNS_ORDER.filter(k => visibleColumns.has(k));
-    const colSpan = orderedVisible.length;
+    const colSpan = orderedVisible.length + 1;
 
     // ── Cell renderer ────────────────────────────────────────────────────────
     const renderCell = (col: ColKey, s: Student) => {
@@ -319,60 +278,42 @@ export default function StudentsPage() {
         switch (col) {
             case "studentId":
                 return <td key={col}><span className="font-mono text-xs text-muted-foreground">{s.studentId}</span></td>;
-            case "fullName":
-                return (
-                    <td key={col}>
-                        <div>
-                            <p className="font-medium">{s.firstName} {s.surName}</p>
-                            <p className="text-xs text-muted-foreground">No. {s.orderNumber}</p>
-                        </div>
-                    </td>
-                );
             case "class":
                 return <td key={col}><span className="px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">{s.class}</span></td>;
-            case "gender":
-                return <td key={col}><span className="text-sm">{s.gender || "—"}</span></td>;
+            case "room":
+                return <td key={col}><span className="px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">{s.room || "—"}</span></td>;
+            case "orderNumber":
+                return <td key={col}><span className="text-sm">{s.orderNumber}</span></td>;
+            case "prefix":
+                return <td key={col}><span className="text-sm">{s.prefix || "—"}</span></td>;
+            case "firstName":
+                return (
+                    <td key={col}>
+                        <Link href={`/dashboard/students/${s.id}`} className="font-medium text-primary hover:underline">{s.firstName}</Link>
+                    </td>
+                );
+            case "lastName":
+                return <td key={col}><span className="text-sm font-medium">{s.surName}</span></td>;
+            case "congenitalDisease":
+                return <td key={col}><span className="text-xs">{hr?.underlyingDisease || "—"}</span></td>;
+            case "drugAllergy":
+                return <td key={col}><span className="text-xs">{hr?.drugAllergy || "—"}</span></td>;
+            case "bloodType":
+                return <td key={col}><span className="text-xs font-bold text-red-500/80">{hr?.bloodType || "—"}</span></td>;
             case "age":
                 return <td key={col}><span className="text-sm">{(s as any).age ?? "—"}</span></td>;
             case "weight":
                 return <td key={col}><span className="text-sm">{hr?.weight ?? "—"}</span></td>;
             case "height":
                 return <td key={col}><span className="text-sm">{hr?.height ?? "—"}</span></td>;
-            case "bmi":
-                return <td key={col}><span className={`font-semibold ${bmiColor}`}>{bmi ?? "—"}</span></td>;
-            case "school":
-                return <td key={col}><span className="text-xs text-muted-foreground truncate max-w-[150px] block">{s.school?.name}</span></td>;
-            case "actions":
-                return (
-                    <td key={col}>
-                        <Link href={`/dashboard/students/${s.id}`} className="flex items-center gap-1 text-primary hover:text-primary/80 text-sm">
-                            <Eye className="w-4 h-4" /> {t("view")}
-                        </Link>
-                    </td>
-                );
-            // Health columns
-            case "bloodType":
-                return <td key={col}><span className="text-xs">{hr?.bloodType || "—"}</span></td>;
-            case "tenSteps":
-                return <td key={col}><span className="text-xs truncate max-w-[120px] block">{hr?.bodyExamination || "—"}</span></td>;
-            case "symptoms":
+            case "healthCheckResult":
                 return <td key={col}><span className="text-xs truncate max-w-[120px] block">{hr?.symptoms || "—"}</span></td>;
             case "hearingTest":
                 return (
                     <td key={col}>
                         {hr ? (
-                            <span className={hr.hearingTest?.toLowerCase().includes("normal") ? "badge-normal" : hr.hearingTest ? "badge-abnormal" : ""}>
+                            <span className={hr.hearingTest?.toLowerCase().includes("normal") || hr.hearingTest?.includes("ปกติ") ? "badge-normal" : hr.hearingTest ? "badge-abnormal" : ""}>
                                 {hr.hearingTest || "—"}
-                            </span>
-                        ) : "—"}
-                    </td>
-                );
-            case "colorBlindness":
-                return (
-                    <td key={col}>
-                        {hr ? (
-                            <span className={hr.colorBlindness?.toLowerCase().includes("pass") || hr.colorBlindness?.toLowerCase().includes("normal") ? "badge-normal" : hr.colorBlindness ? "badge-abnormal" : ""}>
-                                {hr.colorBlindness || "—"}
                             </span>
                         ) : "—"}
                     </td>
@@ -381,20 +322,40 @@ export default function StudentsPage() {
                 return <td key={col}><span className="text-xs">{hr?.eyeTest || "—"}</span></td>;
             case "visualAcuity":
                 return <td key={col}><span className="text-xs">{hr?.visualAcuity || "—"}</span></td>;
-            case "eyeExamReport":
-                return <td key={col}><span className="text-xs">{hr?.eyeExamReport || "—"}</span></td>;
+            case "colorBlindness":
+                return (
+                    <td key={col}>
+                        {hr ? (
+                            <span className={hr.colorBlindness?.toLowerCase().includes("pass") || hr.colorBlindness?.toLowerCase().includes("normal") || hr.colorBlindness?.includes("ปกติ") ? "badge-normal" : hr.colorBlindness ? "badge-abnormal" : ""}>
+                                {hr.colorBlindness || "—"}
+                            </span>
+                        ) : "—"}
+                    </td>
+                );
             case "flexibility":
-                return <td key={col}><span className="text-sm">{hr?.flexibility ?? "—"}</span></td>;
+                return <td key={col}><span className="text-sm">{hr?.flexibility != null ? hr.flexibility : "—"}</span></td>;
             case "handgripStrength":
-                return <td key={col}><span className="text-sm">{hr?.handgripStrength ?? "—"}</span></td>;
+                return <td key={col}><span className="text-sm">{hr?.handgripStrength != null ? hr.handgripStrength : "—"}</span></td>;
             case "standingKneeRaises":
-                return <td key={col}><span className="text-sm">{(hr as any)?.standingKneeRaises ?? "—"}</span></td>;
+                return <td key={col}><span className="text-sm">{hr?.standingKneeRaises != null ? hr.standingKneeRaises : "—"}</span></td>;
             case "situps":
-                return <td key={col}><span className="text-sm">{(hr as any)?.situps ?? "—"}</span></td>;
+                return <td key={col}><span className="text-sm">{hr?.situps != null ? hr.situps : "—"}</span></td>;
             case "pushups":
-                return <td key={col}><span className="text-sm">{(hr as any)?.pushups ?? "—"}</span></td>;
+                return <td key={col}><span className="text-sm">{hr?.pushups != null ? hr.pushups : "—"}</span></td>;
             case "xRayResult":
-                return <td key={col}><span className="text-xs truncate max-w-[100px] block">{hr?.xRayResult || "—"}</span></td>;
+                return <td key={col}><span className="text-sm">{hr?.xRayResult || "—"}</span></td>;
+            case "cbc":
+                return <td key={col}><span className="text-sm">{hr?.cbc || "—"}</span></td>;
+            case "fbs":
+                return <td key={col}><span className="text-sm">{hr?.fbs || "—"}</span></td>;
+            case "cholesterol":
+                return <td key={col}><span className="text-sm">{hr?.cholesterol || "—"}</span></td>;
+            case "hbsag":
+                return <td key={col}><span className="text-sm">{hr?.hbsag || "—"}</span></td>;
+            case "ua":
+                return <td key={col}><span className="text-sm">{hr?.ua || "—"}</span></td>;
+            case "amphetamine":
+                return <td key={col}><span className="text-sm">{hr?.amphetamine || "—"}</span></td>;
             default:
                 return <td key={col}>—</td>;
         }
@@ -515,28 +476,14 @@ export default function StudentsPage() {
                                     </div>
                                     {/* Scrollable body */}
                                     <div className="overflow-y-auto flex-1 px-4 py-3">
-                                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Base Columns</p>
+                                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Table Columns</p>
                                         <div className="grid grid-cols-2 gap-1 mb-4">
-                                            {BASE_COLUMNS.map(key => (
+                                            {ALL_COLUMNS_ORDER.map(key => (
                                                 <label key={key} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-secondary cursor-pointer transition-colors">
                                                     <input type="checkbox" checked={visibleColumns.has(key)} onChange={() => toggleCol(key)} className="w-3.5 h-3.5 rounded accent-primary" />
-                                                    <span className="text-sm text-foreground">{COL_LABELS[key]}</span>
+                                                    <span className="text-sm text-foreground">{t(key as any) || COL_LABELS[key]}</span>
                                                 </label>
                                             ))}
-                                        </div>
-                                        <div className="border-t border-border/40 mb-3" />
-                                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Health Assessment</p>
-                                        <div className="grid grid-cols-2 gap-1">
-                                            {HEALTH_COLUMNS.map(key => {
-                                                const isEnabled = enabledHealthCols.has(key);
-                                                return (
-                                                    <label key={key} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isEnabled ? "hover:bg-secondary" : "opacity-40"}`}>
-                                                        <input type="checkbox" checked={visibleColumns.has(key)} onChange={() => toggleCol(key)} className="w-3.5 h-3.5 rounded accent-primary" />
-                                                        <span className="text-sm text-foreground flex-1">{COL_LABELS[key]}</span>
-                                                        {!isEnabled && <span className="text-[10px] text-muted-foreground/60 shrink-0">off</span>}
-                                                    </label>
-                                                );
-                                            })}
                                         </div>
                                     </div>
                                     {/* Footer */}
@@ -570,8 +517,9 @@ export default function StudentsPage() {
                         <thead>
                             <tr>
                                 {orderedVisible.map(col => (
-                                    <th key={col}>{COL_LABELS[col]}</th>
+                                    <th key={col}>{t(col as any) || COL_LABELS[col]}</th>
                                 ))}
+                                <th className="w-16 text-right"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -584,6 +532,11 @@ export default function StudentsPage() {
                             ) : students.map(s => (
                                 <tr key={s.id}>
                                     {orderedVisible.map(col => renderCell(col, s))}
+                                    <td className="text-right">
+                                        <Link href={`/dashboard/students/${s.id}`} className="p-2 inline-flex items-center justify-center text-muted-foreground hover:text-primary transition-colors bg-secondary/50 hover:bg-secondary rounded-lg" title="View Student">
+                                            <Eye className="w-4 h-4" />
+                                        </Link>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

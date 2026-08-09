@@ -69,6 +69,12 @@ export default function UsersPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (form.role === "SCHOOL_STAFF" && !form.schoolId) {
+            alert(t("schoolRequired" as any) || "Please select a school to assign to this School Staff user.");
+            return;
+        }
+        
         setAdding(true);
 
         const payload = { ...form };

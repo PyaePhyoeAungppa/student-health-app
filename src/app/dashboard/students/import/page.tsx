@@ -27,12 +27,21 @@ export default function ImportStudentsPage() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        if (role === "SYSTEM_ADMIN" || role === "COMPANY_STAFF") {
-            fetch("/api/schools")
-                .then(res => res.json())
-                .then(data => setSchools(Array.isArray(data) ? data : (data.schools || [])));
-        }
-    }, [role]);
+        fetch("/api/schools")
+            .then(res => res.json())
+            .then(data => {
+                const fetched = Array.isArray(data) ? data : (data.schools || []);
+                setSchools(fetched);
+                if (role === "SCHOOL_STAFF") {
+                    const userSchoolId = (session?.user as any)?.schoolId;
+                    if (userSchoolId) setSelectedSchool(userSchoolId);
+                }
+            });
+    }, [role, session]);
+
+    const activeSchool = schools.find(s => s.id === selectedSchool);
+    const testsConfig = activeSchool?.testsConfig || { flexibility: true, handgripStrength: true, standingKneeRaises: true, situps: true, pushups: true, xRayResult: true };
+    const customFields = activeSchool?.customFields || [];
 
     const handleImport = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -120,9 +129,9 @@ export default function ImportStudentsPage() {
                     <div>
                         <h1 className="text-xl font-bold">Import Student Data</h1>
                         <p className="text-sm text-muted-foreground mb-3">Upload the Thai Excel Template containing student records.</p>
-                        <a href={selectedSchool ? `/api/students/import/sample?schoolId=${selectedSchool}` : `/api/students/import/sample`} target="_blank" className="inline-flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-md transition-colors">
+                        <a href={selectedSchool ? `/api/students/template?schoolId=${selectedSchool}` : `#`} onClick={e => !selectedSchool && e.preventDefault()} className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${selectedSchool ? 'text-primary bg-primary/10 hover:bg-primary/20' : 'text-muted-foreground bg-secondary opacity-50 cursor-not-allowed'}`}>
                             <Download className="w-3.5 h-3.5" />
-                            {t("downloadSample" as any) || "Download Sample Excel"}
+                            {t("downloadSample" as any) || "Download Template"}
                         </a>
                     </div>
                 </div>
@@ -275,6 +284,64 @@ export default function ImportStudentsPage() {
                             </label>
                         </div>
                     </div>
+
+                    {/* Column Visualizer */}
+                    {activeSchool && (
+                        <div className="p-4 rounded-xl bg-secondary/50 border border-border/50 animate-in fade-in slide-in-from-top-2">
+                            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                <FileSpreadsheet className="w-4 h-4 text-primary" />
+                                Expected Excel Columns
+                            </h3>
+                            <div className="flex flex-wrap gap-2 text-xs">
+                                <span className="px-2 py-1 rounded bg-background border border-border">เลขประจำตัว</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">คำนำ</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">ชื่อ</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">นามสกุล</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">เพศ</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">อายุ</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">ปีการศึกษา</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">ชั้น</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">ห้อง</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">เลขที่</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">กรุ๊ปเลือด</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">น้ำหนัก</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">ส่วนสูง</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">โรคประจำตัว</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">แพ้ยา</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">การได้ยิน</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">การแยกสี</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">ระยะการมอง</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">สรุปผลสายตา</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">อาการเบื้องต้น</span>
+                                <span className="px-2 py-1 rounded bg-background border border-border">บันทึกเพิ่มเติม</span>
+                                
+                                {testsConfig.flexibility !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ความอ่อนตัว : Sit and Reach Test</span>}
+                                {testsConfig.handgripStrength !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">แรงบีบมือ : Hand Grip Strength</span>}
+                                {testsConfig.standingKneeRaises !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down</span>}
+                                {testsConfig.situps !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups</span>}
+                                {testsConfig.pushups !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups</span>}
+                                {testsConfig.xRayResult !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">X-Ray</span>}
+                                
+                                {testsConfig.cbc !== false && <span className="px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">ความสมบูรณ์ของเม็ดเลือด (CBC)</span>}
+                                {testsConfig.fbs !== false && <span className="px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">ระดับน้ำตาลในเลือด (FBS)</span>}
+                                {testsConfig.cholesterol !== false && <span className="px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">ระดับไขมันในเลือด (Cholesterol)</span>}
+                                {testsConfig.hbsag !== false && <span className="px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">ตรวจหาเชื้อไวรัสตับอักเสบบี (HBSAG)</span>}
+                                {testsConfig.ua !== false && <span className="px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">ตรวจปัสสาวะทั่วไป (UA)</span>}
+                                {testsConfig.amphetamine !== false && <span className="px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400">ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)</span>}
+
+                                {customFields.map((field: any) => (
+                                    <span key={field.id} className="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400">
+                                        {field.label}
+                                    </span>
+                                ))}
+                                {customFields.map((field: any) => field.allowExtraDescription ? (
+                                    <span key={field.id + "_desc"} className="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400">
+                                        {field.label} (Description)
+                                    </span>
+                                ) : null)}
+                            </div>
+                        </div>
+                    )}
 
                     <button
                         type="submit"
