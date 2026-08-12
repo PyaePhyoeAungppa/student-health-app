@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { useLanguage } from "@/components/providers/language-provider";
 
-export default function NewHealthRecordPage() {
+function NewHealthRecordForm() {
     const router = useRouter();
     const { t } = useLanguage();
     const searchParams = useSearchParams();
@@ -258,5 +258,13 @@ export default function NewHealthRecordPage() {
                 </div>
             </form>
         </div>
+    );
+}
+
+export default function NewHealthRecordPage() {
+    return (
+        <Suspense fallback={<div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+            <NewHealthRecordForm />
+        </Suspense>
     );
 }

@@ -243,7 +243,7 @@ export default function UsersPage() {
                                             user.role === "COMPANY_STAFF" ? "bg-purple-500/10 border-purple-500/20 text-purple-400" :
                                                 "bg-blue-500/10 border-blue-500/20 text-blue-400"
                                             }`}>
-                                            {t(user.role.toLowerCase().replace(/_/g, "Staff").replace("Admin", "Admin") as any) || user.role}
+                                            {user.role ? (t(user.role.toLowerCase().replace(/_/g, "Staff").replace("Admin", "Admin") as any) || user.role) : "—"}
                                         </span>
                                     </td>
                                     <td>

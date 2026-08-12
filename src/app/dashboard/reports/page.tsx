@@ -46,23 +46,23 @@ export default function ReportsPage() {
         autoTable(doc, {
             startY: (doc as any).lastAutoTable.finalY + 20,
             head: [[t("healthStatus"), t("value")]],
-            body: stats?.hearingStats?.map((h: any) => [t(h.hearingTest.toLowerCase() as any) || h.hearingTest, h._count]) ?? [],
+            body: stats?.hearingStats?.map((h: any) => [h.hearingTest ? (t(h.hearingTest.toLowerCase() as any) || h.hearingTest) : "—", h._count]) ?? [],
         });
 
         doc.save("health_report.pdf");
     };
 
-    const bmiData = stats ? [
-        { name: t("underweight"), value: stats.bmiDistribution.underweight, color: "#60a5fa" },
-        { name: t("normalWeight"), value: stats.bmiDistribution.normal, color: "#4ade80" },
-        { name: t("overweight"), value: stats.bmiDistribution.overweight, color: "#facc15" },
-        { name: t("obese"), value: stats.bmiDistribution.obese, color: "#f87171" },
+    const bmiData = stats?.bmiDistribution ? [
+        { name: t("underweight"), value: stats.bmiDistribution.underweight || 0, color: "#60a5fa" },
+        { name: t("normalWeight"), value: stats.bmiDistribution.normal || 0, color: "#4ade80" },
+        { name: t("overweight"), value: stats.bmiDistribution.overweight || 0, color: "#facc15" },
+        { name: t("obese"), value: stats.bmiDistribution.obese || 0, color: "#f87171" },
     ] : [];
 
-    const bloodTypeData = stats?.bloodTypeStats?.map((b: any) => ({ name: b.bloodType, value: b._count })) ?? [];
-    const hearingData = stats?.hearingStats?.map((h: any) => ({ name: t(h.hearingTest.toLowerCase() as any) || h.hearingTest, value: h._count })) ?? [];
-    const colorBlindData = stats?.colorBlindStats?.map((c: any) => ({ name: t(c.colorBlindness.toLowerCase() as any) || c.colorBlindness, value: c._count })) ?? [];
-    const genderData = stats?.genderStats?.map((g: any) => ({ name: t(g.gender.toLowerCase() as any) || g.gender, value: g._count })) ?? [];
+    const bloodTypeData = stats?.bloodTypeStats?.map((b: any) => ({ name: b.bloodType || "—", value: b._count })) ?? [];
+    const hearingData = stats?.hearingStats?.map((h: any) => ({ name: h.hearingTest ? (t(h.hearingTest.toLowerCase() as any) || h.hearingTest) : "—", value: h._count })) ?? [];
+    const colorBlindData = stats?.colorBlindStats?.map((c: any) => ({ name: c.colorBlindness ? (t(c.colorBlindness.toLowerCase() as any) || c.colorBlindness) : "—", value: c._count })) ?? [];
+    const genderData = stats?.genderStats?.map((g: any) => ({ name: g.gender ? (t(g.gender.toLowerCase() as any) || g.gender) : "—", value: g._count })) ?? [];
 
     return (
         <div>
