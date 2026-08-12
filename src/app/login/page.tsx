@@ -1,9 +1,8 @@
 "use client";
-export const dynamic = "force-dynamic";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Loader2, HeartPulse, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number, amplitude: number) => {
@@ -21,9 +20,8 @@ const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number
 
 const WAVY_CIRCLE_PATH = getWavyCirclePath(50, 50, 44, 14, 2.5);
 
-function LoginForm() {
+export default function LoginPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const { data: session } = useSession();
 
     const [username, setUsername] = useState("");
@@ -32,23 +30,11 @@ function LoginForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const urlError = searchParams.get("error");
-
     useEffect(() => {
         if (session?.user) {
             router.push("/dashboard");
         }
     }, [session, router]);
-
-    useEffect(() => {
-        if (urlError) {
-            if (urlError === "CredentialsSignin") {
-                setError("Invalid username or password. Please try again.");
-            } else {
-                setError("Authentication error occurred. Please try again.");
-            }
-        }
-    }, [urlError]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -165,13 +151,5 @@ function LoginForm() {
                 </p>
             </div>
         </div>
-    );
-}
-
-export default function LoginPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
-            <LoginForm />
-        </Suspense>
     );
 }
