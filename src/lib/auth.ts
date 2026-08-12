@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
 
                     const loginIdentifier = credentials.username.trim().toLowerCase();
                     const user = db.users.find(u => 
-                        u.username.toLowerCase() === loginIdentifier || 
+                        (u.username && u.username.toLowerCase() === loginIdentifier) || 
                         (u.email && u.email.toLowerCase() === loginIdentifier)
                     );
                     if (!user) {
@@ -98,5 +98,5 @@ export const authOptions: NextAuthOptions = {
         signIn: "/login",
         error: "/login",
     },
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET || "student-health-app-secret-key-2024-thailand",
 };

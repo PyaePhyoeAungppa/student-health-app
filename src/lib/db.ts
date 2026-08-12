@@ -53,7 +53,7 @@ const defaultSeedData: Database = {
         {
             id: "user-admin",
             username: "admin",
-            passwordHash: "$2b$10$kCTZYYxJ.hAXu1XBoF1eZeo9jj/SpsP0N2ybVv5UU4wdN/hP7h3ei",
+            passwordHash: "$2b$10$6qemCqwgdWpOeyAlg7jUSeiKuHiYbaz3y50JAilgN.l0suTKILjqC", // admin123
             role: "SYSTEM_ADMIN",
             fullName: "Admin User",
             email: "admin@gmail.com",
@@ -63,7 +63,7 @@ const defaultSeedData: Database = {
         {
             id: "user-1780077172974",
             username: "schooluser",
-            passwordHash: "$2b$10$Uy6yAHGCAm2QVBFD1fF4BeAeN6Feh/5WuWogJrJHNQoZzRrq8MSnC",
+            passwordHash: "$2b$10$o.JoxRXn28AzZXmbep/hX.sYWebUHzOOc6Z6sD12v6qVI3VPBCOO6", // school123
             role: "SCHOOL_STAFF",
             fullName: "School User",
             email: "school@gmail.com",
@@ -73,7 +73,7 @@ const defaultSeedData: Database = {
         {
             id: "user-1780078101553",
             username: "company1",
-            passwordHash: "$2b$10$.bPyrKqRj2AIlZDFG9iVdOK8Pozv7reIDTb/6.PNybkgGYZH0cJpq",
+            passwordHash: "$2b$10$IttQkM0hkBxv/xSgPZHldujI5DADR2oQlxp.hfhoXq3Qn4WgSPxca", // staff123
             role: "COMPANY_STAFF",
             fullName: "Company Staff",
             email: "staff@gmail.com",

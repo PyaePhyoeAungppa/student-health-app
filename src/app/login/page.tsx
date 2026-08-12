@@ -1,8 +1,9 @@
 "use client";
+export const dynamic = "force-dynamic";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, HeartPulse, ShieldCheck, Eye, EyeOff } from "lucide-react";
 
 const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number, amplitude: number) => {
@@ -18,28 +19,56 @@ const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number
     return path + " Z";
 };
 
-export default function LoginPage() {
+const WAVY_CIRCLE_PATH = getWavyCirclePath(50, 50, 44, 14, 2.5);
+
+function LoginForm() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const { data: session } = useSession();
+
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [showPass, setShowPass] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    const urlError = searchParams.get("error");
+
+    useEffect(() => {
+        if (session?.user) {
+            router.push("/dashboard");
+        }
+    }, [session, router]);
+
+    useEffect(() => {
+        if (urlError) {
+            if (urlError === "CredentialsSignin") {
+                setError("Invalid username or password. Please try again.");
+            } else {
+                setError("Authentication error occurred. Please try again.");
+            }
+        }
+    }, [urlError]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError("");
-        const result = await signIn("credentials", {
-            username,
-            password,
-            redirect: false,
-        });
-        setLoading(false);
-        if (result?.error) {
-            setError("Invalid username, email, or password. Please try again.");
-        } else {
-            router.push("/dashboard");
+        try {
+            const result = await signIn("credentials", {
+                username,
+                password,
+                redirect: false,
+            });
+            setLoading(false);
+            if (result?.error) {
+                setError("Invalid username, email, or password. Please try again.");
+            } else {
+                router.push("/dashboard");
+            }
+        } catch (err) {
+            setLoading(false);
+            setError("Failed to connect to authentication service.");
         }
     };
 
@@ -65,7 +94,7 @@ export default function LoginPage() {
                                 </linearGradient>
                             </defs>
                             <path
-                                d={getWavyCirclePath(50, 50, 44, 14, 2.5)}
+                                d={WAVY_CIRCLE_PATH}
                                 fill="url(#wavy-gradient)"
                             />
                             <circle cx="50" cy="50" r="37" fill="hsl(var(--card))" />
@@ -128,8 +157,6 @@ export default function LoginPage() {
                             {loading ? <><Loader2 className="w-5 h-5 animate-spin" /> Signing in...</> : "Sign In"}
                         </button>
                     </form>
-
-
                 </div>
 
                 <p className="text-center text-xs text-muted-foreground mt-6">
@@ -138,5 +165,13 @@ export default function LoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+            <LoginForm />
+        </Suspense>
     );
 }
