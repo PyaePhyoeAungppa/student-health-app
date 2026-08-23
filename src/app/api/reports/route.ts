@@ -160,13 +160,21 @@ export async function GET(req: Request) {
                 .filter(hr => hr.studentId === student.id)
                 .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())[0];
 
-            const checkupDate = latestRecord ? new Date(latestRecord.recordedAt) : new Date();
-            const dobDate = new Date(student.dob);
-
-            let ageInMonths = (checkupDate.getFullYear() - dobDate.getFullYear()) * 12 + (checkupDate.getMonth() - dobDate.getMonth());
-            if (checkupDate.getDate() < dobDate.getDate()) ageInMonths--;
-            if (ageInMonths < 0) ageInMonths = 0;
-            const ageInYears = Math.floor(ageInMonths / 12);
+            let ageInYears = student.age;
+            let ageInMonths = 0;
+            if (ageInYears !== undefined && ageInYears !== null) {
+                ageInMonths = ageInYears * 12;
+            } else if (student.dob) {
+                const dobDate = new Date(student.dob);
+                const checkupDate = latestRecord ? new Date(latestRecord.recordedAt) : new Date();
+                ageInMonths = (checkupDate.getFullYear() - dobDate.getFullYear()) * 12 + (checkupDate.getMonth() - dobDate.getMonth());
+                if (checkupDate.getDate() < dobDate.getDate()) ageInMonths--;
+                if (ageInMonths < 0) ageInMonths = 0;
+                ageInYears = Math.floor(ageInMonths / 12);
+            } else {
+                ageInYears = 0;
+                ageInMonths = 0;
+            }
 
             const w = latestRecord?.weight || 0;
             const h = latestRecord?.height || 0;
@@ -274,13 +282,21 @@ export async function GET(req: Request) {
                 .filter(hr => hr.studentId === student.id)
                 .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())[0];
 
-            const checkupDate = latestRecord ? new Date(latestRecord.recordedAt) : new Date();
-            const dobDate = new Date(student.dob);
-
-            let ageInMonths = (checkupDate.getFullYear() - dobDate.getFullYear()) * 12 + (checkupDate.getMonth() - dobDate.getMonth());
-            if (checkupDate.getDate() < dobDate.getDate()) ageInMonths--;
-            if (ageInMonths < 0) ageInMonths = 0;
-            const ageInYears = Math.floor(ageInMonths / 12);
+            let ageInYears = student.age;
+            let ageInMonths = 0;
+            if (ageInYears !== undefined && ageInYears !== null) {
+                ageInMonths = ageInYears * 12;
+            } else if (student.dob) {
+                const dobDate = new Date(student.dob);
+                const checkupDate = latestRecord ? new Date(latestRecord.recordedAt) : new Date();
+                ageInMonths = (checkupDate.getFullYear() - dobDate.getFullYear()) * 12 + (checkupDate.getMonth() - dobDate.getMonth());
+                if (checkupDate.getDate() < dobDate.getDate()) ageInMonths--;
+                if (ageInMonths < 0) ageInMonths = 0;
+                ageInYears = Math.floor(ageInMonths / 12);
+            } else {
+                ageInYears = 0;
+                ageInMonths = 0;
+            }
 
             const w = latestRecord?.weight;
             const h = latestRecord?.height;
@@ -485,13 +501,21 @@ export async function GET(req: Request) {
             .filter(hr => hr.studentId === student.id)
             .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())[0];
 
-        const checkupDate = latestRecord ? new Date(latestRecord.recordedAt) : new Date();
-        const dobDate = new Date(student.dob);
-
-        let ageInMonths = (checkupDate.getFullYear() - dobDate.getFullYear()) * 12 + (checkupDate.getMonth() - dobDate.getMonth());
-        if (checkupDate.getDate() < dobDate.getDate()) ageInMonths--;
-        if (ageInMonths < 0) ageInMonths = 0;
-        const ageInYears = Math.floor(ageInMonths / 12);
+        let ageInYears = student.age;
+        let ageInMonths = 0;
+        if (ageInYears !== undefined && ageInYears !== null) {
+            ageInMonths = ageInYears * 12;
+        } else if (student.dob) {
+            const dobDate = new Date(student.dob);
+            const checkupDate = latestRecord ? new Date(latestRecord.recordedAt) : new Date();
+            ageInMonths = (checkupDate.getFullYear() - dobDate.getFullYear()) * 12 + (checkupDate.getMonth() - dobDate.getMonth());
+            if (checkupDate.getDate() < dobDate.getDate()) ageInMonths--;
+            if (ageInMonths < 0) ageInMonths = 0;
+            ageInYears = Math.floor(ageInMonths / 12);
+        } else {
+            ageInYears = 0;
+            ageInMonths = 0;
+        }
 
         const w = latestRecord?.weight;
         const h = latestRecord?.height;
