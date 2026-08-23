@@ -5,6 +5,7 @@ import { readDb } from "@/lib/db";
 import fs from "fs";
 import path from "path";
 import * as XLSX from "xlsx";
+import growthStandards from "@/lib/growth-standards.json";
 
 // Helper functions for Z-score and SD classification
 function calculateZScoreAndClass(val: number, refValues: number[], isHeight: boolean, isWeightForHeight: boolean) {
@@ -451,50 +452,7 @@ export async function GET(req: Request) {
 
     const avgBmi = bmis.length ? parseFloat((bmis.reduce((a, b) => a + b, 0) / bmis.length).toFixed(1)) : 0;
 
-    // Load template to parse standards for the table view
-    const templatePath = path.join(process.cwd(), "พี่หยุย 66 Thaigrowth-KnownAge - NUSTA.csv");
-    let parsedStandards = null;
-    if (fs.existsSync(templatePath)) {
-        const fileContent = fs.readFileSync(templatePath, "utf8");
-        const workbook = XLSX.read(fileContent, { type: "string" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }) as any[][];
-
-        const waTable: { sexAge: number; values: number[] }[] = [];
-        const haTable: { sexAge: number; values: number[] }[] = [];
-        const whTable: { height: number; maleValues: number[]; femaleValues: number[] }[] = [];
-
-        for (let i = 14; i < rows.length; i++) {
-            const cols = rows[i];
-            if (!cols || cols.length < 100) continue;
-
-            const waSexAge = cols[60] ? parseFloat(String(cols[60]).trim()) : null;
-            if (waSexAge && waSexAge > 0) {
-                waTable.push({
-                    sexAge: waSexAge,
-                    values: cols.slice(61, 70).map(v => parseFloat(String(v || "0").trim()))
-                });
-            }
-
-            const haSexAge = cols[71] ? parseFloat(String(cols[71]).trim()) : null;
-            if (haSexAge && haSexAge > 0) {
-                haTable.push({
-                    sexAge: haSexAge,
-                    values: cols.slice(72, 81).map(v => parseFloat(String(v || "0").trim()))
-                });
-            }
-
-            const whHt = cols[82] ? parseFloat(String(cols[82]).trim()) : null;
-            if (whHt && whHt > 0) {
-                whTable.push({
-                    height: whHt,
-                    maleValues: cols.slice(83, 92).map(v => parseFloat(String(v || "0").trim())),
-                    femaleValues: cols.slice(92, 101).map(v => parseFloat(String(v || "0").trim()))
-                });
-            }
-        }
-        parsedStandards = { waTable, haTable, whTable };
-    }
+    const parsedStandards = growthStandards;
 
     const studentGrowthData = students.map(student => {
         const latestRecord = db.healthRecords
