@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -8,16 +10,28 @@ const COLORS = ["#38bdf8", "#a78bfa", "#4ade80", "#fb923c", "#f43f5e", "#facc15"
 
 export default function ReportsPage() {
     const { t, language } = useLanguage();
+    const router = useRouter();
+    const { data: session } = useSession();
+    const role = (session?.user as any)?.role;
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"dashboard" | "growth">("dashboard");
     const [growthSubTab, setGrowthSubTab] = useState<"wa" | "ha" | "wh">("wa");
 
+    // SYSTEM_ADMIN must select a school first — redirect to schools list
     useEffect(() => {
+        if (role === "SYSTEM_ADMIN") {
+            router.replace("/dashboard/schools");
+        }
+    }, [role, router]);
+
+    useEffect(() => {
+        if (role === "SYSTEM_ADMIN") return;
         fetch("/api/reports")
             .then(r => r.json())
             .then(d => { setStats(d); setLoading(false); });
-    }, []);
+    }, [role]);
+
 
     const exportExcel = () => {
         window.location.href = "/api/reports?format=xlsx";

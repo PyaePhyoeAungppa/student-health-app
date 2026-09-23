@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Search, Plus, Download, Eye, Filter, Loader2, Upload, X, ChevronLeft, ChevronRight, Columns3 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -115,6 +116,14 @@ export default function StudentsPage() {
     const { t } = useLanguage();
     const role = (session?.user as any)?.role;
     const userSchoolId = (session?.user as any)?.schoolId;
+    const router = useRouter();
+
+    // SYSTEM_ADMIN must select a school first — redirect to schools list
+    useEffect(() => {
+        if (role === "SYSTEM_ADMIN") {
+            router.replace("/dashboard/schools");
+        }
+    }, [role, router]);
 
     const [students, setStudents] = useState<Student[]>([]);
     const [total, setTotal] = useState(0);

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Plus, Loader2, Building2, Edit, Trash2, X, AlertOctagon } from "lucide-react";
+import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
 
@@ -337,6 +338,14 @@ export default function SchoolsPage() {
                             </div>
                         </div>
 
+                        {/* View School Button */}
+                        <div className="mt-5 pt-4 border-t border-border/30">
+                            <Link href={`/dashboard/schools/${school.id}`}
+                                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all"
+                                style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
+                                {t("manageSchool")} →
+                            </Link>
+                        </div>
                     </div>
                 ))}
             </div>

@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { HeartPulse, Users, FileText, Building2, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
+import { HeartPulse, Users, FileText, Building2, TrendingUp, AlertTriangle, CheckCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/providers/language-provider";
+import { useParams } from "next/navigation";
 
 interface Stats {
     totalStudents: number;
@@ -17,34 +17,39 @@ interface Stats {
     genderStats: { gender: string; _count: number }[];
 }
 
-export default function DashboardPage() {
+interface School {
+    id: string;
+    name: string;
+}
+
+export default function SchoolDashboardPage() {
+    const params = useParams();
+    const schoolId = params.id as string;
     const { data: session } = useSession();
     const { t } = useLanguage();
     const [stats, setStats] = useState<Stats | null>(null);
+    const [school, setSchool] = useState<School | null>(null);
     const [loading, setLoading] = useState(true);
-    const role = (session?.user as any)?.role;
-    const router = useRouter();
-
-    // SYSTEM_ADMIN must select a school first — redirect to schools list
-    useEffect(() => {
-        if (role === "SYSTEM_ADMIN") {
-            router.replace("/dashboard/schools");
-        }
-    }, [role, router]);
 
     useEffect(() => {
-        if (role === "SYSTEM_ADMIN") return; // don't fetch for admin
-        fetch("/api/reports")
+        fetch(`/api/schools/${schoolId}`)
+            .then(r => r.json())
+            .then(d => setSchool(d))
+            .catch(() => {});
+    }, [schoolId]);
+
+    useEffect(() => {
+        fetch(`/api/reports?schoolId=${schoolId}`)
             .then(r => r.json())
             .then(d => { setStats(d); setLoading(false); })
             .catch(() => setLoading(false));
-    }, [role]);
+    }, [schoolId]);
 
     const statCards = [
-        { label: "totalStudents", value: stats?.totalStudents ?? 0, icon: Users, color: "hsl(212, 100%, 52%)", bg: "hsl(150,60%,45%,0.1)" },
-        { label: "activeRecords", value: stats?.totalRecords ?? 0, icon: FileText, color: "hsl(199, 89%, 48%)", bg: "hsl(25, 85%, 55%,0.1)" },
-        { label: "bmi", value: stats?.avgBmi ?? 0, icon: HeartPulse, color: "hsl(142,76%,45%)", bg: "hsl(142,76%,45%,0.1)" },
-        { label: "schools", value: role === "SCHOOL_STAFF" ? 1 : (stats?.totalRecords ? "—" : 0), icon: Building2, color: "hsl(38,92%,50%)", bg: "hsl(38,92%,50%,0.1)" },
+        { label: "totalStudents", value: stats?.totalStudents ?? 0, icon: Users, color: "hsl(212, 100%, 52%)" },
+        { label: "activeRecords", value: stats?.totalRecords ?? 0, icon: FileText, color: "hsl(199, 89%, 48%)" },
+        { label: "bmi", value: stats?.avgBmi ?? 0, icon: HeartPulse, color: "hsl(142,76%,45%)" },
+        { label: "schools", value: 1, icon: Building2, color: "hsl(38,92%,50%)" },
     ];
 
     const hearingAbnormal = stats?.hearingStats?.find(h => h.hearingTest === "ABNORMAL")?._count ?? 0;
@@ -52,15 +57,24 @@ export default function DashboardPage() {
 
     return (
         <div>
+            {/* Breadcrumb */}
+            <div className="mb-2">
+                <Link href="/dashboard/schools" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    {t("backToSchools")}
+                </Link>
+            </div>
+
             <div className="page-header">
                 <div>
                     <h1 className="page-title">{t("dashboard")}</h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        {t("welcome")}, <span className="text-foreground font-medium">{session?.user?.name}</span>
+                        📍 {school?.name ?? "..."}
                     </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <Link href="/dashboard/students" className="px-4 py-2 rounded-lg text-sm font-medium bg-primary/15 text-primary hover:bg-primary/25 transition-colors border border-primary/20 text-center">
+                    <Link href={`/dashboard/schools/${schoolId}/students`}
+                        className="px-4 py-2 rounded-lg text-sm font-medium bg-primary/15 text-primary hover:bg-primary/25 transition-colors border border-primary/20 text-center">
                         {t("students")} →
                     </Link>
                 </div>
@@ -89,10 +103,10 @@ export default function DashboardPage() {
                     {loading ? <div className="h-40 flex items-center justify-center text-muted-foreground">{t("loading")}</div> : (
                         <div className="space-y-3">
                             {[
-                                { label: "Underweight (< 18.5)", key: "Underweight", value: stats?.bmiDistribution.underweight ?? 0, color: "#60a5fa" },
-                                { label: "Normal (18.5 – 24.9)", key: "Normal", value: stats?.bmiDistribution.normal ?? 0, color: "#4ade80" },
-                                { label: "Overweight (25 – 29.9)", key: "Overweight", value: stats?.bmiDistribution.overweight ?? 0, color: "#facc15" },
-                                { label: "Obese (≥ 30)", key: "Obese", value: stats?.bmiDistribution.obese ?? 0, color: "#f87171" },
+                                { label: "Underweight (< 18.5)", value: stats?.bmiDistribution.underweight ?? 0, color: "#60a5fa" },
+                                { label: "Normal (18.5 – 24.9)", value: stats?.bmiDistribution.normal ?? 0, color: "#4ade80" },
+                                { label: "Overweight (25 – 29.9)", value: stats?.bmiDistribution.overweight ?? 0, color: "#facc15" },
+                                { label: "Obese (≥ 30)", value: stats?.bmiDistribution.obese ?? 0, color: "#f87171" },
                             ].map(({ label, value, color }) => {
                                 const total = (stats?.totalRecords || 1);
                                 const pct = Math.round((value / total) * 100);

@@ -1,31 +1,61 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, FileText, UserCircle, GraduationCap, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Building2, UserCircle, GraduationCap, BarChart3, ArrowLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useLanguage } from "@/components/providers/language-provider";
 
-const mobileNavItems = [
-    { href: "/dashboard", label: "dashboard", icon: LayoutDashboard, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/students", label: "students", icon: GraduationCap, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/health-records", label: "healthRecords", icon: FileText, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-    { href: "/dashboard/profile", label: "profile", icon: UserCircle, roles: ["SYSTEM_ADMIN", "SCHOOL_STAFF", "COMPANY_STAFF"] },
-];
+// Detect school context from pathname
+function extractSchoolId(pathname: string): string | null {
+    const match = pathname.match(/^\/dashboard\/schools\/([^\/]+)(\/|$)/);
+    return match ? match[1] : null;
+}
 
 export default function MobileNav() {
     const pathname = usePathname();
     const { data: session } = useSession();
     const { t } = useLanguage();
     const role = (session?.user as any)?.role;
+    const isAdmin = role === "SYSTEM_ADMIN";
+    const selectedSchoolId = isAdmin ? extractSchoolId(pathname) : null;
 
-    const filteredItems = mobileNavItems.filter(item => item.roles.includes(role)).slice(0, 4);
+    // Build nav items based on context
+    let navItems: { href: string; label: string; icon: any; exact?: boolean }[] = [];
+
+    if (isAdmin && selectedSchoolId) {
+        // Inside a school context
+        navItems = [
+            { href: "/dashboard/schools", label: "schools", icon: Building2, exact: true },
+            { href: `/dashboard/schools/${selectedSchoolId}`, label: "dashboard", icon: LayoutDashboard, exact: true },
+            { href: `/dashboard/schools/${selectedSchoolId}/students`, label: "students", icon: GraduationCap },
+            { href: `/dashboard/schools/${selectedSchoolId}/reports`, label: "reports", icon: BarChart3 },
+        ];
+    } else if (isAdmin) {
+        // Admin without school selected
+        navItems = [
+            { href: "/dashboard/schools", label: "schools", icon: Building2 },
+            { href: "/dashboard/users", label: "users", icon: UserCircle },
+            { href: "/dashboard/profile", label: "profile", icon: UserCircle },
+        ];
+    } else {
+        // School staff / company staff
+        navItems = [
+            { href: "/dashboard", label: "dashboard", icon: LayoutDashboard, exact: true },
+            { href: "/dashboard/students", label: "students", icon: GraduationCap },
+            { href: "/dashboard/reports", label: "reports", icon: BarChart3 },
+            { href: "/dashboard/profile", label: "profile", icon: UserCircle },
+        ];
+        if (role === "COMPANY_STAFF") {
+            navItems = navItems.filter(i => i.href !== "/dashboard/reports");
+        }
+    }
 
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-t border-border px-2 pb-safe-area-inset-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
             <div className="flex items-center justify-around h-16 max-w-md mx-auto">
-                {filteredItems.map(({ href, label, icon: Icon }) => {
-                    const isActive = href === "/dashboard"
-                        ? pathname === "/dashboard"
+                {navItems.slice(0, 4).map(({ href, label, icon: Icon, exact }) => {
+                    const isActive = exact
+                        ? pathname === href
                         : pathname.startsWith(href);
 
                     return (

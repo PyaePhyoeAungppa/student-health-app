@@ -44,6 +44,9 @@ export const translations = {
         signOut: "Sign Out",
         healthTrack: "Delta Healthcare Thailand",
         management: "Delta Healthcare Thailand",
+        backToSchools: "Back to Schools",
+        selectSchool: "Select a school to view its dashboard, students, and reports.",
+        manageSchool: "Manage School",
 
         // Dashboard Home
         welcome: "Welcome back",
@@ -311,6 +314,9 @@ export const translations = {
         signOut: "ออกจากระบบ",
         healthTrack: "Delta Healthcare Thailand",
         management: "Delta Healthcare Thailand",
+        backToSchools: "กลับไปรายการโรงเรียน",
+        selectSchool: "เลือกโรงเรียนเพื่อดูแผงควบคุม นักเรียน และรายงาน",
+        manageSchool: "จัดการโรงเรียน",
 
         // Dashboard Home
         welcome: "ยินดีต้อนรับกลับมา",
