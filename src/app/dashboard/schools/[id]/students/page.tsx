@@ -24,6 +24,7 @@ interface HealthRecord {
     flexibility: number | null;
     handgripStrength: number | null;
     standingKneeRaises: number | null;
+    chairStand?: number | null;
     situps: number | null;
     pushups: number | null;
     xRayResult: string;
@@ -40,6 +41,7 @@ interface HealthRecord {
 interface Student {
     id: string;
     studentId: string;
+    nationalId?: string;
     prefix?: string;
     firstName: string;
     surName: string;
@@ -63,14 +65,14 @@ type ColKey =
     | "studentId" | "class" | "room" | "orderNumber" | "prefix" | "firstName" | "lastName"
     | "congenitalDisease" | "drugAllergy" | "bloodType" | "age" | "weight" | "height" | "bmi"
     | "healthCheckResult" | "hearingTest" | "eyeTest" | "visualAcuity" | "colorBlindness"
-    | "flexibility" | "handgripStrength" | "standingKneeRaises" | "situps" | "pushups" | "xRayResult"
+    | "flexibility" | "handgripStrength" | "standingKneeRaises" | "chairStand" | "situps" | "pushups" | "xRayResult"
     | "cbc" | "fbs" | "cholesterol" | "hbsag" | "ua" | "amphetamine";
 
 const ALL_COLUMNS_ORDER: ColKey[] = [
     "studentId", "class", "room", "orderNumber", "prefix", "firstName", "lastName",
     "congenitalDisease", "drugAllergy", "bloodType", "age", "weight", "height", "bmi",
     "healthCheckResult", "hearingTest", "eyeTest", "visualAcuity", "colorBlindness",
-    "flexibility", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult",
+    "flexibility", "handgripStrength", "standingKneeRaises", "chairStand", "situps", "pushups", "xRayResult",
     "cbc", "fbs", "cholesterol", "hbsag", "ua", "amphetamine"
 ];
 
@@ -97,6 +99,7 @@ const COL_LABELS: Record<ColKey, string> = {
     flexibility: "ความอ่อนตัว (ซม.)",
     handgripStrength: "แรงบีบมือ : Hand Grip Strength",
     standingKneeRaises: "ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down",
+    chairStand: "ยืน-นั่งบนเก้าอี้ 60 วิ : 60-Second Chair Stand",
     situps: "ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups",
     pushups: "ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups",
     xRayResult: "X-Ray",
@@ -166,6 +169,7 @@ export default function SchoolStudentsPage() {
                     flexibility: "flexibility",
                     handgripStrength: "handgripStrength",
                     standingKneeRaises: "standingKneeRaises",
+                    chairStand: "chairStand",
                     situps: "situps",
                     pushups: "pushups",
                     xRayResult: "xRayResult",
@@ -275,6 +279,7 @@ export default function SchoolStudentsPage() {
                     [t("flexibility") || "Flexibility"]: hr?.flexibility ?? "",
                     [t("handgripStrength") || "Hand Grip Strength"]: hr?.handgripStrength ?? "",
                     [t("standingKneeRaises") || "3 Minutes Step Up"]: hr?.standingKneeRaises ?? "",
+                    [t("chairStand" as any) || "Chair Stand"]: hr?.chairStand ?? "",
                     [t("situps") || "60 Seconds Sit-ups"]: hr?.situps ?? "",
                     [t("pushups") || "30 Seconds Push-ups"]: hr?.pushups ?? "",
                     [t("xRayResult") || "X-Ray"]: hr?.xRayResult ?? "",
@@ -398,6 +403,8 @@ export default function SchoolStudentsPage() {
                 return <td key={col}><span className="text-sm">{hr?.handgripStrength != null ? hr.handgripStrength : "—"}</span></td>;
             case "standingKneeRaises":
                 return <td key={col}><span className="text-sm">{hr?.standingKneeRaises != null ? hr.standingKneeRaises : "—"}</span></td>;
+            case "chairStand":
+                return <td key={col}><span className="text-sm">{hr?.chairStand != null ? hr.chairStand : "—"}</span></td>;
             case "situps":
                 return <td key={col}><span className="text-sm">{hr?.situps != null ? hr.situps : "—"}</span></td>;
             case "pushups":
@@ -592,9 +599,15 @@ export default function SchoolStudentsPage() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <tr><td colSpan={colSpan} className="text-center py-12 text-muted-foreground">
-                                    <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-                                </td></tr>
+                                Array.from({ length: 6 }).map((_, idx) => (
+                                    <tr key={idx} className="animate-pulse">
+                                        {Array.from({ length: colSpan }).map((_, cIdx) => (
+                                            <td key={cIdx} className="py-4">
+                                                <div className="h-4 bg-muted/60 rounded w-3/4" />
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))
                             ) : students.length === 0 ? (
                                 <tr><td colSpan={colSpan} className="text-center py-12 text-muted-foreground">{t("noData")}</td></tr>
                             ) : students.map(s => (

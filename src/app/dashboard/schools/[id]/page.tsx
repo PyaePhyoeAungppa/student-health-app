@@ -90,7 +90,11 @@ export default function SchoolDashboardPage() {
                             </div>
                             <TrendingUp className="w-4 h-4 text-green-400 opacity-60" />
                         </div>
-                        <p className="text-3xl font-bold">{loading ? "—" : value}</p>
+                        {loading ? (
+                            <div className="h-9 w-20 bg-muted/60 rounded-lg animate-pulse" />
+                        ) : (
+                            <p className="text-3xl font-bold">{value}</p>
+                        )}
                         <p className="text-muted-foreground text-sm mt-1">{t(label as any)}</p>
                     </div>
                 ))}
@@ -100,7 +104,19 @@ export default function SchoolDashboardPage() {
                 {/* BMI Distribution */}
                 <div className="glass-card p-6">
                     <h2 className="font-semibold mb-4 text-sm text-muted-foreground uppercase tracking-wider">{t("bmi")}</h2>
-                    {loading ? <div className="h-40 flex items-center justify-center text-muted-foreground">{t("loading")}</div> : (
+                    {loading ? (
+                        <div className="space-y-4 animate-pulse">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <div className="h-4 w-28 bg-muted rounded" />
+                                        <div className="h-4 w-12 bg-muted rounded" />
+                                    </div>
+                                    <div className="h-2 rounded-full bg-muted/50" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
                         <div className="space-y-3">
                             {[
                                 { label: "Underweight (< 18.5)", value: stats?.bmiDistribution.underweight ?? 0, color: "#60a5fa" },

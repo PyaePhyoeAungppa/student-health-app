@@ -7,6 +7,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { NutritionStandardManager } from "@/components/dashboard/nutrition-standard-manager";
 import { AssessmentOverrideManager } from "@/components/dashboard/assessment-override-manager";
+import { FitnessStandardManager } from "@/components/dashboard/fitness-standard-manager";
 
 const COLORS = ["#38bdf8", "#a78bfa", "#4ade80", "#fb923c", "#f43f5e", "#facc15", "#e879f9"];
 
@@ -17,7 +18,7 @@ export default function SchoolReportsPage() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [schoolName, setSchoolName] = useState("");
-    const [activeTab, setActiveTab] = useState<"dashboard" | "growth" | "standards" | "overrides">("dashboard");
+    const [activeTab, setActiveTab] = useState<"dashboard" | "growth" | "standards" | "overrides" | "fitness">("dashboard");
     const [growthSubTab, setGrowthSubTab] = useState<"wa" | "ha" | "wh">("wa");
 
     useEffect(() => {
@@ -267,11 +268,26 @@ export default function SchoolReportsPage() {
                     className={`px-4 py-2.5 border-b-2 font-medium text-sm transition-colors ${activeTab === "standards" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
                     {language === "th" ? "ตั้งค่าตารางคำนวณโภชนาการ" : "Nutrition Table Manager"}
                 </button>
+                <button onClick={() => setActiveTab("fitness")}
+                    className={`px-4 py-2.5 border-b-2 font-medium text-sm transition-colors ${activeTab === "fitness" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+                    {language === "th" ? "เกณฑ์มาตรฐานสมรรถภาพกาย" : "Physical Fitness Standards"}
+                </button>
             </div>
 
             {loading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="space-y-6 animate-pulse">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="glass-card p-5 text-center space-y-2">
+                                <div className="h-8 w-20 bg-muted mx-auto rounded-lg" />
+                                <div className="h-3 w-28 bg-muted/60 mx-auto rounded" />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="glass-card p-6 space-y-4">
+                        <div className="h-4 w-36 bg-muted rounded" />
+                        <div className="h-[280px] w-full bg-muted/30 rounded-xl" />
+                    </div>
                 </div>
             ) : activeTab === "dashboard" ? (
                 <div className="space-y-6">
@@ -432,6 +448,8 @@ export default function SchoolReportsPage() {
                     schoolId={schoolId}
                     calculatedData={stats?.studentGrowthData ?? []}
                 />
+            ) : activeTab === "fitness" ? (
+                <FitnessStandardManager initialSchoolId={schoolId} />
             ) : (
                 <NutritionStandardManager initialSchoolId={schoolId} />
             )}

@@ -35,6 +35,7 @@ export default function SchoolsPage() {
         flexibility: true,
         handgripStrength: true,
         standingKneeRaises: true,
+        chairStand: true,
         situps: true,
         pushups: true,
         xRayResult: true,
@@ -222,6 +223,7 @@ export default function SchoolsPage() {
                                             { key: "flexibility", label: t("flexibility") || "ความอ่อนตัว (Flexibility)" },
                                             { key: "handgripStrength", label: "แรงบีบมือ : Hand Grip Strength" },
                                             { key: "standingKneeRaises", label: "ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down" },
+                                            { key: "chairStand", label: "ยืน-นั่งบนเก้าอี้ 60 วินาที : 60-Second Chair Stand" },
                                             { key: "situps", label: "ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups" },
                                             { key: "pushups", label: "ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups" },
                                         ].map(item => (
@@ -345,9 +347,22 @@ export default function SchoolsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
-                    <div className="col-span-full flex items-center justify-center p-12">
-                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                    </div>
+                    Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="glass-card p-6 flex flex-col justify-between animate-pulse space-y-4">
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="w-12 h-12 rounded-xl bg-muted" />
+                                    <div className="w-16 h-6 bg-muted/60 rounded-md" />
+                                </div>
+                                <div className="h-5 w-3/4 bg-muted rounded mb-2" />
+                                <div className="h-4 w-1/2 bg-muted/60 rounded" />
+                            </div>
+                            <div className="pt-4 border-t border-border flex items-center justify-between">
+                                <div className="h-4 w-20 bg-muted/60 rounded" />
+                                <div className="h-4 w-24 bg-muted/60 rounded" />
+                            </div>
+                        </div>
+                    ))
                 ) : schools.length === 0 ? (
                     <div className="col-span-full text-center p-12 text-muted-foreground bg-secondary/30 rounded-2xl border border-border border-dashed">
                         {t("noData")}

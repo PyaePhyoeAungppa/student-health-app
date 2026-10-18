@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { readDb, writeDb } from "@/lib/db";
 
+import { getSchoolGrowthStandards, evaluateStudentGrowth } from "@/lib/growth-calculator";
+import { evaluateStudentFitness } from "@/lib/fitness-calculator";
+
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -18,13 +21,23 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    const school = db.schools.find(s => s.id === student.schoolId);
+    const healthRecords = db.healthRecords
+        .filter(hr => hr.studentId === student.id)
+        .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
+
+    const latestRecord = healthRecords[0];
+    const standards = getSchoolGrowthStandards(school);
+    const growthAssessment = evaluateStudentGrowth(student, latestRecord, standards);
+    const fitnessAssessment = evaluateStudentFitness(student, latestRecord, school?.customFitnessStandards);
+
     // Populate school and health records
     const result = {
         ...student,
-        school: db.schools.find(s => s.id === student.schoolId),
-        healthRecords: db.healthRecords
-            .filter(hr => hr.studentId === student.id)
-            .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())
+        school,
+        healthRecords,
+        growthAssessment,
+        fitnessAssessment,
     };
 
     return NextResponse.json(result);

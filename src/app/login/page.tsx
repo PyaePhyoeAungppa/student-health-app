@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, HeartPulse, ShieldCheck, Eye, EyeOff } from "lucide-react";
@@ -147,7 +148,7 @@ export default function LoginPage() {
 
                 <p className="text-center text-xs text-muted-foreground mt-6">
                     Are you a student?{" "}
-                    <a href="/student-portal" className="text-primary hover:underline">Check your health data →</a>
+                    <Link href="/student-portal" className="text-primary hover:underline">Check your health data →</Link>
                 </p>
             </div>
         </div>

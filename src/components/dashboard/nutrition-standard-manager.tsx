@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 import { Upload, Download, Save, RefreshCw, CheckCircle2, FileSpreadsheet, Loader2, AlertCircle, Building2 } from "lucide-react";
-import * as XLSX from "xlsx";
 
 interface SchoolOption {
     id: string;
@@ -108,8 +107,9 @@ export function NutritionStandardManager({ initialSchoolId }: NutritionStandardM
     };
 
     // Export current active standards as template Excel
-    const handleDownloadTemplate = () => {
+    const handleDownloadTemplate = async () => {
         if (!growthData) return;
+        const XLSX = await import("xlsx");
         const wb = XLSX.utils.book_new();
 
         // Sheet 1: W/A
@@ -188,9 +188,10 @@ export function NutritionStandardManager({ initialSchoolId }: NutritionStandardM
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (evt) => {
+        reader.onload = async (evt) => {
             try {
                 const bstr = evt.target?.result;
+                const XLSX = await import("xlsx");
                 const wb = XLSX.read(bstr, { type: "binary" });
 
                 const newGrowthData: any = { waTable: [], haTable: [], whTable: [] };

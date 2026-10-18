@@ -159,6 +159,16 @@
   animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); width: 20%; }
+  50% { transform: translateX(50%); width: 60%; }
+  100% { transform: translateX(200%); width: 40%; }
+}
+
+.animate-indeterminate {
+  animation: indeterminate 1.4s ease-in-out infinite;
+}
+
 @layer utilities {
   .text-shadow-glow {
     text-shadow: none;

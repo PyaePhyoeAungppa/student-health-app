@@ -269,6 +269,7 @@ export async function POST(req: Request) {
             const flexibilityVal = testsConfig.flexibility !== false ? (parseFloat(getValue(["ความอ่อนตัว : Sit and Reach Test", "ความอ่อนตัว", "อ่อนตัว", "วัดความอ่อนตัว"])) || null) : null;
             const handgripVal = testsConfig.handgripStrength !== false ? (parseFloat(getValue(["แรงบีบมือ : Hand Grip Strength", "แรงบีบมือ"])) || null) : null;
             const standingKneeRaisesVal = testsConfig.standingKneeRaises !== false ? (parseInt(getValue(["ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down", "ยืนยกเข่า 3 นาที", "ยืนยกเข่า", "ยกเข่า"]), 10) || null) : null;
+            const chairStandVal = testsConfig.chairStand !== false ? (parseInt(getValue(["ยืน-นั่งบนเก้าอี้ 60 วินาที : 60-Second Chair Stand", "ยืน-นั่งบนเก้าอี้ 60 วินาที", "ยืน-นั่งบนเก้าอี้", "Chair Stand", "chairStand"]), 10) || null) : null;
             const situpsVal = testsConfig.situps !== false ? (parseInt(getValue(["ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups", "ลุก-นั่ง 60 วินาที", "ลุกนั่ง", "ซิทอัพ"]), 10) || null) : null;
             const pushupsVal = testsConfig.pushups !== false ? (parseInt(getValue(["ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups", "ดันพื้นประยุกต์ 30 วินาที", "ดันพื้น"]), 10) || null) : null;
 
@@ -314,6 +315,7 @@ export async function POST(req: Request) {
                 flexibility: flexibilityVal,
                 handgripStrength: handgripVal,
                 standingKneeRaises: standingKneeRaisesVal,
+                chairStand: chairStandVal,
                 situps: situpsVal,
                 pushups: pushupsVal,
                 cbc: cbcVal,

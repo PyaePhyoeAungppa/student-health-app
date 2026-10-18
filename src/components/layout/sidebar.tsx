@@ -6,7 +6,7 @@ import {
     LayoutDashboard, FileText, BarChart3, Building2, Settings,
     LogOut, HeartPulse, UserCheck, ChevronRight, GraduationCap, ArrowLeft
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/components/providers/language-provider";
 
 // Global nav items visible regardless of school context
@@ -49,19 +49,23 @@ export default function Sidebar() {
 
     // Fetch school name when schoolId changes
     const [schoolName, setSchoolName] = useState<string | null>(null);
-    const [lastFetchedId, setLastFetchedId] = useState<string | null>(null);
 
-    if (selectedSchoolId !== lastFetchedId) {
-        setLastFetchedId(selectedSchoolId);
-        if (selectedSchoolId) {
-            fetch(`/api/schools/${selectedSchoolId}`)
-                .then(r => r.json())
-                .then(d => setSchoolName(d.name || null))
-                .catch(() => setSchoolName(null));
-        } else {
+    useEffect(() => {
+        if (!selectedSchoolId) {
             setSchoolName(null);
+            return;
         }
-    }
+        let active = true;
+        fetch(`/api/schools/${selectedSchoolId}`)
+            .then(r => r.json())
+            .then(d => {
+                if (active) setSchoolName(d.name || null);
+            })
+            .catch(() => {
+                if (active) setSchoolName(null);
+            });
+        return () => { active = false; };
+    }, [selectedSchoolId]);
 
     return (
         <aside className={`hidden md:flex flex-col h-screen bg-card border-r border-border transition-all duration-300 relative ${collapsed ? "w-20" : "w-64"}`}>
@@ -113,7 +117,7 @@ export default function Sidebar() {
                         {selectedSchoolId ? (
                             <>
                                 {/* Back to Schools */}
-                                <Link href="/dashboard/schools"
+                                <Link href="/dashboard/schools" prefetch={true}
                                     className={`sidebar-link text-muted-foreground hover:text-foreground ${collapsed ? "justify-center px-0" : ""}`}>
                                     <ArrowLeft className="w-4 h-4 shrink-0" />
                                     {!collapsed && <span className="text-xs">{t("backToSchools")}</span>}
@@ -145,7 +149,7 @@ export default function Sidebar() {
                                         ? pathname === `/dashboard/schools/${selectedSchoolId}`
                                         : pathname.startsWith(`/dashboard/schools/${selectedSchoolId}/${segment}`);
                                     return (
-                                        <Link key={href} href={href}
+                                        <Link key={href} href={href} prefetch={true}
                                             className={`sidebar-link ${isActive ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}>
                                             <Icon className="w-5 h-5 shrink-0" />
                                             {!collapsed && <span>{t(label as any)}</span>}
@@ -160,7 +164,7 @@ export default function Sidebar() {
                                 {globalNavItems.filter(i => i.roles.includes(role) && i.href !== "/dashboard/schools").map(({ href, label, icon: Icon }) => {
                                     const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
                                     return (
-                                        <Link key={href} href={href}
+                                        <Link key={href} href={href} prefetch={true}
                                             className={`sidebar-link ${isActive ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}>
                                             <Icon className="w-5 h-5 shrink-0" />
                                             {!collapsed && <span>{t(label as any)}</span>}
@@ -179,7 +183,7 @@ export default function Sidebar() {
                                 {globalNavItems.filter(i => i.roles.includes(role)).map(({ href, label, icon: Icon }) => {
                                     const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
                                     return (
-                                        <Link key={href} href={href}
+                                        <Link key={href} href={href} prefetch={true}
                                             className={`sidebar-link ${isActive ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}>
                                             <Icon className="w-5 h-5 shrink-0" />
                                             {!collapsed && <span>{t(label as any)}</span>}
@@ -194,7 +198,7 @@ export default function Sidebar() {
                     staffNavItems.filter(item => item.roles.includes(role)).map(({ href, label, icon: Icon }) => {
                         const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
                         return (
-                            <Link key={href} href={href}
+                            <Link key={href} href={href} prefetch={true}
                                 className={`sidebar-link ${isActive ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}>
                                 <Icon className="w-5 h-5 shrink-0" />
                                 {!collapsed && <span>{t(label as any)}</span>}

@@ -32,6 +32,7 @@ export default function StudentDetailPage() {
         flexibility: "",
         handgripStrength: "",
         standingKneeRaises: "",
+        chairStand: "",
         situps: "",
         pushups: "",
         cbc: "",
@@ -78,6 +79,7 @@ export default function StudentDetailPage() {
                         flexibility: latest.flexibility != null ? String(latest.flexibility) : "",
                         handgripStrength: latest.handgripStrength != null ? String(latest.handgripStrength) : "",
                         standingKneeRaises: latest.standingKneeRaises != null ? String(latest.standingKneeRaises) : "",
+                        chairStand: latest.chairStand != null ? String(latest.chairStand) : "",
                         situps: latest.situps != null ? String(latest.situps) : "",
                         pushups: latest.pushups != null ? String(latest.pushups) : "",
                         cbc: latest.cbc || "",
@@ -137,10 +139,11 @@ export default function StudentDetailPage() {
         const flex = form.flexibility ? parseFloat(form.flexibility) : null;
         const grip = form.handgripStrength ? parseFloat(form.handgripStrength) : null;
         const knee = form.standingKneeRaises ? parseInt(form.standingKneeRaises) : null;
+        const chair = form.chairStand ? parseInt(form.chairStand) : null;
         const sit = form.situps ? parseInt(form.situps) : null;
         const push = form.pushups ? parseInt(form.pushups) : null;
         
-        const payload = { ...form, studentId: student.id, weight: w, height: h, bmi, flexibility: flex, handgripStrength: grip, standingKneeRaises: knee, situps: sit, pushups: push, customData: form.customData };
+        const payload = { ...form, studentId: student.id, weight: w, height: h, bmi, flexibility: flex, handgripStrength: grip, standingKneeRaises: knee, chairStand: chair, situps: sit, pushups: push, customData: form.customData };
         
         const res = await fetch("/api/health-records", {
             method: "POST",
@@ -157,7 +160,7 @@ export default function StudentDetailPage() {
                 weight: "", height: "", hearingTest: "-",
                 colorBlindness: "-", xRayResult: "-", xRayResultDescription: "",
                 eyeTest: "-", visualAcuity: "-", symptoms: "-",
-                flexibility: "", handgripStrength: "", standingKneeRaises: "", situps: "", pushups: "",
+                flexibility: "", handgripStrength: "", standingKneeRaises: "", chairStand: "", situps: "", pushups: "",
                 cbc: "", fbs: "", cholesterol: "", hbsag: "", ua: "", amphetamine: "", customData: {},
             });
             fetchStudent();
@@ -165,8 +168,46 @@ export default function StudentDetailPage() {
     };
 
     if (loading) return (
-        <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="space-y-6 animate-pulse">
+            <div className="flex items-center gap-4 mb-8">
+                <div className="w-9 h-9 rounded-lg bg-muted" />
+                <div className="space-y-2 flex-1">
+                    <div className="h-7 w-48 bg-muted rounded-lg" />
+                    <div className="h-4 w-72 bg-muted/60 rounded" />
+                </div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="glass-card p-6 lg:col-span-1 space-y-4">
+                    <div className="h-5 w-32 bg-muted rounded" />
+                    <div className="space-y-3 pt-2">
+                        {[1, 2, 3, 4, 5, 6, 7].map(i => (
+                            <div key={i} className="flex justify-between py-1 border-b border-border/40">
+                                <div className="h-4 w-20 bg-muted/60 rounded" />
+                                <div className="h-4 w-28 bg-muted rounded" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="glass-card p-4 text-center space-y-2">
+                                <div className="w-6 h-6 bg-muted mx-auto rounded" />
+                                <div className="h-6 w-16 bg-muted mx-auto rounded-lg" />
+                                <div className="h-3 w-12 bg-muted/60 mx-auto rounded" />
+                            </div>
+                        ))}
+                    </div>
+                    <div className="glass-card p-6 space-y-4">
+                        <div className="h-5 w-44 bg-muted rounded" />
+                        <div className="space-y-3 pt-2">
+                            {[1, 2, 3, 4, 5].map(i => (
+                                <div key={i} className="h-10 w-full bg-muted/30 rounded-lg" />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 
@@ -177,7 +218,7 @@ export default function StudentDetailPage() {
     const latestRecord = student.healthRecords?.[0];
     const bmiInfo = latestRecord?.bmi ? getBMICategory(latestRecord.bmi) : null;
 
-    const optionalKeys = ["gender", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult"];
+    const optionalKeys = ["gender", "handgripStrength", "standingKneeRaises", "chairStand", "situps", "pushups", "xRayResult"];
     const isTestEnabled = (key: string) => {
         if (!optionalKeys.includes(key)) return true;
         return student?.school?.testsConfig ? student.school.testsConfig[key] !== false : true;
@@ -313,16 +354,47 @@ export default function StudentDetailPage() {
                                     </div>
 
                                     {/* Physical Fitness Tests */}
-                                    {isTestEnabled("flexibility") || isTestEnabled("handgripStrength") || isTestEnabled("standingKneeRaises") || isTestEnabled("situps") || isTestEnabled("pushups") ? (
+                                    {isTestEnabled("flexibility") || isTestEnabled("handgripStrength") || isTestEnabled("standingKneeRaises") || isTestEnabled("chairStand") || isTestEnabled("situps") || isTestEnabled("pushups") ? (
                                         <div>
                                             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 border-b pb-2">Physical Fitness Tests</h3>
                                             <div className="grid grid-cols-1 gap-y-3 text-sm">
                                                 {[
-                                                    isTestEnabled("flexibility") ? [t("flexibility"), latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "N/A"] : null,
-                                                    isTestEnabled("handgripStrength") ? [t("handgripStrength"), latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "N/A"] : null,
-                                                    isTestEnabled("standingKneeRaises") ? [t("standingKneeRaises"), latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "N/A"] : null,
-                                                    isTestEnabled("situps") ? [t("situps"), latestRecord.situps != null ? `${latestRecord.situps}` : "N/A"] : null,
-                                                    isTestEnabled("pushups") ? [t("pushups"), latestRecord.pushups != null ? `${latestRecord.pushups}` : "N/A"] : null,
+                                                    isTestEnabled("flexibility") ? [
+                                                        t("flexibility"), 
+                                                        latestRecord.flexibility != null 
+                                                            ? `${latestRecord.flexibility} cm ${student?.fitnessAssessment?.flexibility && student.fitnessAssessment.flexibility.level !== "UNKNOWN" ? `• ${language === "th" ? student.fitnessAssessment.flexibility.labelTh : student.fitnessAssessment.flexibility.labelEn}` : ""}` 
+                                                            : "N/A"
+                                                    ] : null,
+                                                    isTestEnabled("handgripStrength") ? [
+                                                        t("handgripStrength"), 
+                                                        latestRecord.handgripStrength != null 
+                                                            ? `${latestRecord.handgripStrength} kg ${student?.fitnessAssessment?.handgripStrength && student.fitnessAssessment.handgripStrength.level !== "UNKNOWN" ? `• ${language === "th" ? student.fitnessAssessment.handgripStrength.labelTh : student.fitnessAssessment.handgripStrength.labelEn}` : ""}` 
+                                                            : "N/A"
+                                                    ] : null,
+                                                    isTestEnabled("standingKneeRaises") ? [
+                                                        t("standingKneeRaises"), 
+                                                        latestRecord.standingKneeRaises != null 
+                                                            ? `${latestRecord.standingKneeRaises} reps ${student?.fitnessAssessment?.standingKneeRaises && student.fitnessAssessment.standingKneeRaises.level !== "UNKNOWN" ? `• ${language === "th" ? student.fitnessAssessment.standingKneeRaises.labelTh : student.fitnessAssessment.standingKneeRaises.labelEn}` : ""}` 
+                                                            : "N/A"
+                                                    ] : null,
+                                                    isTestEnabled("chairStand") ? [
+                                                        t("chairStand" as any) || "ยืน-นั่งบนเก้าอี้ 60 วิ (Chair Stand)",
+                                                        latestRecord.chairStand != null 
+                                                            ? `${latestRecord.chairStand} reps ${student?.fitnessAssessment?.chairStand && student.fitnessAssessment.chairStand.level !== "UNKNOWN" ? `• ${language === "th" ? student.fitnessAssessment.chairStand.labelTh : student.fitnessAssessment.chairStand.labelEn}` : ""}` 
+                                                            : "N/A"
+                                                    ] : null,
+                                                    isTestEnabled("situps") ? [
+                                                        t("situps"), 
+                                                        latestRecord.situps != null 
+                                                            ? `${latestRecord.situps} reps ${student?.fitnessAssessment?.situps && student.fitnessAssessment.situps.level !== "UNKNOWN" ? `• ${language === "th" ? student.fitnessAssessment.situps.labelTh : student.fitnessAssessment.situps.labelEn}` : ""}` 
+                                                            : "N/A"
+                                                    ] : null,
+                                                    isTestEnabled("pushups") ? [
+                                                        t("pushups"), 
+                                                        latestRecord.pushups != null 
+                                                            ? `${latestRecord.pushups} reps ${student?.fitnessAssessment?.pushups && student.fitnessAssessment.pushups.level !== "UNKNOWN" ? `• ${language === "th" ? student.fitnessAssessment.pushups.labelTh : student.fitnessAssessment.pushups.labelEn}` : ""}` 
+                                                            : "N/A"
+                                                    ] : null,
                                                 ].filter(Boolean).map((item: any) => (
                                                     <div key={item[0].toString()} className="flex justify-between gap-4 border-b border-border/50 pb-2">
                                                         <span className="text-muted-foreground whitespace-nowrap">{item[0]}</span>
@@ -563,10 +635,10 @@ export default function StudentDetailPage() {
                                     </div>
 
                                     {/* Physical Fitness Tests */}
-                                    {(isTestEnabled("flexibility") || isTestEnabled("handgripStrength") || isTestEnabled("standingKneeRaises") || isTestEnabled("situps") || isTestEnabled("pushups")) && (
+                                    {(isTestEnabled("flexibility") || isTestEnabled("handgripStrength") || isTestEnabled("standingKneeRaises") || isTestEnabled("chairStand") || isTestEnabled("situps") || isTestEnabled("pushups")) && (
                                         <div>
                                             <h3 className="font-semibold text-primary mb-4 border-b pb-2 pt-4">Physical Fitness Tests</h3>
-                                            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-6 gap-4">
                                                 {isTestEnabled("flexibility") && (
                                                     <div>
                                                         <label className="block text-sm font-medium mb-1.5">Flexibility (cm)</label>
@@ -583,6 +655,12 @@ export default function StudentDetailPage() {
                                                     <div>
                                                         <label className="block text-sm font-medium mb-1.5">Knee Raises</label>
                                                         <input type="number" step="1" min="0" value={form.standingKneeRaises} placeholder="Times" onChange={e => set("standingKneeRaises", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                                                    </div>
+                                                )}
+                                                {isTestEnabled("chairStand") && (
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1.5">Chair Stand (60s)</label>
+                                                        <input type="number" step="1" min="0" value={form.chairStand} placeholder="Reps" onChange={e => set("chairStand", e.target.value)} className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" />
                                                     </div>
                                                 )}
                                                 {isTestEnabled("situps") && (

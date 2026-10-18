@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readDb, writeDb } from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { getSchoolGrowthStandards, evaluateStudentGrowth } from "@/lib/growth-calculator";
+import { evaluateStudentFitness } from "@/lib/fitness-calculator";
 
 export async function POST(req: Request) {
     try {
@@ -56,8 +57,9 @@ export async function POST(req: Request) {
             const standards = getSchoolGrowthStandards(school);
             const latestRecord = healthRecords[0];
             const growthAssessment = evaluateStudentGrowth(db.students[index], latestRecord, standards);
+            const fitnessAssessment = evaluateStudentFitness(db.students[index], latestRecord, school?.customFitnessStandards);
 
-            return NextResponse.json({ ...db.students[index], school, healthRecords, growthAssessment });
+            return NextResponse.json({ ...db.students[index], school, healthRecords, growthAssessment, fitnessAssessment });
         }
 
         if (action === "login") {
@@ -84,8 +86,9 @@ export async function POST(req: Request) {
             const standards = getSchoolGrowthStandards(school);
             const latestRecord = healthRecords[0];
             const growthAssessment = evaluateStudentGrowth(student, latestRecord, standards);
+            const fitnessAssessment = evaluateStudentFitness(student, latestRecord, school?.customFitnessStandards);
 
-            return NextResponse.json({ ...student, school, healthRecords, growthAssessment });
+            return NextResponse.json({ ...student, school, healthRecords, growthAssessment, fitnessAssessment });
         }
 
         return NextResponse.json({ error: "Invalid action." }, { status: 400 });

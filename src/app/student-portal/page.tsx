@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
-import { HeartPulse, Search, Loader2, ShieldCheck, User, Eye, Ear, Globe } from "lucide-react";
+import Link from "next/link";
+import { HeartPulse, Search, Loader2, ShieldCheck, User, Eye, Ear, Globe, Activity, Scale } from "lucide-react";
 import { formatDate, getBMICategory } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
+import { evaluateStudentFitness } from "@/lib/fitness-calculator";
 
 const getWavyCirclePath = (cx: number, cy: number, radius: number, waves: number, amplitude: number) => {
     let path = "";
@@ -297,15 +299,18 @@ export default function StudentPortalPage() {
                                     </div>
                                 )}
 
-                                {/* Nutrition Assessment Results */}
+                                {/* Topic 1: Nutrition Assessment Results */}
                                 {result.growthAssessment && (
-                                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 mb-6 space-y-3">
+                                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 mb-4 space-y-3">
                                         <h4 className="font-bold text-sm text-primary flex items-center justify-between border-b border-primary/10 pb-2">
-                                            <span>{language === "th" ? "ผลการประเมินภาวะโภชนาการ" : "Nutrition Assessment Results"}</span>
+                                            <span className="flex items-center gap-2">
+                                                <Scale className="w-4 h-4 text-primary" />
+                                                <span>{language === "th" ? "1. ผลการประเมินภาวะโภชนาการ (Nutrition Assessment)" : "1. Nutrition Assessment Results"}</span>
+                                            </span>
                                             <span className="text-xs font-normal text-muted-foreground">({result.school?.name})</span>
                                         </h4>
                                         <div className="grid grid-cols-1 gap-2 text-xs">
-                                            <div className="flex items-center justify-between p-2 rounded-lg bg-background/60 border border-border">
+                                            <div className="flex items-center justify-between p-2.5 rounded-lg bg-background/60 border border-border">
                                                 <span className="font-medium text-muted-foreground">{t("weightForAge")} (W/A)</span>
                                                 <span className="font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
                                                     {language === "en" ? (
@@ -317,7 +322,7 @@ export default function StudentPortalPage() {
                                                     ) : result.growthAssessment.waLabel}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between p-2 rounded-lg bg-background/60 border border-border">
+                                            <div className="flex items-center justify-between p-2.5 rounded-lg bg-background/60 border border-border">
                                                 <span className="font-medium text-muted-foreground">{t("heightForAge")} (H/A)</span>
                                                 <span className="font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
                                                     {language === "en" ? (
@@ -329,7 +334,7 @@ export default function StudentPortalPage() {
                                                     ) : result.growthAssessment.haLabel}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between p-2 rounded-lg bg-background/60 border border-border">
+                                            <div className="flex items-center justify-between p-2.5 rounded-lg bg-background/60 border border-border">
                                                 <span className="font-medium text-muted-foreground">{t("weightForHeight")} (W/H)</span>
                                                 <span className="font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
                                                     {language === "en" ? (
@@ -345,6 +350,36 @@ export default function StudentPortalPage() {
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Topic 2: Physical Fitness Assessment Results (Wordings only, no numerical scores) */}
+                                {(() => {
+                                    const fitnessRecord = result.fitnessAssessment || (latestRecord ? evaluateStudentFitness(result, latestRecord, result.school?.customFitnessStandards) : {});
+                                    const fitnessList = Object.values(fitnessRecord).filter((fit: any) => isTestEnabled(fit.testKey));
+                                    if (!fitnessList || fitnessList.length === 0) return null;
+
+                                    return (
+                                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 mb-6 space-y-3">
+                                            <h4 className="font-bold text-sm text-primary flex items-center justify-between border-b border-primary/10 pb-2">
+                                                <span className="flex items-center gap-2">
+                                                    <Activity className="w-4 h-4 text-primary" />
+                                                    <span>{language === "th" ? "2. ผลการประเมินสมรรถภาพทางกาย (Physical Fitness Assessment)" : "2. Physical Fitness Assessment Results"}</span>
+                                                </span>
+                                                <span className="text-xs font-normal text-muted-foreground">({result.school?.name})</span>
+                                            </h4>
+                                            <div className="grid grid-cols-1 gap-2 text-xs">
+                                                {fitnessList.map((fit: any) => (
+                                                    <div key={fit.testKey} className="flex items-center justify-between p-2.5 rounded-lg bg-background/60 border border-border">
+                                                        <span className="font-medium text-muted-foreground">{language === "th" ? fit.testNameTh : fit.testNameEn}</span>
+                                                        <span className={`font-semibold px-2.5 py-0.5 rounded-full ${fit.colorClass}`}>
+                                                            {language === "th" ? fit.labelTh : fit.labelEn}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
                                 <div className="space-y-6">
                                     {/* General Details */}
                                     {(() => {
@@ -369,7 +404,7 @@ export default function StudentPortalPage() {
                                         );
                                     })()}
 
-                                    {/* Examinations & Tests */}
+                                    {/* Examinations & Tests (Physical fitness numbers removed from student view) */}
                                     {(() => {
                                         const items = [
                                             { label: "Symptoms เบื้องต้น", val: latestRecord.symptoms, enabled: isTestEnabled("symptoms") },
@@ -378,11 +413,6 @@ export default function StudentPortalPage() {
                                             { label: "Eye Test ทดสอบสายตา", val: latestRecord.eyeTest, enabled: isTestEnabled("eyeTest") },
                                             { label: "Visual Acuity ระยะการมอง", val: latestRecord.visualAcuity, enabled: isTestEnabled("visionBothEyes") },
                                             { label: "Eye Exam Report สรุปผลสายตา", val: latestRecord.eyeExamReport, enabled: isTestEnabled("visionBothEyes") },
-                                            { label: "Flexibility ความอ่อนตัว (cm)", val: latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : null, enabled: isTestEnabled("flexibility") },
-                                            { label: "Handgrip Strength แรงบีบมือ", val: latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : null, enabled: isTestEnabled("handgripStrength") },
-                                            { label: "Standing Knee Raises ยืนยกเข่า", val: latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : null, enabled: isTestEnabled("standingKneeRaises") },
-                                            { label: "Sit-ups ลุกนั่ง", val: latestRecord.situps != null ? `${latestRecord.situps}` : null, enabled: isTestEnabled("situps") },
-                                            { label: "Push-ups ดันพื้น", val: latestRecord.pushups != null ? `${latestRecord.pushups}` : null, enabled: isTestEnabled("pushups") },
                                             { label: "X-Ray", val: latestRecord.xRayResult, enabled: isTestEnabled("xRayResult") },
                                         ].filter(item => item.enabled && item.val != null && item.val !== "");
                                         if (items.length === 0) return null;
@@ -468,7 +498,7 @@ export default function StudentPortalPage() {
 
                 <p className="text-center text-xs text-muted-foreground mt-8">
                     Staff?{" "}
-                    <a href="/login" className="text-primary hover:underline">{t("staffSignIn")} →</a>
+                    <Link href="/login" className="text-primary hover:underline">{t("staffSignIn")} →</Link>
                 </p>
             </div>
         </div>

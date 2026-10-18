@@ -37,6 +37,7 @@ export async function GET(req: Request) {
         flexibility: true,
         handgripStrength: true,
         standingKneeRaises: true,
+        chairStand: true,
         situps: true,
         pushups: true,
         xRayResult: true
@@ -65,6 +66,7 @@ export async function GET(req: Request) {
     if (testsConfig.flexibility !== false) headers.push("ความอ่อนตัว : Sit and Reach Test");
     if (testsConfig.handgripStrength !== false) headers.push("แรงบีบมือ : Hand Grip Strength");
     if (testsConfig.standingKneeRaises !== false) headers.push("ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down");
+    if (testsConfig.chairStand !== false) headers.push("ยืน-นั่งบนเก้าอี้ 60 วินาที : 60-Second Chair Stand");
     if (testsConfig.situps !== false) headers.push("ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups");
     if (testsConfig.pushups !== false) headers.push("ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups");
     if (testsConfig.xRayResult !== false) headers.push("X-Ray");

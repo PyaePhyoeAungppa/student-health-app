@@ -215,7 +215,7 @@ export async function GET(req: Request) {
             const buf = await getChartImageBuffer(map, title);
             if (buf) {
                 const imgId = workbook.addImage({
-                    buffer: buf,
+                    buffer: buf as any,
                     extension: 'png',
                 });
                 chartsWs.addImage(imgId, {

@@ -62,6 +62,7 @@ export default function MobileNav() {
                         <Link
                             key={href}
                             href={href}
+                            prefetch={true}
                             className={`relative flex flex-col items-center justify-center gap-1 transition-all duration-300 flex-1 h-full ${isActive ? "text-primary scale-105" : "text-muted-foreground"
                                 }`}
                         >

@@ -40,7 +40,7 @@ export default function ImportStudentsPage() {
     }, [role, session]);
 
     const activeSchool = schools.find(s => s.id === selectedSchool);
-    const testsConfig = activeSchool?.testsConfig || { flexibility: true, handgripStrength: true, standingKneeRaises: true, situps: true, pushups: true, xRayResult: true };
+    const testsConfig = activeSchool?.testsConfig || { flexibility: true, handgripStrength: true, standingKneeRaises: true, chairStand: true, situps: true, pushups: true, xRayResult: true };
     const customFields = activeSchool?.customFields || [];
 
     const handleImport = async (e: React.FormEvent) => {
@@ -320,6 +320,7 @@ export default function ImportStudentsPage() {
                                 {testsConfig.flexibility !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ความอ่อนตัว : Sit and Reach Test</span>}
                                 {testsConfig.handgripStrength !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">แรงบีบมือ : Hand Grip Strength</span>}
                                 {testsConfig.standingKneeRaises !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down</span>}
+                                {testsConfig.chairStand !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ยืน-นั่งบนเก้าอี้ 60 วินาที : 60-Second Chair Stand</span>}
                                 {testsConfig.situps !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups</span>}
                                 {testsConfig.pushups !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups</span>}
                                 {testsConfig.xRayResult !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">X-Ray</span>}

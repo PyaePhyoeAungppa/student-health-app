@@ -68,6 +68,7 @@ export const translations = {
         // Students Page
         studentList: "Student List",
         addStudent: "Add Student",
+        nationalId: "National ID / Thai ID",
         studentId: "Student ID",
         prefix: "Prefix",
         firstName: "First Name",
@@ -163,7 +164,7 @@ export const translations = {
         // eyeTest: "Eye Test",
         flexibility: "ความอ่อนตัว (ซม.)",
         handgripStrength: "แรงบีบมือ : Hand Grip Strength",
-        standingKneeRaises: "ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down",
+        standingKneeRaises: "การยกเข่า ขึ้น-ลง 3 นาที : 3-Minute High-Knee Lift",
         situps: "ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups",
         pushups: "ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups",
         cbc: "ความสมบูรณ์ของเม็ดเลือด (CBC)",
@@ -295,6 +296,22 @@ export const translations = {
         proportionateWH: "Proportionate",
         relativelyThinWH: "Relatively Thin",
         thinWH: "Thin",
+
+        // Physical Fitness
+        physicalFitnessAssessment: "Physical Fitness Assessment",
+        physicalFitnessResults: "Physical Fitness Assessment Results",
+        sitAndReachTest: "Sit and Reach Test",
+        handgripStrengthTest: "Handgrip Strength Test",
+        standingKneeRaisesTest: "3-Minute High-Knee Lift Test",
+        chairStand: "60-Second Chair Stand (Reps)",
+        chairStandTest: "60-Second Chair Stand Test",
+        situpsTest: "60 Seconds Sit-ups Test",
+        pushupsTest: "30 Seconds Modified Push-ups Test",
+        fitnessVeryGood: "Very Good",
+        fitnessGood: "Good",
+        fitnessAverage: "Average",
+        fitnessBelowAverage: "Below Average",
+        fitnessPoor: "Poor",
     },
     th: {
         // Shared
@@ -365,6 +382,7 @@ export const translations = {
         // Students Page
         studentList: "รายชื่อนักเรียน",
         addStudent: "เพิ่มนักเรียน",
+        nationalId: "เลขบัตรประจำตัวประชาชน",
         studentId: "รหัสนักเรียน",
         prefix: "คำนำ",
         firstName: "ชื่อ",
@@ -460,7 +478,7 @@ export const translations = {
         // eyeTest: "ระยะการมองเห็น",
         flexibility: "ความอ่อนตัว (ซม.)",
         handgripStrength: "แรงบีบมือ : Hand Grip Strength",
-        standingKneeRaises: "ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down",
+        standingKneeRaises: "การยกเข่า ขึ้น-ลง 3 นาที : 3-Minute High-Knee Lift",
         situps: "ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups",
         pushups: "ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups",
         cbc: "ความสมบูรณ์ของเม็ดเลือด (CBC)",
@@ -592,6 +610,22 @@ export const translations = {
         proportionateWH: "สมส่วน",
         relativelyThinWH: "ค่อนข้างผอม",
         thinWH: "ผอม",
+
+        // Physical Fitness
+        physicalFitnessAssessment: "ผลการประเมินสมรรถภาพทางกาย",
+        physicalFitnessResults: "ผลการประเมินสมรรถภาพทางกาย",
+        sitAndReachTest: "ความอ่อนตัว : นั่งงอตัวไปด้านหน้า (Sit and Reach Test)",
+        handgripStrengthTest: "แรงบีบมือ (Hand Grip Strength)",
+        standingKneeRaisesTest: "การยกเข่า ขึ้น-ลง 3 นาที (3-Minute High-Knee Lift Test)",
+        chairStand: "ยืน-นั่งบนเก้าอี้ 60 วินาที (ครั้ง)",
+        chairStandTest: "การยืน-นั่งบนเก้าอี้ 60 วินาที (60-Second Chair Stand Test)",
+        situpsTest: "ลุก-นั่ง 60 วินาที (60 Seconds Sit-ups)",
+        pushupsTest: "ดันพื้นประยุกต์ 30 วินาที (30 Seconds Modified Push-ups)",
+        fitnessVeryGood: "ดีมาก",
+        fitnessGood: "ดี",
+        fitnessAverage: "ปานกลาง",
+        fitnessBelowAverage: "ต่ำ",
+        fitnessPoor: "ต่ำมาก",
     }
 };
 
