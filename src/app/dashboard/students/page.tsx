@@ -61,14 +61,14 @@ interface School {
 
 type ColKey =
     | "studentId" | "class" | "room" | "orderNumber" | "prefix" | "firstName" | "lastName"
-    | "congenitalDisease" | "drugAllergy" | "bloodType" | "age" | "weight" | "height"
+    | "congenitalDisease" | "drugAllergy" | "bloodType" | "age" | "weight" | "height" | "bmi"
     | "healthCheckResult" | "hearingTest" | "eyeTest" | "visualAcuity" | "colorBlindness"
     | "flexibility" | "handgripStrength" | "standingKneeRaises" | "situps" | "pushups" | "xRayResult"
     | "cbc" | "fbs" | "cholesterol" | "hbsag" | "ua" | "amphetamine";
 
 const ALL_COLUMNS_ORDER: ColKey[] = [
     "studentId", "class", "room", "orderNumber", "prefix", "firstName", "lastName",
-    "congenitalDisease", "drugAllergy", "bloodType", "age", "weight", "height",
+    "congenitalDisease", "drugAllergy", "bloodType", "age", "weight", "height", "bmi",
     "healthCheckResult", "hearingTest", "eyeTest", "visualAcuity", "colorBlindness",
     "flexibility", "handgripStrength", "standingKneeRaises", "situps", "pushups", "xRayResult",
     "cbc", "fbs", "cholesterol", "hbsag", "ua", "amphetamine"
@@ -88,6 +88,7 @@ const COL_LABELS: Record<ColKey, string> = {
     age: "Age",
     weight: "Weight",
     height: "Height",
+    bmi: "BMI",
     healthCheckResult: "Health Result",
     hearingTest: "Hearing Test",
     eyeTest: "Vision Range",
@@ -107,7 +108,7 @@ const COL_LABELS: Record<ColKey, string> = {
     amphetamine: "ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)",
 };
 
-const LS_KEY = "students_visible_cols_v2";
+const LS_KEY = "students_visible_cols_v3";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -140,6 +141,7 @@ export default function StudentsPage() {
     // Schools & column config
     const [schools, setSchools] = useState<School[]>([]);
 
+    const [availableColumns, setAvailableColumns] = useState<ColKey[]>(ALL_COLUMNS_ORDER);
     const [visibleColumns, setVisibleColumns] = useState<Set<ColKey>>(new Set(ALL_COLUMNS_ORDER));
     const [colsReady, setColsReady] = useState(false);
 
@@ -157,15 +159,38 @@ export default function StudentsPage() {
             .then((data: School[]) => {
                 setSchools(data);
 
+                const isTestEnabled = (key: string) => {
+                    if (!data || data.length === 0) return true;
+                    return data.some(school => {
+                        if (!school.testsConfig) return true;
+                        return school.testsConfig[key] !== false;
+                    });
+                };
+
+                const configMap: Record<string, string> = {
+                    studentId: "studentId", congenitalDisease: "congenitalDisease", drugAllergy: "drugAllergy", bloodType: "bloodType",
+                    healthCheckResult: "bodyExamination", hearingTest: "hearingTest", eyeTest: "eyeTest", visualAcuity: "visualAcuity", colorBlindness: "colorBlindness",
+                    flexibility: "flexibility", handgripStrength: "handgripStrength", standingKneeRaises: "standingKneeRaises", situps: "situps", pushups: "pushups", xRayResult: "xRayResult",
+                    cbc: "cbc", fbs: "fbs", cholesterol: "cholesterol", hbsag: "hbsag", ua: "ua", amphetamine: "amphetamine"
+                };
+
+                const enabledColumns = ALL_COLUMNS_ORDER.filter(col => {
+                    const configKey = configMap[col];
+                    if (configKey) return isTestEnabled(configKey);
+                    return true;
+                });
+
+                setAvailableColumns(enabledColumns);
+
                 // Load from localStorage or use enabled columns as default
-                const defaultVisible = new Set<ColKey>(ALL_COLUMNS_ORDER);
+                const defaultVisible = new Set<ColKey>(enabledColumns);
 
                 try {
                     const saved = localStorage.getItem(LS_KEY);
                     if (saved) {
                         const parsed: ColKey[] = JSON.parse(saved);
                         // Keep only valid column keys
-                        const valid = parsed.filter(k => ALL_COLUMNS_ORDER.includes(k as ColKey)) as ColKey[];
+                        const valid = parsed.filter(k => enabledColumns.includes(k as ColKey)) as ColKey[];
                         setVisibleColumns(new Set(valid));
                     } else {
                         setVisibleColumns(defaultVisible);
@@ -217,35 +242,65 @@ export default function StudentsPage() {
 
     // ── Export ───────────────────────────────────────────────────────────────
     const exportExcel = async () => {
-        const XLSX = await import("xlsx");
-        const rows = students.map(s => {
-            const hr = s.healthRecords[0];
-            const row: Record<string, any> = {
-                [t("studentId")]: s.studentId,
-                [t("class")]: s.class,
-                [t("room")]: s.room || "",
-                [t("orderNumber")]: s.orderNumber,
-                [t("prefix")]: s.prefix || "",
-                [t("firstName")]: s.firstName,
-                [t("lastName")]: s.surName,
-                [t("congenitalDisease")]: hr?.underlyingDisease || "",
-                [t("drugAllergy")]: hr?.drugAllergy || "",
-                [t("bloodType")]: hr?.bloodType || "",
-                [t("age")]: (s as any).age ?? "",
-                [t("weight")]: hr?.weight ?? "",
-                [t("height")]: hr?.height ?? "",
-                [t("healthCheckResult")]: hr?.symptoms ?? "",
-                [t("hearingTest")]: hr?.hearingTest ?? "",
-                [t("eyeTest")]: hr?.eyeTest ?? "",
-                [t("visualAcuity")]: hr?.visualAcuity ?? "",
-                [t("colorBlindness")]: hr?.colorBlindness ?? "",
-            };
-            return row;
-        });
-        const ws = XLSX.utils.json_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Students");
-        XLSX.writeFile(wb, "students_export.xlsx");
+        setLoading(true);
+        try {
+            const XLSX = await import("xlsx");
+            const params = new URLSearchParams({ page: "1", limit: "10000" });
+            if (search) params.set("search", search);
+            if (classFilter) params.set("class", classFilter);
+            if (hearingFilter) params.set("hearing", hearingFilter);
+            if (colorFilter) params.set("colorBlindness", colorFilter);
+            const res = await fetch(`/api/students?${params}`);
+            const data = await res.json();
+            const allStudents: Student[] = data.students && data.students.length > 0 ? data.students : students;
+
+            const rows = allStudents.map(s => {
+                const hr = s.healthRecords?.[0];
+                return {
+                    [t("nationalId") || "Thai ID"]: s.nationalId || "",
+                    [t("studentId")]: s.studentId || "",
+                    [t("class")]: s.class || "",
+                    [t("room")]: s.room || "",
+                    [t("orderNumber")]: s.orderNumber,
+                    [t("prefix")]: s.prefix || "",
+                    [t("firstName")]: s.firstName,
+                    [t("lastName")]: s.surName,
+                    [t("gender")]: s.gender || "",
+                    [t("congenitalDisease")]: hr?.underlyingDisease || "",
+                    [t("drugAllergy")]: hr?.drugAllergy || "",
+                    [t("bloodType")]: hr?.bloodType || "",
+                    [t("age")]: (s as any).age ?? "",
+                    [t("weight")]: hr?.weight ?? "",
+                    [t("height")]: hr?.height ?? "",
+                    BMI: hr?.bmi ?? "",
+                    [t("healthCheckResult")]: hr?.bodyExamination ?? "",
+                    [t("hearingTest")]: hr?.hearingTest ?? "",
+                    [t("eyeTest")]: hr?.visualAcuity ?? "",
+                    [t("visualAcuity")]: hr?.eyeExamReport ?? "",
+                    [t("colorBlindness")]: hr?.colorBlindness ?? "",
+                    [t("flexibility") || "Flexibility"]: hr?.flexibility ?? "",
+                    [t("handgripStrength") || "Hand Grip Strength"]: hr?.handgripStrength ?? "",
+                    [t("standingKneeRaises") || "3 Minutes Step Up"]: hr?.standingKneeRaises ?? "",
+                    [t("situps") || "60 Seconds Sit-ups"]: hr?.situps ?? "",
+                    [t("pushups") || "30 Seconds Push-ups"]: hr?.pushups ?? "",
+                    [t("xRayResult") || "X-Ray"]: hr?.xRayResult ?? "",
+                    [t("cbc") || "CBC"]: hr?.cbc ?? "",
+                    [t("fbs") || "FBS"]: hr?.fbs ?? "",
+                    [t("cholesterol") || "Cholesterol"]: hr?.cholesterol ?? "",
+                    [t("hbsag") || "HBSAG"]: hr?.hbsag ?? "",
+                    [t("ua") || "UA"]: hr?.ua ?? "",
+                    [t("amphetamine") || "Amphetamine"]: hr?.amphetamine ?? "",
+                };
+            });
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Students");
+            XLSX.writeFile(wb, `students_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        } catch (err) {
+            console.error("Export error:", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
 
@@ -271,11 +326,11 @@ export default function StudentsPage() {
     };
 
     const resetCols = () => {
-        setVisibleColumns(new Set(ALL_COLUMNS_ORDER));
+        setVisibleColumns(new Set(availableColumns));
     };
 
     // Ordered visible columns
-    const orderedVisible = ALL_COLUMNS_ORDER.filter(k => visibleColumns.has(k));
+    const orderedVisible = availableColumns.filter(k => visibleColumns.has(k));
     const colSpan = orderedVisible.length + 1;
 
     // ── Cell renderer ────────────────────────────────────────────────────────
@@ -315,8 +370,10 @@ export default function StudentsPage() {
                 return <td key={col}><span className="text-sm">{hr?.weight ?? "—"}</span></td>;
             case "height":
                 return <td key={col}><span className="text-sm">{hr?.height ?? "—"}</span></td>;
+            case "bmi":
+                return <td key={col}><span className={`text-sm font-semibold ${bmiColor}`}>{bmi ? bmi.toFixed(2) : "—"}</span></td>;
             case "healthCheckResult":
-                return <td key={col}><span className="text-xs truncate max-w-[120px] block">{hr?.symptoms || "—"}</span></td>;
+                return <td key={col}><span className="text-xs truncate max-w-[120px] block">{hr?.bodyExamination || "—"}</span></td>;
             case "hearingTest":
                 return (
                     <td key={col}>
@@ -328,9 +385,9 @@ export default function StudentsPage() {
                     </td>
                 );
             case "eyeTest":
-                return <td key={col}><span className="text-xs">{hr?.eyeTest || "—"}</span></td>;
-            case "visualAcuity":
                 return <td key={col}><span className="text-xs">{hr?.visualAcuity || "—"}</span></td>;
+            case "visualAcuity":
+                return <td key={col}><span className="text-xs">{hr?.eyeExamReport || "—"}</span></td>;
             case "colorBlindness":
                 return (
                     <td key={col}>
@@ -477,7 +534,7 @@ export default function StudentsPage() {
                                     <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                                         <div>
                                             <h2 className="font-semibold text-base">Table Columns</h2>
-                                            <p className="text-xs text-muted-foreground mt-0.5">{orderedVisible.length} of {ALL_COLUMNS_ORDER.length} visible</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">{orderedVisible.length} of {availableColumns.length} visible</p>
                                         </div>
                                         <button onClick={() => setShowColMenu(false)} className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
                                             <X className="w-4 h-4" />
@@ -487,7 +544,7 @@ export default function StudentsPage() {
                                     <div className="overflow-y-auto flex-1 px-4 py-3">
                                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Table Columns</p>
                                         <div className="grid grid-cols-2 gap-1 mb-4">
-                                            {ALL_COLUMNS_ORDER.map(key => (
+                                            {availableColumns.map(key => (
                                                 <label key={key} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-secondary cursor-pointer transition-colors">
                                                     <input type="checkbox" checked={visibleColumns.has(key)} onChange={() => toggleCol(key)} className="w-3.5 h-3.5 rounded accent-primary" />
                                                     <span className="text-sm text-foreground">{t(key as any) || COL_LABELS[key]}</span>

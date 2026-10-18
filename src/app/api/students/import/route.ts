@@ -14,13 +14,13 @@ export async function POST(req: Request) {
     try {
         const role = (session.user as any).role;
         const userSchoolId = (session.user as any).schoolId;
-        
+
         let targetSchoolId = userSchoolId;
-        
+
         const formData = await req.formData();
         const file = formData.get("file") as File;
         const formSchoolId = formData.get("schoolId") as string;
-        
+
         if (role !== "SCHOOL_STAFF" && formSchoolId) {
             targetSchoolId = formSchoolId;
         }
@@ -35,26 +35,26 @@ export async function POST(req: Request) {
 
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        
+
         const workbook = XLSX.read(buffer, { type: "buffer" });
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const rows: any[] = XLSX.utils.sheet_to_json(sheet);
-        
+
         // Extract headers in original order to reconstruct exact columns for skipped rows
         const headers = (XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] as string[]) || [];
-        const weightColIdx = headers.findIndex(h => h === "น้ำหนัก" || h === "Weight");
-        const heightColIdx = headers.findIndex(h => h === "ส่วนสูง" || h === "Height");
+        const weightColIdx = headers.findIndex(h => h === "น้ำหนัก" || h === "Weight" || h === "น้ำหนัก (กก.)");
+        const heightColIdx = headers.findIndex(h => h === "ส่วนสูง" || h === "Height" || h === "ส่วนสูง (ซม.)");
 
         const db = readDb();
         const school = db.schools.find((s: any) => s.id === targetSchoolId);
         if (!school) {
             return NextResponse.json({ error: "Target school not found." }, { status: 404 });
         }
-        
+
         const testsConfig = school.testsConfig || { flexibility: true, handgripStrength: true, standingKneeRaises: true, situps: true, pushups: true, xRayResult: true };
         const customFields = school.customFields || [];
-        
+
         let studentsAdded = 0;
         let recordsAdded = 0;
         const warnings: any[] = [];
@@ -70,32 +70,32 @@ export async function POST(req: Request) {
 
             // Support exact Thai headers as requested
             const studentId = String(getValue(["เลขประจำตัว"]) || "").trim();
-            
-            if (!studentId || studentId === "-") {
-                return; // Skip empty rows
-            }
-
             const prefix = String(getValue(["คำนำ"]) || "").trim();
             const firstName = String(getValue(["ชื่อ"]) || "").trim();
             const surName = String(getValue(["นามสกุล"]) || "").trim();
             const studentName = `${prefix} ${firstName} ${surName}`.trim() || studentId || "Unknown Student";
+
+            // If a row has neither a student ID nor a valid first name, skip it
+            if ((!studentId || studentId === "-") && !firstName) {
+                return; 
+            }
 
             let genderVal = String(getValue(["เพศ"]) || "").trim();
             if (!genderVal && prefix) {
                 if (prefix.includes("ชาย") || prefix === "นาย") genderVal = "ชาย";
                 else if (prefix.includes("หญิง") || prefix === "นางสาว" || prefix === "นาง") genderVal = "หญิง";
             }
-            
-            const rawAge = getValue(["อายุ"]);
+
+            const rawAge = getValue(["อายุ", "อายุ (ปี)"]);
             const ageVal = rawAge ? parseInt(rawAge, 10) : null;
 
-            const weightRaw = getValue(["น้ำหนัก"]);
-            const heightRaw = getValue(["ส่วนสูง"]);
+            const weightRaw = getValue(["น้ำหนัก", "น้ำหนัก (กก.)"]);
+            const heightRaw = getValue(["ส่วนสูง", "ส่วนสูง (ซม.)"]);
 
             // Determine validation ranges based on configured age rules or fallbacks
             let minWeight = 10, maxWeight = 200;
             let minHeight = 50, maxHeight = 220;
-            
+
             if (ageVal !== null && db.settings?.ageValidations) {
                 const config = db.settings.ageValidations.find((v: any) => v.age === ageVal);
                 if (config) {
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
                 if (isNaN(parsedWeight) || parsedWeight < minWeight || parsedWeight > maxWeight) {
                     rowHasErrors = true;
                     rowWarnings.push({
-                        field: isTh ? "น้ำหนัก (Weight)" : "Weight (น้ำหนัก)",
+                        field: isTh ? "น้ำหนัก" : "Weight",
                         value: weightRaw,
                         expected: `${minWeight} - ${maxWeight} kg`,
                         message: isTh
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
                 if (isNaN(parsedHeight) || parsedHeight < minHeight || parsedHeight > maxHeight) {
                     rowHasErrors = true;
                     rowWarnings.push({
-                        field: isTh ? "ส่วนสูง (Height)" : "Height (ส่วนสูง)",
+                        field: isTh ? "ส่วนสูง" : "Height",
                         value: heightRaw,
                         expected: `${minHeight} - ${maxHeight} cm`,
                         message: isTh
@@ -178,22 +178,25 @@ export async function POST(req: Request) {
             // Proceed with importing correct data
             const classVal = String(getValue(["ชั้น"]) || "").trim();
             const roomVal = String(getValue(["ห้อง", "Room"]) || "").trim(); // Kept ห้อง as fallback if they split it
-            
+
             const rawOrder = getValue(["เลขที่"]);
             const orderNum = parseInt(rawOrder || "0", 10);
-            
+
+            const nationalId = String(getValue(["เลขประจำตัวประชาชน", "รหัสบัตรประชาชน", "Thai ID", "National ID"]) || "").trim();
+
             // Age has already been extracted earlier
 
             // Check if student exists in the target school
-            let student = db.students.find(s => 
-                (studentId && s.studentId === studentId) 
-                && s.schoolId === targetSchoolId
-            );
+            let student = db.students.find(s => s.schoolId === targetSchoolId && (
+                (studentId && s.studentId === studentId) ||
+                (!studentId && firstName && s.firstName === firstName && s.surName === surName)
+            ));
 
             if (!student) {
                 student = {
                     id: `stu-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     studentId: studentId,
+                    nationalId: nationalId,
                     orderNumber: orderNum,
                     class: classVal,
                     room: roomVal,
@@ -219,6 +222,7 @@ export async function POST(req: Request) {
                 if (roomVal !== undefined) student.room = roomVal;
                 if (rawOrder !== undefined) student.orderNumber = orderNum;
                 if (rawAge !== undefined && rawAge !== "") student.age = ageVal;
+                if (nationalId) student.nationalId = nationalId;
 
                 const idx = db.students.findIndex(s => s.id === student.id);
                 if (idx > -1) db.students[idx] = student;
@@ -226,7 +230,7 @@ export async function POST(req: Request) {
 
             // Health Data parsing
             const academicYearVal = String(getValue(["ปีการศึกษา", "Academic Year"]) || new Date().getFullYear()).trim();
-            
+
             let weightVal = null;
             let heightVal = null;
             let bmiVal = null;
@@ -252,28 +256,29 @@ export async function POST(req: Request) {
             }
 
             // Parse remaining diagnostic and health checks
-            const bloodTypeVal = String(getValue(["กรุ๊ปเลือด"]) || "UNKNOWN").toUpperCase().trim();
+            const bloodTypeVal = String(getValue(["กรุ๊ปเลือด"]) || "").toUpperCase().trim();
             const underlyingDiseaseVal = String(getValue(["โรคประจำตัว"]) || "").trim();
             const drugAllergyVal = String(getValue(["แพ้ยา"]) || "").trim();
             const hearingTestVal = String(getValue(["การได้ยิน"]) || "ปกติ").trim();
-            const colorBlindnessVal = String(getValue(["การแยกสี"]) || "ปกติ").trim();
-            const visualAcuityVal = String(getValue(["ระยะการมอง"]) || "—").trim();
-            const eyeExamReportVal = String(getValue(["สรุปผลสายตา"]) || "—").trim();
-            
-            const xRayResultVal = testsConfig.xRayResult !== false ? String(getValue(["X-Ray", "X-Ray Result", "ผลเอ็กซเรย์"]) || "Normal").trim() : "-";
-            const flexibilityVal = testsConfig.flexibility !== false ? (parseFloat(getValue(["ความอ่อนตัว : Sit and Reach Test", "ความอ่อนตัว", "อ่อนตัว"])) || null) : null;
+            const colorBlindnessVal = String(getValue(["การแยกสี", "ตาบอดสี"]) || "ปกติ").trim();
+            const visualAcuityVal = String(getValue(["ระยะการมอง", "ระยะการมองเห็น"]) || "—").trim();
+            const eyeExamReportVal = String(getValue(["สรุปผลสายตา", "ผลตรวจสายตา"]) || "—").trim();
+            const bodyExaminationVal = String(getValue(["ตรวจร่างกาย", "ผลตรวจสุขภาพ"]) || "").trim();
+
+            const xRayResultVal = testsConfig.xRayResult !== false ? String(getValue(["X-Ray", "X-Ray Result", "ผลเอกซเรย์", "เอกซเรย์ปอด"]) || "Normal").trim() : "-";
+            const flexibilityVal = testsConfig.flexibility !== false ? (parseFloat(getValue(["ความอ่อนตัว : Sit and Reach Test", "ความอ่อนตัว", "อ่อนตัว", "วัดความอ่อนตัว"])) || null) : null;
             const handgripVal = testsConfig.handgripStrength !== false ? (parseFloat(getValue(["แรงบีบมือ : Hand Grip Strength", "แรงบีบมือ"])) || null) : null;
             const standingKneeRaisesVal = testsConfig.standingKneeRaises !== false ? (parseInt(getValue(["ยืนยกเข่า 3 นาที : 3 Minutes Step Up and Down", "ยืนยกเข่า 3 นาที", "ยืนยกเข่า", "ยกเข่า"]), 10) || null) : null;
-            const situpsVal = testsConfig.situps !== false ? (parseInt(getValue(["ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups", "ลุก-นั่ง 60 วินาที", "ลุกนั่ง"]), 10) || null) : null;
+            const situpsVal = testsConfig.situps !== false ? (parseInt(getValue(["ลุก-นั่ง 60 วินาที : 60 Seconds Sit-ups", "ลุก-นั่ง 60 วินาที", "ลุกนั่ง", "ซิทอัพ"]), 10) || null) : null;
             const pushupsVal = testsConfig.pushups !== false ? (parseInt(getValue(["ดันพื้นประยุกต์ 30 วินาที : 30 Seconds Modified Push-ups", "ดันพื้นประยุกต์ 30 วินาที", "ดันพื้น"]), 10) || null) : null;
-            
+
             const cbcVal = testsConfig.cbc !== false ? String(getValue(["ความสมบูรณ์ของเม็ดเลือด (CBC)", "ความสมบูรณ์ของเม็ดเลือด", "CBC"]) || "").trim() : "";
             const fbsVal = testsConfig.fbs !== false ? String(getValue(["ระดับน้ำตาลในเลือด (FBS)", "ระดับน้ำตาลในเลือด", "FBS"]) || "").trim() : "";
             const cholesterolVal = testsConfig.cholesterol !== false ? String(getValue(["ระดับไขมันในเลือด (Cholesterol)", "ระดับไขมันในเลือด", "Cholesterol"]) || "").trim() : "";
             const hbsagVal = testsConfig.hbsag !== false ? String(getValue(["ตรวจหาเชื้อไวรัสตับอักเสบบี (HBSAG)", "ตรวจหาเชื้อไวรัสตับอักเสบบี", "HBSAG"]) || "").trim() : "";
             const uaVal = testsConfig.ua !== false ? String(getValue(["ตรวจปัสสาวะทั่วไป (UA)", "ตรวจปัสสาวะทั่วไป", "UA"]) || "").trim() : "";
             const amphetamineVal = testsConfig.amphetamine !== false ? String(getValue(["ตรวจหาสารเสพติดในปัสสาวะ (Amphetamine)", "ตรวจหาสารเสพติดในปัสสาวะ", "Amphetamine"]) || "").trim() : "";
-            
+
             const symptomsVal = String(getValue(["อาการเบื้องต้น"]) || "").trim();
             const additionalNotesVal = String(getValue(["บันทึกเพิ่มเติม", "Additional Notes"]) || "").trim();
 
@@ -288,7 +293,7 @@ export async function POST(req: Request) {
             });
 
             // Find or create HealthRecord for this student and academic year
-            let healthRecord = db.healthRecords.find(hr => 
+            let healthRecord = db.healthRecords.find(hr =>
                 hr.studentId === student.id && hr.academicYear === academicYearVal
             );
 
@@ -304,6 +309,7 @@ export async function POST(req: Request) {
                 colorBlindness: colorBlindnessVal,
                 visualAcuity: visualAcuityVal,
                 eyeExamReport: eyeExamReportVal,
+                bodyExamination: bodyExaminationVal,
                 xRayResult: xRayResultVal,
                 flexibility: flexibilityVal,
                 handgripStrength: handgripVal,
@@ -392,14 +398,14 @@ export async function POST(req: Request) {
             errorFileBase64 = errorBuf.toString("base64");
         }
 
-        return NextResponse.json({ 
-            success: true, 
+        return NextResponse.json({
+            success: true,
             studentsAdded,
             recordsAdded,
             skippedCount: skippedRowsAoa.length,
             warnings,
             errorFileBase64,
-            errorFileName: `incorrect-student-health-records-${new Date().toISOString().slice(0,10)}.xlsx`
+            errorFileName: `incorrect-student-health-records-${new Date().toISOString().slice(0, 10)}.xlsx`
         });
 
     } catch (e: any) {

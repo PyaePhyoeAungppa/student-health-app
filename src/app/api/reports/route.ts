@@ -5,118 +5,38 @@ import { readDb } from "@/lib/db";
 import fs from "fs";
 import path from "path";
 import * as XLSX from "xlsx";
-import growthStandards from "@/lib/growth-standards.json";
+import ExcelJS from "exceljs";
+import { getSchoolGrowthStandards, calculateZScoreAndClass, evaluateStudentGrowth } from "@/lib/growth-calculator";
+import defaultGrowthStandards from "@/lib/growth-standards.json";
 
-// Helper functions for Z-score and SD classification
-function calculateZScoreAndClass(val: number, refValues: number[], isHeight: boolean, isWeightForHeight: boolean) {
-    const [sd3n, sd2n, sd1_5n, sd1n, median, sd1p, sd1_5p, sd2p, sd3p] = refValues;
-
-    let code = 4;
-    let label = "";
-
-    if (isHeight) {
-        if (val < sd3n) {
-            code = 1;
-            label = "เตี้ยมาก";
-        } else if (val < sd2n) {
-            code = 2;
-            label = "เตี้ย";
-        } else if (val < sd1_5n) {
-            code = 3;
-            label = "ค่อนข้างเตี้ย";
-        } else if (val <= sd1_5p) {
-            code = 4;
-            label = "ส่วนสูงตามเกณฑ์";
-        } else if (val <= sd2p) {
-            code = 5;
-            label = "ค่อนข้างสูง";
-        } else {
-            code = 6;
-            label = "สูงกว่าเกณฑ์";
+async function getChartImageBuffer(dataMap: Record<string, number>, title: string): Promise<Buffer | null> {
+    const labels = Object.keys(dataMap).map(k => k || "Unknown");
+    const data = Object.values(dataMap);
+    if (data.length === 0) return null;
+    
+    const chart = {
+        type: 'pie',
+        data: {
+            labels,
+            datasets: [{
+                data,
+                backgroundColor: ["#38bdf8", "#a78bfa", "#4ade80", "#fb923c", "#f43f5e", "#facc15", "#e879f9"]
+            }]
+        },
+        options: {
+            title: { display: true, text: title },
+            plugins: { datalabels: { display: false } }
         }
-    } else if (isWeightForHeight) {
-        if (val < sd3n) {
-            code = 1;
-            label = "ผอมมาก";
-        } else if (val < sd2n) {
-            code = 2;
-            label = "ผอม";
-        } else if (val < sd1_5n) {
-            code = 3;
-            label = "ค่อนข้างผอม";
-        } else if (val <= sd1_5p) {
-            code = 4;
-            label = "สมส่วน";
-        } else if (val <= sd2p) {
-            code = 5;
-            label = "ท้วม";
-        } else if (val <= sd3p) {
-            code = 6;
-            label = "เริ่มอ้วน";
-        } else {
-            code = 7;
-            label = "อ้วน";
-        }
-    } else {
-        // Weight-for-Age
-        if (val < sd3n) {
-            code = 1;
-            label = "น้ำหนักน้อยกว่าเกณฑ์มาก";
-        } else if (val < sd2n) {
-            code = 2;
-            label = "น้ำหนักน้อยกว่าเกณฑ์";
-        } else if (val < sd1_5n) {
-            code = 3;
-            label = "น้ำหนักค่อนข้างน้อย";
-        } else if (val <= sd1_5p) {
-            code = 4;
-            label = "น้ำหนักตามเกณฑ์";
-        } else if (val <= sd2p) {
-            code = 5;
-            label = "น้ำหนักค่อนข้างมาก";
-        } else if (val <= sd3p) {
-            code = 6;
-            label = "น้ำหนักมากกว่าเกณฑ์";
-        } else {
-            code = 7;
-            label = "น้ำหนักมากกว่าเกณฑ์มาก";
-        }
-    }
-
-    let zScore = 0;
-    if (val === median) {
-        zScore = 0;
-    } else if (val > median) {
-        if (val <= sd1p) {
-            zScore = (val - median) / (sd1p - median);
-        } else if (val <= sd1_5p) {
-            zScore = 1 + 0.5 * (val - sd1p) / (sd1_5p - sd1p);
-        } else if (val <= sd2p) {
-            zScore = 1.5 + 0.5 * (val - sd1_5p) / (sd2p - sd1_5p);
-        } else if (val <= sd3p) {
-            zScore = 2 + (val - sd2p) / (sd3p - sd2p);
-        } else {
-            zScore = 3 + (val - sd3p) / (sd3p - sd2p);
-        }
-    } else {
-        if (val >= sd1n) {
-            zScore = -((median - val) / (median - sd1n));
-        } else if (val >= sd1_5n) {
-            zScore = -1 - 0.5 * (sd1n - val) / (sd1n - sd1_5n);
-        } else if (val >= sd2n) {
-            zScore = -1.5 - 0.5 * (sd1_5n - val) / (sd1_5n - sd2n);
-        } else if (val >= sd3n) {
-            zScore = -2 - (sd2n - val) / (sd2n - sd3n);
-        } else {
-            zScore = -3 - (sd3n - val) / (sd2n - sd3n);
-        }
-    }
-
-    return {
-        zScore: parseFloat(zScore.toFixed(2)),
-        code,
-        label
     };
+    
+    const url = `https://quickchart.io/chart?c=${encodeURIComponent(JSON.stringify(chart))}&w=400&h=300&bkg=white`;
+    try {
+        const res = await fetch(url);
+        const arrayBuffer = await res.arrayBuffer();
+        return Buffer.from(arrayBuffer);
+    } catch {
+        return null;
+    }
 }
 
 export async function GET(req: Request) {
@@ -144,18 +64,20 @@ export async function GET(req: Request) {
             return new NextResponse("Template file not found.", { status: 404 });
         }
 
-        const fileBuffer = fs.readFileSync(templatePath);
-        const workbook = XLSX.read(fileBuffer, { type: "buffer" });
-        const dataSheet = workbook.Sheets["Data"];
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(templatePath);
+        const dataSheet = workbook.getWorksheet("Data");
+        
         if (!dataSheet) {
             return new NextResponse("Data sheet not found in template.", { status: 400 });
         }
 
-        // Fill student data
+        // Fill student data in Data sheet
+        const studentReportRows: any[] = [];
+
         for (let i = 0; i < students.length; i++) {
             const student = students[i];
-            const rIdx = 13 + i;
-            const excelRowNumber = rIdx + 1;
+            const excelRowNumber = 14 + i; // 1-based index, starts at 14 in template
 
             const latestRecord = db.healthRecords
                 .filter(hr => hr.studentId === student.id)
@@ -180,46 +102,144 @@ export async function GET(req: Request) {
             const w = latestRecord?.weight || 0;
             const h = latestRecord?.height || 0;
 
-            const isMale = student.gender === 'Male' || student.gender === 'male' || student.prefix === 'ด.ช.' || student.prefix === 'นาย';
+            const isMale = student.gender === 'Male' || student.gender === 'male' || student.gender === 'MALE' || student.gender === 'ชาย' || student.prefix === 'ด.ช.' || student.prefix === 'เด็กชาย' || student.prefix === 'นาย';
             const gender = isMale ? 1 : 2;
-            const name = `${student.prefix || ""} ${student.firstName} ${student.surName}`.trim();
+            const name = `${student.prefix || ""} ${student.firstName || ""} ${student.surName || (student as any).lastName || ""}`.trim();
 
-            const cellA = XLSX.utils.encode_cell({ r: rIdx, c: 0 });
-            const cellB = XLSX.utils.encode_cell({ r: rIdx, c: 1 });
-            const cellC = XLSX.utils.encode_cell({ r: rIdx, c: 2 });
-            const cellD = XLSX.utils.encode_cell({ r: rIdx, c: 3 });
-            const cellE = XLSX.utils.encode_cell({ r: rIdx, c: 4 });
-            const cellF = XLSX.utils.encode_cell({ r: rIdx, c: 5 });
-            const cellG = XLSX.utils.encode_cell({ r: rIdx, c: 6 });
-            const cellH = XLSX.utils.encode_cell({ r: rIdx, c: 7 });
-            const cellI = XLSX.utils.encode_cell({ r: rIdx, c: 8 });
+            const row = dataSheet.getRow(excelRowNumber);
+            row.getCell(1).value = i + 1;
+            row.getCell(2).value = name;
+            row.getCell(3).value = gender;
+            row.getCell(4).value = "";
+            row.getCell(5).value = ageInYears;
+            row.getCell(6).value = w;
+            row.getCell(7).value = h;
+            row.getCell(8).value = { formula: `IF(E${excelRowNumber}=0,999,1)`, result: 1 };
+            row.getCell(9).value = { formula: `IF(H${excelRowNumber}=999,999,E${excelRowNumber}*12)`, result: ageInMonths };
+            row.commit();
 
-            dataSheet[cellA] = { t: 'n', v: i + 1 };
-            dataSheet[cellB] = { t: 's', v: name };
-            dataSheet[cellC] = { t: 'n', v: gender };
-            dataSheet[cellD] = { t: 's', v: "" };
-            dataSheet[cellE] = { t: 'n', v: ageInYears };
-            dataSheet[cellF] = { t: 'n', v: w };
-            dataSheet[cellG] = { t: 'n', v: h };
-            dataSheet[cellH] = { t: 'n', v: 1, f: `IF(E${excelRowNumber}=0,999,1)` };
-            dataSheet[cellI] = { t: 'n', v: ageInMonths, f: `IF(H${excelRowNumber}=999,999,E${excelRowNumber}*12)` };
+            // Calculate growth status for comprehensive sheet
+            let waLabel = "—";
+            let haLabel = "—";
+            let whLabel = "—";
+
+            const school = db.schools.find((s: any) => s.id === student.schoolId);
+            const standards = getSchoolGrowthStandards(school);
+
+            if (standards && w > 0 && h > 0) {
+                const sexAge = gender * 1000 + Math.min(239, ageInMonths);
+                const waRef = standards.waTable?.find((r: any) => r.sexAge === sexAge);
+                if (waRef) waLabel = calculateZScoreAndClass(w, waRef.values, false, false).label;
+
+                const haRef = standards.haTable?.find((r: any) => r.sexAge === sexAge);
+                if (haRef) haLabel = calculateZScoreAndClass(h, haRef.values, true, false).label;
+
+                const roundedHeight = Math.round(h * 4) / 4;
+                const whRef = standards.whTable?.find((r: any) => r.height === roundedHeight);
+                const whValues = whRef ? (gender === 1 ? whRef.maleValues : whRef.femaleValues) : null;
+                if (whValues && !whValues.includes(NaN)) whLabel = calculateZScoreAndClass(w, whValues, false, true).label;
+            }
+
+            studentReportRows.push({
+                "ลำดับ": i + 1,
+                "รหัสนักเรียน": student.studentId || "",
+                "คำนำหน้า": student.prefix || "",
+                "ชื่อ": student.firstName || "",
+                "นามสกุล": student.surName || (student as any).lastName || "",
+                "ชื่อ-นามสกุล": name,
+                "ชั้น/ห้อง": `${student.class || ""}${student.room ? "/" + student.room : ""}`,
+                "เพศ": isMale ? "ชาย" : "หญิง",
+                "อายุ (ปี)": ageInYears,
+                "อายุ (เดือน)": ageInMonths,
+                "น้ำหนัก (กก.)": w || "—",
+                "ส่วนสูง (ซม.)": h || "—",
+                "ดัชนีมวลกาย (BMI)": latestRecord?.bmi ?? "—",
+                "น้ำหนักตามเกณฑ์อายุ (W/A)": waLabel,
+                "ส่วนสูงตามเกณฑ์อายุ (H/A)": haLabel,
+                "น้ำหนักตามเกณฑ์ส่วนสูง (W/H)": whLabel,
+                "การได้ยิน": latestRecord?.hearingTest || "—",
+                "การมองเห็นสี": latestRecord?.colorBlindness || "—",
+                "กรุ๊ปเลือด": latestRecord?.bloodType || "—",
+                "โรคประจำตัว": latestRecord?.underlyingDisease || "—",
+                "แพ้ยา": latestRecord?.drugAllergy || "—",
+                "วันที่ตรวจ": latestRecord?.recordedAt ? new Date(latestRecord.recordedAt).toLocaleDateString("th-TH") : "—"
+            });
         }
 
-        // Clear remaining unused rows in Data sheet (index 13 + students.length to 2500)
+        // Clear unused template rows in Data sheet
         for (let i = students.length; i < 2500; i++) {
-            const rIdx = 13 + i;
-            for (let c = 0; c < 10; c++) {
-                const cellRef = XLSX.utils.encode_cell({ r: rIdx, c });
-                delete dataSheet[cellRef];
+            const excelRowNumber = 14 + i;
+            const row = dataSheet.getRow(excelRowNumber);
+            for (let c = 1; c <= 10; c++) {
+                row.getCell(c).value = null;
+            }
+            row.commit();
+        }
+
+        // Add comprehensive Student Health Report sheet to workbook
+        const reportWs = workbook.addWorksheet("รายงานสุขภาพและโภชนาการ");
+        if (studentReportRows.length > 0) {
+            const headerRow = Object.keys(studentReportRows[0]);
+            reportWs.addRow(headerRow);
+            for (const sr of studentReportRows) {
+                const r = [];
+                for (const h of headerRow) {
+                    r.push(sr[h]);
+                }
+                reportWs.addRow(r);
             }
         }
 
-        const xlsxBuffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+        // Add Dashboard Charts
+        const chartsWs = workbook.addWorksheet("Dashboard Charts");
+        
+        const studentIds = students.map(s => s.id);
+        const healthRecords = db.healthRecords.filter((hr: any) => studentIds.includes(hr.studentId));
+        const genderMap: Record<string, number> = {};
+        const hearingMap: Record<string, number> = {};
+        const colorBlindMap: Record<string, number> = {};
+        const bloodTypeMap: Record<string, number> = {};
+
+        students.forEach(s => {
+            const genderLabel = s.gender || "Unknown";
+            genderMap[genderLabel] = (genderMap[genderLabel] || 0) + 1;
+        });
+        healthRecords.forEach((hr: any) => {
+            if (hr.hearingTest) hearingMap[hr.hearingTest] = (hearingMap[hr.hearingTest] || 0) + 1;
+            if (hr.colorBlindness) colorBlindMap[hr.colorBlindness] = (colorBlindMap[hr.colorBlindness] || 0) + 1;
+            if (hr.bloodType) bloodTypeMap[hr.bloodType] = (bloodTypeMap[hr.bloodType] || 0) + 1;
+        });
+
+        let colOffset = 0;
+        const addImageToSheet = async (map: Record<string, number>, title: string) => {
+            const buf = await getChartImageBuffer(map, title);
+            if (buf) {
+                const imgId = workbook.addImage({
+                    buffer: buf,
+                    extension: 'png',
+                });
+                chartsWs.addImage(imgId, {
+                    tl: { col: colOffset, row: 1 },
+                    ext: { width: 400, height: 300 }
+                });
+                colOffset += 7;
+            }
+        };
+
+        await addImageToSheet(genderMap, "Gender Distribution");
+        await addImageToSheet(hearingMap, "Hearing Test Results");
+        await addImageToSheet(colorBlindMap, "Color Vision Results");
+        await addImageToSheet(bloodTypeMap, "Blood Type Distribution");
+
+        const xlsxBuffer = await workbook.xlsx.writeBuffer();
 
         const school = db.schools.find(s => s.id === effectiveSchoolId);
-        const schoolName = school ? school.name.replace(/\s+/g, "_") : "report";
+        // Strip non-ASCII chars so the header value stays a valid ByteString
+        const schoolName = school
+            ? school.name.replace(/\s+/g, "_").replace(/[^\x20-\x7E]/g, "") || "school"
+            : "report";
 
-        return new NextResponse(xlsxBuffer, {
+        return new NextResponse(xlsxBuffer as any, {
             status: 200,
             headers: {
                 "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -302,7 +322,7 @@ export async function GET(req: Request) {
             const w = latestRecord?.weight;
             const h = latestRecord?.height;
 
-            const isMale = student.gender === 'Male' || student.gender === 'male' || student.prefix === 'ด.ช.' || student.prefix === 'นาย';
+            const isMale = student.gender === 'Male' || student.gender === 'male' || student.gender === 'MALE' || student.gender === 'ชาย' || student.prefix === 'ด.ช.' || student.prefix === 'เด็กชาย' || student.prefix === 'นาย';
             const gender = isMale ? 1 : 2;
 
             const sexAge = gender * 1000 + Math.min(239, ageInMonths);
@@ -327,7 +347,7 @@ export async function GET(req: Request) {
 
             studentRow[0] = "";
             studentRow[1] = i + 1; // ลำดับ
-            studentRow[2] = `${student.prefix || ""} ${student.firstName} ${student.surName}`.trim(); // ชื่อ-นามสกุล
+            studentRow[2] = `${student.prefix || ""} ${student.firstName || ""} ${student.surName || (student as any).lastName || ""}`.trim(); // ชื่อ-นามสกุล
             studentRow[3] = gender; // เพศ
             studentRow[4] = ageInMonths; // อายุ (เดือน)
             studentRow[5] = ageInYears; // อายุ (ปี)
@@ -400,12 +420,12 @@ export async function GET(req: Request) {
             }
         }
 
-        // Clear unused template student rows (index students.length to 999)
-        for (let i = students.length; i < 1000; i++) {
-            const rIndex = 14 + i;
-            if (rows[rIndex]) {
+        // Clear unused template student rows beyond students.length
+        const totalRowIndexNeeded = 14 + students.length;
+        for (let i = totalRowIndexNeeded; i < rows.length; i++) {
+            if (rows[i]) {
                 for (let colIdx = 0; colIdx <= 58; colIdx++) {
-                    rows[rIndex][colIdx] = "";
+                    rows[i][colIdx] = "";
                 }
             }
         }
@@ -416,7 +436,10 @@ export async function GET(req: Request) {
         const csvBuffer = XLSX.write(newWorkbook, { type: "buffer", bookType: "csv" });
 
         const school = db.schools.find(s => s.id === effectiveSchoolId);
-        const schoolName = school ? school.name.replace(/\s+/g, "_") : "report";
+        // Strip non-ASCII chars so the header value stays a valid ByteString
+        const schoolName = school
+            ? school.name.replace(/\s+/g, "_").replace(/[^\x20-\x7E]/g, "") || "school"
+            : "report";
 
         const bom = Buffer.from([0xEF, 0xBB, 0xBF]);
         const responseBuffer = Buffer.concat([bom, csvBuffer]);
@@ -452,12 +475,14 @@ export async function GET(req: Request) {
 
     const avgBmi = bmis.length ? parseFloat((bmis.reduce((a, b) => a + b, 0) / bmis.length).toFixed(1)) : 0;
 
-    const parsedStandards = growthStandards;
-
     const studentGrowthData = students.map(student => {
         const latestRecord = db.healthRecords
             .filter(hr => hr.studentId === student.id)
             .sort((a, b) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime())[0];
+
+        const school = db.schools.find(s => s.id === student.schoolId);
+        const standards = getSchoolGrowthStandards(school);
+        const growthEval = evaluateStudentGrowth(student, latestRecord, standards);
 
         let ageInYears = student.age;
         let ageInMonths = 0;
@@ -477,27 +502,8 @@ export async function GET(req: Request) {
 
         const w = latestRecord?.weight;
         const h = latestRecord?.height;
-
-        const isMale = student.gender === 'Male' || student.gender === 'male' || student.prefix === 'ด.ช.' || student.prefix === 'นาย';
-        const gender = isMale ? 1 : 2;
-
-        let waRes = null;
-        let haRes = null;
-        let whRes = null;
-
-        if (parsedStandards && w && h) {
-            const sexAge = gender * 1000 + Math.min(239, ageInMonths);
-            const waRef = parsedStandards.waTable.find(r => r.sexAge === sexAge);
-            if (waRef) waRes = calculateZScoreAndClass(w, waRef.values, false, false);
-
-            const haRef = parsedStandards.haTable.find(r => r.sexAge === sexAge);
-            if (haRef) haRes = calculateZScoreAndClass(h, haRef.values, true, false);
-
-            const roundedHeight = Math.round(h * 4) / 4;
-            const whRef = parsedStandards.whTable.find(r => r.height === roundedHeight);
-            const whValues = whRef ? (gender === 1 ? whRef.maleValues : whRef.femaleValues) : null;
-            if (whValues && !whValues.includes(NaN)) whRes = calculateZScoreAndClass(w, whValues, false, true);
-        }
+        const isMale = student.gender === 'Male' || student.gender === 'male' || student.gender === 'MALE' || student.gender === 'ชาย' ||
+            student.prefix === 'ด.ช.' || student.prefix === 'เด็กชาย' || student.prefix === 'นาย';
 
         return {
             id: student.id,
@@ -509,12 +515,13 @@ export async function GET(req: Request) {
             ageYears: ageInYears,
             weight: w !== undefined && w !== null ? w : "—",
             height: h !== undefined && h !== null ? h : "—",
-            waZScore: waRes ? waRes.zScore : "—",
-            waLabel: waRes ? waRes.label : "—",
-            haZScore: haRes ? haRes.zScore : "—",
-            haLabel: haRes ? haRes.label : "—",
-            whZScore: whRes ? whRes.zScore : "—",
-            whLabel: whRes ? whRes.label : "—",
+            bmi: latestRecord?.bmi !== undefined && latestRecord?.bmi !== null ? latestRecord.bmi : null,
+            waZScore: growthEval.waZScore,
+            waLabel: growthEval.waLabel,
+            haZScore: growthEval.haZScore,
+            haLabel: growthEval.haLabel,
+            whZScore: growthEval.whZScore,
+            whLabel: growthEval.whLabel,
         };
     });
 

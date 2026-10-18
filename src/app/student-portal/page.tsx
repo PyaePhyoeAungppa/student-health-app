@@ -296,91 +296,163 @@ export default function StudentPortalPage() {
                                         {t("bmiCategory")}: <strong>{t(bmiInfo.key as any)}</strong>
                                     </div>
                                 )}
-                                <div className="space-y-6">
-                                    {/* General Details */}
-                                    <div>
-                                        <h4 className="font-semibold text-primary mt-4 mb-2 border-b pb-1">General Details ข้อมูลทั่วไป</h4>
-                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
-                                            {[
-                                                { label: t("bloodType"), val: latestRecord.bloodType, enabled: isTestEnabled("bloodType") },
-                                                { label: t("underlyingDisease"), val: latestRecord.underlyingDisease || t("none"), enabled: true },
-                                                { label: t("drugAllergy"), val: latestRecord.drugAllergy || t("none"), enabled: true },
-                                            ].filter(item => item.enabled).map(({ label, val }) => (
-                                                <div key={label.toString()} className="flex justify-between">
-                                                    <span className="text-muted-foreground">{label}</span>
-                                                    <span className="font-medium text-right max-w-[60%]">{val}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
 
-                                    {/* Examinations & Tests */}
-                                    <div>
-                                        <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">Examinations & Tests ผลตรวจ</h4>
-                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
-                                            {[
-                                                { label: "Symptoms เบื้องต้น", val: latestRecord.symptoms || "—", enabled: isTestEnabled("symptoms") },
-                                                { label: "Hearing Test การได้ยิน", val: latestRecord.hearingTest || "—", enabled: isTestEnabled("hearingTest") },
-                                                { label: "Color Blindness ตาบอดสี", val: latestRecord.colorBlindness || "—", enabled: isTestEnabled("colorBlindness") },
-                                                { label: "Eye Test ทดสอบสายตา", val: latestRecord.eyeTest || "—", enabled: isTestEnabled("eyeTest") },
-                                                { label: "Visual Acuity ระยะการมอง", val: latestRecord.visualAcuity || "—", enabled: isTestEnabled("visionBothEyes") },
-                                                { label: "Eye Exam Report สรุปผลสายตา", val: latestRecord.eyeExamReport || "—", enabled: isTestEnabled("visionBothEyes") },
-                                                { label: "Flexibility ความอ่อนตัว (cm)", val: latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : "—", enabled: isTestEnabled("flexibility") },
-                                                { label: "Handgrip Strength แรงบีบมือ", val: latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : "—", enabled: isTestEnabled("handgripStrength") },
-                                                { label: "Standing Knee Raises ยืนยกเข่า", val: latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : "—", enabled: isTestEnabled("standingKneeRaises") },
-                                                { label: "Sit-ups ลุกนั่ง", val: latestRecord.situps != null ? `${latestRecord.situps}` : "—", enabled: isTestEnabled("situps") },
-                                                { label: "Push-ups ดันพื้น", val: latestRecord.pushups != null ? `${latestRecord.pushups}` : "—", enabled: isTestEnabled("pushups") },
-                                                { label: "X-Ray", val: latestRecord.xRayResult || "—", enabled: isTestEnabled("xRayResult") },
-                                            ].filter(item => item.enabled).map(({ label, val }) => (
-                                                <div key={label} className="flex justify-between">
-                                                    <span className="text-muted-foreground">{label}</span>
-                                                    <span className="font-medium text-right max-w-[60%]">{val}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* 10 Steps Physical Examination */}
-                                    {isTestEnabled("tenSteps") && (
-                                        <div>
-                                            <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">10 Steps Physical Examination</h4>
-                                            <div className="grid grid-cols-1 gap-y-3 text-sm">
-                                                {[
-                                                    ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.join(", ")],
-                                                    ["Auscultation (Heart/Lungs)", latestRecord.auscultation?.join(", ")],
-                                                    ["Cleanliness", latestRecord.cleanliness?.join(", ")],
-                                                    ["Mouth", latestRecord.mouth?.join(", ")],
-                                                    ["Kidney", latestRecord.kidney ? "Yes/พบ" : "Normal/ปกติ"],
-                                                    ["Thyroid", latestRecord.thyroid ? "Yes/พบ" : "Normal/ปกติ"],
-                                                    ["Lymphnode", latestRecord.lymphnode ? "Yes/พบ" : "Normal/ปกติ"],
-                                                    ["Skin", latestRecord.skin?.join(", ")],
-                                                    ["Bone", latestRecord.bone?.join(", ")],
-                                                ].map(([label, val]) => (
-                                                    <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
-                                                        <span className="text-muted-foreground w-1/3">{label}</span>
-                                                        <span className="font-medium text-right text-xs max-w-[60%]">{val || "Normal / ปกติ"}</span>
-                                                    </div>
-                                                ))}
+                                {/* Nutrition Assessment Results */}
+                                {result.growthAssessment && (
+                                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 mb-6 space-y-3">
+                                        <h4 className="font-bold text-sm text-primary flex items-center justify-between border-b border-primary/10 pb-2">
+                                            <span>{language === "th" ? "ผลการประเมินภาวะโภชนาการ" : "Nutrition Assessment Results"}</span>
+                                            <span className="text-xs font-normal text-muted-foreground">({result.school?.name})</span>
+                                        </h4>
+                                        <div className="grid grid-cols-1 gap-2 text-xs">
+                                            <div className="flex items-center justify-between p-2 rounded-lg bg-background/60 border border-border">
+                                                <span className="font-medium text-muted-foreground">{t("weightForAge")} (W/A)</span>
+                                                <span className="font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                                                    {language === "en" ? (
+                                                        result.growthAssessment.waLabel === "น้ำหนักมากกว่าเกณฑ์" ? t("aboveStandardWeight") :
+                                                        result.growthAssessment.waLabel === "น้ำหนักค่อนข้างมาก" ? t("relativelyHighWeight") :
+                                                        result.growthAssessment.waLabel === "น้ำหนักตามเกณฑ์" ? t("weightWithinStandard") :
+                                                        result.growthAssessment.waLabel === "น้ำหนักค่อนข้างน้อย" ? t("relativelyLowWeight") :
+                                                        result.growthAssessment.waLabel === "น้ำหนักน้อยกว่าเกณฑ์" ? t("belowStandardWeight") : result.growthAssessment.waLabel
+                                                    ) : result.growthAssessment.waLabel}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between p-2 rounded-lg bg-background/60 border border-border">
+                                                <span className="font-medium text-muted-foreground">{t("heightForAge")} (H/A)</span>
+                                                <span className="font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                                                    {language === "en" ? (
+                                                        result.growthAssessment.haLabel === "สูงกว่าเกณฑ์" ? t("aboveStandardHeight") :
+                                                        result.growthAssessment.haLabel === "ค่อนข้างสูง" ? t("relativelyTall") :
+                                                        result.growthAssessment.haLabel === "ส่วนสูงตามเกณฑ์" ? t("standardHeight") :
+                                                        result.growthAssessment.haLabel === "ค่อนข้างเตี้ย" ? t("relativelyShort") :
+                                                        result.growthAssessment.haLabel === "เตี้ย" ? t("short") : result.growthAssessment.haLabel
+                                                    ) : result.growthAssessment.haLabel}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between p-2 rounded-lg bg-background/60 border border-border">
+                                                <span className="font-medium text-muted-foreground">{t("weightForHeight")} (W/H)</span>
+                                                <span className="font-semibold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                                                    {language === "en" ? (
+                                                        result.growthAssessment.whLabel === "อ้วน" ? t("obeseWH") :
+                                                        result.growthAssessment.whLabel === "เริ่มอ้วน" ? t("overweightWH") :
+                                                        result.growthAssessment.whLabel === "ท้วม" ? t("plumpWH") :
+                                                        result.growthAssessment.whLabel === "สมส่วน" ? t("proportionateWH") :
+                                                        result.growthAssessment.whLabel === "ค่อนข้างผอม" ? t("relativelyThinWH") :
+                                                        result.growthAssessment.whLabel === "ผอม" ? t("thinWH") : result.growthAssessment.whLabel
+                                                    ) : result.growthAssessment.whLabel}
+                                                </span>
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
+                                )}
+                                <div className="space-y-6">
+                                    {/* General Details */}
+                                    {(() => {
+                                        const items = [
+                                            { label: t("bloodType"), val: latestRecord.bloodType, enabled: isTestEnabled("bloodType") },
+                                            { label: t("underlyingDisease"), val: latestRecord.underlyingDisease, enabled: true },
+                                            { label: t("drugAllergy"), val: latestRecord.drugAllergy, enabled: true },
+                                        ].filter(item => item.enabled && item.val != null && item.val !== "");
+                                        if (items.length === 0) return null;
+                                        return (
+                                            <div>
+                                                <h4 className="font-semibold text-primary mt-4 mb-2 border-b pb-1">General Details ข้อมูลทั่วไป</h4>
+                                                <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                    {items.map(({ label, val }) => (
+                                                        <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
+                                                            <span className="text-muted-foreground w-1/3">{label}</span>
+                                                            <span className="font-medium text-right text-xs max-w-[60%]">{val}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Examinations & Tests */}
+                                    {(() => {
+                                        const items = [
+                                            { label: "Symptoms เบื้องต้น", val: latestRecord.symptoms, enabled: isTestEnabled("symptoms") },
+                                            { label: "Hearing Test การได้ยิน", val: latestRecord.hearingTest, enabled: isTestEnabled("hearingTest") },
+                                            { label: "Color Blindness ตาบอดสี", val: latestRecord.colorBlindness, enabled: isTestEnabled("colorBlindness") },
+                                            { label: "Eye Test ทดสอบสายตา", val: latestRecord.eyeTest, enabled: isTestEnabled("eyeTest") },
+                                            { label: "Visual Acuity ระยะการมอง", val: latestRecord.visualAcuity, enabled: isTestEnabled("visionBothEyes") },
+                                            { label: "Eye Exam Report สรุปผลสายตา", val: latestRecord.eyeExamReport, enabled: isTestEnabled("visionBothEyes") },
+                                            { label: "Flexibility ความอ่อนตัว (cm)", val: latestRecord.flexibility != null ? `${latestRecord.flexibility} cm` : null, enabled: isTestEnabled("flexibility") },
+                                            { label: "Handgrip Strength แรงบีบมือ", val: latestRecord.handgripStrength != null ? `${latestRecord.handgripStrength}` : null, enabled: isTestEnabled("handgripStrength") },
+                                            { label: "Standing Knee Raises ยืนยกเข่า", val: latestRecord.standingKneeRaises != null ? `${latestRecord.standingKneeRaises}` : null, enabled: isTestEnabled("standingKneeRaises") },
+                                            { label: "Sit-ups ลุกนั่ง", val: latestRecord.situps != null ? `${latestRecord.situps}` : null, enabled: isTestEnabled("situps") },
+                                            { label: "Push-ups ดันพื้น", val: latestRecord.pushups != null ? `${latestRecord.pushups}` : null, enabled: isTestEnabled("pushups") },
+                                            { label: "X-Ray", val: latestRecord.xRayResult, enabled: isTestEnabled("xRayResult") },
+                                        ].filter(item => item.enabled && item.val != null && item.val !== "");
+                                        if (items.length === 0) return null;
+                                        return (
+                                            <div>
+                                                <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">Examinations & Tests ผลตรวจ</h4>
+                                                <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                    {items.map(({ label, val }) => (
+                                                        <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
+                                                            <span className="text-muted-foreground w-1/3">{label}</span>
+                                                            <span className="font-medium text-right text-xs max-w-[60%]">{val}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* 10 Steps Physical Examination */}
+                                    {isTestEnabled("tenSteps") && (() => {
+                                        const items = [
+                                            ["Ear Eye Throat Nose", latestRecord.earEyeThroatNose?.join(", ")],
+                                            ["Auscultation (Heart/Lungs)", latestRecord.auscultation?.join(", ")],
+                                            ["Cleanliness", latestRecord.cleanliness?.join(", ")],
+                                            ["Mouth", latestRecord.mouth?.join(", ")],
+                                            ["Kidney", latestRecord.kidney != null ? (latestRecord.kidney ? "Yes/พบ" : "Normal/ปกติ") : null],
+                                            ["Thyroid", latestRecord.thyroid != null ? (latestRecord.thyroid ? "Yes/พบ" : "Normal/ปกติ") : null],
+                                            ["Lymphnode", latestRecord.lymphnode != null ? (latestRecord.lymphnode ? "Yes/พบ" : "Normal/ปกติ") : null],
+                                            ["Skin", latestRecord.skin?.join(", ")],
+                                            ["Bone", latestRecord.bone?.join(", ")],
+                                        ].filter(([label, val]) => val != null && val !== "");
+                                        
+                                        if (items.length === 0) return null;
+                                        return (
+                                            <div>
+                                                <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">10 Steps Physical Examination</h4>
+                                                <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                    {items.map(([label, val]) => (
+                                                        <div key={label?.toString()} className="flex justify-between border-b border-border/50 pb-1">
+                                                            <span className="text-muted-foreground w-1/3">{label}</span>
+                                                            <span className="font-medium text-right text-xs max-w-[60%]">{val}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
 
                                     {/* Additional Health Info */}
-                                    <div>
-                                        <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">Additional Health Info</h4>
-                                        <div className="grid grid-cols-1 gap-y-3 text-sm">
-                                            {[
-                                                ["Body Examination", latestRecord.bodyExamination || "—"],
-                                                ["Doctor Note", latestRecord.doctorNote || "—"],
-                                                [t("additionalNotes"), latestRecord.additionalNotes || "—"],
-                                            ].map(([label, val]) => (
-                                                <div key={label.toString()} className="flex justify-between border-b border-border/50 pb-1">
-                                                    <span className="text-muted-foreground w-1/3">{label}</span>
-                                                    <span className="font-medium text-right text-xs max-w-[60%]">{val || "—"}</span>
+                                    {(() => {
+                                        const items = [
+                                            ["Body Examination", latestRecord.bodyExamination],
+                                            ["Doctor Note", latestRecord.doctorNote],
+                                            [t("additionalNotes"), latestRecord.additionalNotes],
+                                        ].filter(([label, val]) => val != null && val !== "");
+                                        if (items.length === 0) return null;
+                                        return (
+                                            <div>
+                                                <h4 className="font-semibold text-primary mt-6 mb-2 border-b pb-1">Additional Health Info</h4>
+                                                <div className="grid grid-cols-1 gap-y-3 text-sm">
+                                                    {items.map(([label, val]) => (
+                                                        <div key={label?.toString()} className="flex justify-between border-b border-border/50 pb-1">
+                                                            <span className="text-muted-foreground w-1/3">{label}</span>
+                                                            <span className="font-medium text-right text-xs max-w-[60%]">{val}</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         )}

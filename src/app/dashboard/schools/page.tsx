@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Plus, Loader2, Building2, Edit, Trash2, X, AlertOctagon } from "lucide-react";
+import { Plus, Loader2, Building2, Edit, Trash2, X, AlertOctagon, Download } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { useLanguage } from "@/components/providers/language-provider";
@@ -20,6 +20,18 @@ export default function SchoolsPage() {
     const [schoolToDelete, setSchoolToDelete] = useState<{ id: string, name: string } | null>(null);
     const [deleting, setDeleting] = useState(false);
     const defaultTestsConfig = {
+        nationalId: true,
+        studentId: true,
+        gender: true,
+        bloodType: true,
+        congenitalDisease: true,
+        drugAllergy: true,
+        hearingTest: true,
+        eyeTest: true,
+        visualAcuity: true,
+        colorBlindness: true,
+        bodyExamination: true,
+        symptoms: true,
         flexibility: true,
         handgripStrength: true,
         standingKneeRaises: true,
@@ -161,6 +173,49 @@ export default function SchoolsPage() {
                                     </div>
                                 )}
                                 <div className="md:col-span-2 mt-2 pt-4 border-t border-border/30">
+                                    <label className="block text-sm font-medium mb-3">ข้อมูลทั่วไป (General Information)</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50 mb-6">
+                                        {[
+                                            { key: "nationalId", label: "เลขประจำตัวประชาชน" },
+                                            { key: "studentId", label: "เลขประจำตัวนักเรียน" },
+                                            { key: "gender", label: "เพศ" },
+                                        ].map(item => (
+                                            <label key={item.key} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-lg transition-colors">
+                                                <input type="checkbox" 
+                                                    checked={form.testsConfig[item.key as keyof typeof defaultTestsConfig] !== false} 
+                                                    onChange={e => setForm({
+                                                        ...form, 
+                                                        testsConfig: { ...form.testsConfig, [item.key]: e.target.checked }
+                                                    })}
+                                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50" />
+                                                <span>{item.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <label className="block text-sm font-medium mb-3">ข้อมูลสุขภาพทั่วไป (General Health Data)</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50 mb-6">
+                                        {[
+                                            { key: "bloodType", label: "กรุ๊ปเลือด" },
+                                            { key: "congenitalDisease", label: "โรคประจำตัว" },
+                                            { key: "drugAllergy", label: "แพ้ยา" },
+                                            { key: "hearingTest", label: "การได้ยิน" },
+                                            { key: "colorBlindness", label: "การแยกสี" },
+                                            { key: "eyeTest", label: "ระยะการมอง" },
+                                            { key: "visualAcuity", label: "สรุปผลสายตา" },
+                                            { key: "bodyExamination", label: "ผลตรวจสุขภาพ" },
+                                        ].map(item => (
+                                            <label key={item.key} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-secondary/50 p-2 rounded-lg transition-colors">
+                                                <input type="checkbox" 
+                                                    checked={form.testsConfig[item.key as keyof typeof defaultTestsConfig] !== false} 
+                                                    onChange={e => setForm({
+                                                        ...form, 
+                                                        testsConfig: { ...form.testsConfig, [item.key]: e.target.checked }
+                                                    })}
+                                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary/50" />
+                                                <span>{item.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
                                     <label className="block text-sm font-medium mb-3">{t("configuredHealthAssessments") || "การทดสอบสมรรถภาพทางกาย"}</label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 bg-secondary/30 p-4 rounded-xl border border-border/50">
                                         {[
@@ -338,10 +393,15 @@ export default function SchoolsPage() {
                             </div>
                         </div>
 
-                        {/* View School Button */}
-                        <div className="mt-5 pt-4 border-t border-border/30">
+                        {/* Action Buttons */}
+                        <div className="mt-5 pt-4 border-t border-border/30 flex gap-2">
+                            <a href={`/api/students/template?schoolId=${school.id}`}
+                                title={t("downloadSample" as any) || "Download Template"}
+                                className="flex items-center justify-center w-[42px] shrink-0 rounded-lg border border-primary/20 text-primary bg-primary/5 hover:bg-primary/15 transition-all">
+                                <Download className="w-4 h-4" />
+                            </a>
                             <Link href={`/dashboard/schools/${school.id}`}
-                                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all"
+                                className="flex items-center justify-center gap-2 flex-1 py-2.5 rounded-lg text-sm font-medium text-white hover:opacity-90 transition-all shadow-sm"
                                 style={{ background: "linear-gradient(135deg, hsl(212, 100%, 52%) 0%, hsl(199, 89%, 48%) 100%)" }}>
                                 {t("manageSchool")} →
                             </Link>

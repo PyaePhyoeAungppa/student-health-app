@@ -42,3 +42,8 @@ next-env.d.ts
 db.json
 *.db
 *.sqlite
+
+# Scratch scripts
+check_charts.py
+check_sheets.js
+

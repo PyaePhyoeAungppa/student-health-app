@@ -293,26 +293,28 @@ export default function ImportStudentsPage() {
                                 Expected Excel Columns
                             </h3>
                             <div className="flex flex-wrap gap-2 text-xs">
-                                <span className="px-2 py-1 rounded bg-background border border-border">เลขประจำตัว</span>
+                                {testsConfig.studentId !== false && <span className="px-2 py-1 rounded bg-background border border-border">เลขประจำตัว</span>}
+                                {testsConfig.nationalId !== false && <span className="px-2 py-1 rounded bg-background border border-border">เลขประจำตัวประชาชน</span>}
                                 <span className="px-2 py-1 rounded bg-background border border-border">คำนำ</span>
                                 <span className="px-2 py-1 rounded bg-background border border-border">ชื่อ</span>
                                 <span className="px-2 py-1 rounded bg-background border border-border">นามสกุล</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">เพศ</span>
+                                {testsConfig.gender !== false && <span className="px-2 py-1 rounded bg-background border border-border">เพศ</span>}
                                 <span className="px-2 py-1 rounded bg-background border border-border">อายุ</span>
                                 <span className="px-2 py-1 rounded bg-background border border-border">ปีการศึกษา</span>
                                 <span className="px-2 py-1 rounded bg-background border border-border">ชั้น</span>
                                 <span className="px-2 py-1 rounded bg-background border border-border">ห้อง</span>
                                 <span className="px-2 py-1 rounded bg-background border border-border">เลขที่</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">กรุ๊ปเลือด</span>
+                                {testsConfig.bloodType !== false && <span className="px-2 py-1 rounded bg-background border border-border">กรุ๊ปเลือด</span>}
                                 <span className="px-2 py-1 rounded bg-background border border-border">น้ำหนัก</span>
                                 <span className="px-2 py-1 rounded bg-background border border-border">ส่วนสูง</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">โรคประจำตัว</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">แพ้ยา</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">การได้ยิน</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">การแยกสี</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">ระยะการมอง</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">สรุปผลสายตา</span>
-                                <span className="px-2 py-1 rounded bg-background border border-border">อาการเบื้องต้น</span>
+                                {testsConfig.congenitalDisease !== false && <span className="px-2 py-1 rounded bg-background border border-border">โรคประจำตัว</span>}
+                                {testsConfig.drugAllergy !== false && <span className="px-2 py-1 rounded bg-background border border-border">แพ้ยา</span>}
+                                {testsConfig.hearingTest !== false && <span className="px-2 py-1 rounded bg-background border border-border">การได้ยิน</span>}
+                                {testsConfig.colorBlindness !== false && <span className="px-2 py-1 rounded bg-background border border-border">การแยกสี</span>}
+                                {testsConfig.eyeTest !== false && <span className="px-2 py-1 rounded bg-background border border-border">ระยะการมอง</span>}
+                                {testsConfig.visualAcuity !== false && <span className="px-2 py-1 rounded bg-background border border-border">สรุปผลสายตา</span>}
+                                {testsConfig.symptoms !== false && <span className="px-2 py-1 rounded bg-background border border-border">อาการเบื้องต้น</span>}
+                                {testsConfig.bodyExamination !== false && <span className="px-2 py-1 rounded bg-background border border-border">ผลตรวจสุขภาพ</span>}
                                 <span className="px-2 py-1 rounded bg-background border border-border">บันทึกเพิ่มเติม</span>
                                 
                                 {testsConfig.flexibility !== false && <span className="px-2 py-1 rounded bg-primary/10 border border-primary/20 text-primary">ความอ่อนตัว : Sit and Reach Test</span>}

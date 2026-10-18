@@ -188,7 +188,7 @@ function NewHealthRecordForm() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1.5">ผลเอ็กซเรย์ (Xray results)</label>
+                            <label className="block text-sm font-medium mb-1.5">ผลเอกซเรย์ (Xray results)</label>
                             <div className="flex gap-3 mb-2">
                                 {["normal", "Abnormal"].map(v => (
                                     <label key={v} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border cursor-pointer transition-all text-sm ${form.xRayResult === v ? v === "normal" ? "bg-green-500/15 border-green-500/30 text-green-400" : "bg-red-500/15 border-red-500/30 text-red-400" : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>

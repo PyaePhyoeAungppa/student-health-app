@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readDb, writeDb } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { getSchoolGrowthStandards, evaluateStudentGrowth } from "@/lib/growth-calculator";
 
 export async function POST(req: Request) {
     try {
@@ -52,7 +53,11 @@ export async function POST(req: Request) {
                 .filter((hr: any) => hr.studentId === student.id)
                 .sort((a: any, b: any) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
 
-            return NextResponse.json({ ...db.students[index], school, healthRecords });
+            const standards = getSchoolGrowthStandards(school);
+            const latestRecord = healthRecords[0];
+            const growthAssessment = evaluateStudentGrowth(db.students[index], latestRecord, standards);
+
+            return NextResponse.json({ ...db.students[index], school, healthRecords, growthAssessment });
         }
 
         if (action === "login") {
@@ -76,7 +81,11 @@ export async function POST(req: Request) {
                 .filter((hr: any) => hr.studentId === student.id)
                 .sort((a: any, b: any) => new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime());
 
-            return NextResponse.json({ ...student, school, healthRecords });
+            const standards = getSchoolGrowthStandards(school);
+            const latestRecord = healthRecords[0];
+            const growthAssessment = evaluateStudentGrowth(student, latestRecord, standards);
+
+            return NextResponse.json({ ...student, school, healthRecords, growthAssessment });
         }
 
         return NextResponse.json({ error: "Invalid action." }, { status: 400 });

@@ -268,6 +268,33 @@ export const translations = {
         weightRange: "Weight Range (kg)",
         heightRange: "Height Range (cm)",
         ageAlreadyExists: "Validation for this age already exists.",
+
+        // Nutrition Indicators
+        weightForAge: "Weight-for-Age (W/A)",
+        heightForAge: "Height-for-Age (H/A)",
+        weightForHeight: "Weight-for-Height (W/H)",
+
+        // W/A Assessment Values
+        aboveStandardWeight: "Above the Standard Weight",
+        relativelyHighWeight: "Relatively High Weight",
+        weightWithinStandard: "Weight Within the Standard",
+        relativelyLowWeight: "Relatively Low Weight",
+        belowStandardWeight: "Below the Standard Weight",
+
+        // H/A Assessment Values
+        aboveStandardHeight: "Above Standard Height",
+        relativelyTall: "Relatively Tall",
+        standardHeight: "Standard Height",
+        relativelyShort: "Relatively Short",
+        short: "Short",
+
+        // W/H Assessment Values
+        obeseWH: "Obese",
+        overweightWH: "Overweight",
+        plumpWH: "Plump",
+        proportionateWH: "Proportionate",
+        relativelyThinWH: "Relatively Thin",
+        thinWH: "Thin",
     },
     th: {
         // Shared
@@ -538,6 +565,33 @@ export const translations = {
         weightRange: "ช่วงน้ำหนัก (กก.)",
         heightRange: "ช่วงส่วนสูง (ซม.)",
         ageAlreadyExists: "มีการตั้งค่าสำหรับอายุนี้แล้ว",
+
+        // Nutrition Indicators
+        weightForAge: "น้ำหนักตามเกณฑ์อายุ—Weight-for-Age (W/A)",
+        heightForAge: "ส่วนสูงตามเกณฑ์อายุ—Height-for-Age (H/A)",
+        weightForHeight: "น้ำหนักตามเกณฑ์ส่วนสูง—Weight-for-Height (W/H)",
+
+        // W/A Assessment Values
+        aboveStandardWeight: "น้ำหนักมากกว่าเกณฑ์",
+        relativelyHighWeight: "น้ำหนักค่อนข้างมาก",
+        weightWithinStandard: "น้ำหนักตามเกณฑ์",
+        relativelyLowWeight: "น้ำหนักค่อนข้างน้อย",
+        belowStandardWeight: "น้ำหนักน้อยกว่าเกณฑ์",
+
+        // H/A Assessment Values
+        aboveStandardHeight: "สูงกว่าเกณฑ์",
+        relativelyTall: "ค่อนข้างสูง",
+        standardHeight: "ส่วนสูงตามเกณฑ์",
+        relativelyShort: "ค่อนข้างเตี้ย",
+        short: "เตี้ย",
+
+        // W/H Assessment Values
+        obeseWH: "อ้วน",
+        overweightWH: "เริ่มอ้วน",
+        plumpWH: "ท้วม",
+        proportionateWH: "สมส่วน",
+        relativelyThinWH: "ค่อนข้างผอม",
+        thinWH: "ผอม",
     }
 };
 

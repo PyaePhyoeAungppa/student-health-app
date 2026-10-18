@@ -42,30 +42,24 @@ export async function GET(req: Request) {
         xRayResult: true
     };
 
-    // Base headers that are always included
-    const headers = [
-        "เลขประจำตัว", // Student ID
-        "คำนำ", // Prefix
-        "ชื่อ", // First Name
-        "นามสกุล", // Last Name
-        "เพศ", // Gender
-        "อายุ", // Age
-        "ปีการศึกษา", // Academic Year
-        "ชั้น", // Class
-        "ห้อง", // Room
-        "เลขที่", // Order Number
-        "กรุ๊ปเลือด", // Blood Type
-        "น้ำหนัก", // Weight
-        "ส่วนสูง", // Height
-        "โรคประจำตัว", // Underlying Disease
-        "แพ้ยา", // Drug Allergy
-        "การได้ยิน", // Hearing Test
-        "การแยกสี", // Color Blindness
-        "ระยะการมอง", // Visual Acuity
-        "สรุปผลสายตา", // Eye Exam Report
-        "อาการเบื้องต้น", // Symptoms
-        "บันทึกเพิ่มเติม" // Additional Notes
-    ];
+    const headers = [];
+    if (testsConfig.studentId !== false) headers.push("เลขประจำตัว"); // Student ID
+    if (testsConfig.nationalId !== false) headers.push("เลขประจำตัวประชาชน"); // National ID
+    headers.push("คำนำ", "ชื่อ", "นามสกุล");
+    if (testsConfig.gender !== false) headers.push("เพศ"); // Gender
+    headers.push("อายุ", "ปีการศึกษา", "ชั้น", "ห้อง", "เลขที่");
+    if (testsConfig.bloodType !== false) headers.push("กรุ๊ปเลือด"); // Blood Type
+    headers.push("น้ำหนัก", "ส่วนสูง");
+    
+    if (testsConfig.congenitalDisease !== false) headers.push("โรคประจำตัว"); // Underlying Disease
+    if (testsConfig.drugAllergy !== false) headers.push("แพ้ยา"); // Drug Allergy
+    if (testsConfig.hearingTest !== false) headers.push("การได้ยิน"); // Hearing Test
+    if (testsConfig.colorBlindness !== false) headers.push("การแยกสี"); // Color Blindness
+    if (testsConfig.eyeTest !== false) headers.push("ระยะการมอง"); // Visual Acuity
+    if (testsConfig.visualAcuity !== false) headers.push("สรุปผลสายตา"); // Eye Exam Report
+    if (testsConfig.symptoms !== false) headers.push("อาการเบื้องต้น"); // Symptoms
+    if (testsConfig.bodyExamination !== false) headers.push("ผลตรวจสุขภาพ"); // Body Examination
+    headers.push("บันทึกเพิ่มเติม"); // Additional Notes
 
     // Conditional headers based on testsConfig
     if (testsConfig.flexibility !== false) headers.push("ความอ่อนตัว : Sit and Reach Test");
